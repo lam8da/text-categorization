@@ -57,12 +57,13 @@ public class ExtractReuters {
 			StringBuffer outBuffer = new StringBuffer(1024);
 
 			String line = null;
-			int index = -1;
+			// int index = -1;
 			int docNumber = 0;
 			while ((line = reader.readLine()) != null) {
 				// when we see a closing reuters tag, flush the file
 
-				if ((index = line.indexOf("</REUTERS")) == -1) {	//"</REUTERS" will always occur at index 0
+				if ((/* index = */line.indexOf("</REUTERS")) == -1) {
+					// if "</REUTERS" occurs, it will always occur at index 0
 					// Replace the SGM escape sequences
 
 					buffer.append(line).append(' ');// accumulate the strings
