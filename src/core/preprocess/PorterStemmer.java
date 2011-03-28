@@ -62,7 +62,7 @@ public class PorterStemmer {
 	}
 
 	/* vowelinstem() is TRUE <=> k0,...j contains a vowel */
-	private boolean vowelinstem() {
+	private boolean vowelInStem() {
 		int i;
 		for (i = k0; i <= j; i++)
 			if (!cons(i))
@@ -71,7 +71,7 @@ public class PorterStemmer {
 	}
 
 	/* doublec(j) is TRUE <=> j,(j-1) contain a double consonant. */
-	private boolean doublec(int j) {
+	private boolean doubleC(int j) {
 		if (j < k0 + 1)
 			return false;
 		if (b[j] != b[j - 1])
@@ -129,7 +129,7 @@ public class PorterStemmer {
 	 * setto(s) sets (j+1),...k to the characters in the string s, readjusting
 	 * k.
 	 */
-	private void setto(String str) {
+	private void setTo(String str) {
 		char[] s = str.toCharArray();
 		int length = s[0];
 		memmove(b, j + 1, s, 1, length);
@@ -139,7 +139,7 @@ public class PorterStemmer {
 	/* r(s) is used further down. */
 	private void r(String s) {
 		if (m() > 0)
-			setto(s);
+			setTo(s);
 	}
 
 	/*
@@ -159,34 +159,34 @@ public class PorterStemmer {
 			if (ends("\04" + "sses"))
 				k -= 2;
 			else if (ends("\03" + "ies"))
-				setto("\01" + "i");
+				setTo("\01" + "i");
 			else if (b[k - 1] != 's')
 				k--;
 		}
 		if (ends("\03" + "eed")) {
 			if (m() > 0)
 				k--;
-		} else if ((ends("\02" + "ed") || ends("\03" + "ing")) && vowelinstem()) {
+		} else if ((ends("\02" + "ed") || ends("\03" + "ing")) && vowelInStem()) {
 			k = j;
 			if (ends("\02" + "at"))
-				setto("\03" + "ate");
+				setTo("\03" + "ate");
 			else if (ends("\02" + "bl"))
-				setto("\03" + "ble");
+				setTo("\03" + "ble");
 			else if (ends("\02" + "iz"))
-				setto("\03" + "ize");
-			else if (doublec(k)) {
+				setTo("\03" + "ize");
+			else if (doubleC(k)) {
 				k--;
 				int ch = b[k];
 				if (ch == 'l' || ch == 's' || ch == 'z')
 					k++;
 			} else if (m() == 1 && cvc(k))
-				setto("\01" + "e");
+				setTo("\01" + "e");
 		}
 	}
 
 	/* step1c() turns terminal y to i when there is another vowel in the stem. */
 	private void step1c() {
-		if (ends("\01" + "y") && vowelinstem())
+		if (ends("\01" + "y") && vowelInStem())
 			b[k] = 'i';
 	}
 
@@ -431,7 +431,7 @@ public class PorterStemmer {
 			if (a > 1 || a == 1 && !cvc(k - 1))
 				k--;
 		}
-		if (b[k] == 'l' && doublec(k) && m() > 1)
+		if (b[k] == 'l' && doubleC(k) && m() > 1)
 			k--;
 	}
 
@@ -452,7 +452,7 @@ public class PorterStemmer {
 	 * 
 	 * @return the new end point of the string.
 	 */
-	public String porter_stem(String str) {
+	public String stem(String str) {
 		k0 = 0; /* copy the parameters into statics */
 		k = str.length() - 1;
 		if (k <= k0 + 1)

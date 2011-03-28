@@ -16,7 +16,7 @@ public class PorterStemmerTest {
 			word = in.next();
 			if (word.equals("exit"))
 				break;
-			ret = stemmer.porter_stem(word);
+			ret = stemmer.stem(word);
 			System.out.println(ret + "->" + ret.length());
 		} while (true);
 	}

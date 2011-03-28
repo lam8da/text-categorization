@@ -17,8 +17,7 @@ public class KrovetzStemmerTest {
 			word = in.next();
 			if (word.equals("exit"))
 				break;
-
-			ret = stemmer.kstem_stem_tobuffer(word);
+			ret = stemmer.stem(word);
 			System.out.println(ret + "->" + ret.length());
 		} while (true);
 	}
