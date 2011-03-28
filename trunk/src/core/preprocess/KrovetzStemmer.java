@@ -103,7 +103,7 @@ public class KrovetzStemmer {
 	 * @return the number of characters written to the buffer, including the
 	 * terminating '\\0'. If 0, the caller should use the value in term.
 	 */
-	public String kstem_stem_tobuffer(String termS) {
+	public String stem(String termS) {
 		int i;
 		boolean stem_it = true;
 
@@ -181,92 +181,92 @@ public class KrovetzStemmer {
 		 */
 		// int lambdacnt = -1;
 		while (true) {
-			if ((dep = getdep(word)) != null)
+			if ((dep = getDep(word)) != null)
 				break;
 			plural();
 			// System.out.println((lambdacnt += 1) + " " + word);
 
-			if ((dep = getdep(word)) != null)
+			if ((dep = getDep(word)) != null)
 				break;
-			past_tense();
+			pastTense();
 			// System.out.println((lambdacnt += 1) + " " + word);
 
-			if ((dep = getdep(word)) != null)
+			if ((dep = getDep(word)) != null)
 				break;
 			aspect();
 			// System.out.println((lambdacnt += 1) + " " + word);
 
-			if ((dep = getdep(word)) != null)
+			if ((dep = getDep(word)) != null)
 				break;
 			ity_endings();
 			// System.out.println((lambdacnt += 1) + " " + word);
 
-			if ((dep = getdep(word)) != null)
+			if ((dep = getDep(word)) != null)
 				break;
 			ness_endings();
 			// System.out.println((lambdacnt += 1) + " " + word);
 
-			if ((dep = getdep(word)) != null)
+			if ((dep = getDep(word)) != null)
 				break;
 			ion_endings();
 			// System.out.println((lambdacnt += 1) + " " + word);
 
-			if ((dep = getdep(word)) != null)
+			if ((dep = getDep(word)) != null)
 				break;
 			er_and_or_endings();
 			// System.out.println((lambdacnt += 1) + " " + word);
 
-			if ((dep = getdep(word)) != null)
+			if ((dep = getDep(word)) != null)
 				break;
 			ly_endings();
 			// System.out.println((lambdacnt += 1) + " " + word);
 
-			if ((dep = getdep(word)) != null)
+			if ((dep = getDep(word)) != null)
 				break;
 			al_endings();
 			// System.out.println((lambdacnt += 1) + " " + word);
 
-			if ((dep = getdep(word)) != null)
+			if ((dep = getDep(word)) != null)
 				break;
 			ive_endings();
 			// System.out.println((lambdacnt += 1) + " " + word);
 
-			if ((dep = getdep(word)) != null)
+			if ((dep = getDep(word)) != null)
 				break;
 			ize_endings();
 			// System.out.println((lambdacnt += 1) + " " + word);
 
-			if ((dep = getdep(word)) != null)
+			if ((dep = getDep(word)) != null)
 				break;
 			ment_endings();
 			// System.out.println((lambdacnt += 1) + " " + word);
 
-			if ((dep = getdep(word)) != null)
+			if ((dep = getDep(word)) != null)
 				break;
 			ble_endings();
 			// System.out.println((lambdacnt += 1) + " " + word);
 
-			if ((dep = getdep(word)) != null)
+			if ((dep = getDep(word)) != null)
 				break;
 			ism_endings();
 			// System.out.println((lambdacnt += 1) + " " + word);
 
-			if ((dep = getdep(word)) != null)
+			if ((dep = getDep(word)) != null)
 				break;
 			ic_endings();
 			// System.out.println((lambdacnt += 1) + " " + word);
 
-			if ((dep = getdep(word)) != null)
+			if ((dep = getDep(word)) != null)
 				break;
 			ncy_endings();
 			// System.out.println((lambdacnt += 1) + " " + word);
 
-			if ((dep = getdep(word)) != null)
+			if ((dep = getDep(word)) != null)
 				break;
 			nce_endings();
 			// System.out.println((lambdacnt += 1) + " " + word);
 
-			dep = getdep(word);
+			dep = getDep(word);
 			break;
 		}
 		// System.out.println(word);
@@ -307,7 +307,7 @@ public class KrovetzStemmer {
 	 * Adds a stem entry into the hash table; forces the stemmer to stem
 	 * <variant> to <word>. If <word> == "", <variant> is stemmed to itself.
 	 */
-	private void kstem_add_table_entry(String variant, String word, boolean exc) {
+	private void addTableEntry(String variant, String word, boolean exc) {
 		if (dictEntries.containsKey(variant)) {
 			// duplicate.
 			System.out.println("kstem_add_table_entry: Duplicate word "
@@ -319,8 +319,8 @@ public class KrovetzStemmer {
 		dictEntries.put(variant, entry);
 	}
 
-	private void kstem_add_table_entry(String variant, String word) {
-		kstem_add_table_entry(variant, word, false);
+	private void addTableEntry(String variant, String word) {
+		addTableEntry(variant, word, false);
 	}
 
 	// / Dictionary table entry
@@ -351,7 +351,7 @@ public class KrovetzStemmer {
 	}
 
 	// operates on atribute word.
-	private boolean ends_in(String str) {
+	private boolean endsIn(String str) {
 		int sufflength = str.length();
 		int r = (k + 1) - sufflength; /* length of word before this suffix */
 		boolean match;
@@ -368,7 +368,7 @@ public class KrovetzStemmer {
 	}
 
 	/* replace old suffix with str */
-	private void setsuffix(String str) {
+	private void setSuffix(String str) {
 		int length = str.length();
 		word.replace(j + 1, str);
 		k = j + length;
@@ -379,7 +379,7 @@ public class KrovetzStemmer {
 	 * getdep(word) returns NULL if word is not found in the dictionary, and
 	 * returns a pointer to a dictentry if found
 	 */
-	private DictEntry getdep(CharBuffer w) {
+	private DictEntry getDep(CharBuffer w) {
 		/* don't bother to check for words that are short */
 		if (w.length() <= 1) {
 			return null;
@@ -393,7 +393,7 @@ public class KrovetzStemmer {
 	 * true if it is
 	 */
 	private boolean lookup(CharBuffer w) {
-		return getdep(w) != null;
+		return getDep(w) != null;
 	}
 
 	/* cons() returns TRUE if word[i] is a consonant. */
@@ -415,7 +415,7 @@ public class KrovetzStemmer {
 	}
 
 	/* This routine is useful for ensuring that we don't stem acronyms */
-	private boolean vowelinstem() {
+	private boolean vowelInStem() {
 		for (int i = 0; i < (j + 1); i++)
 			if (vowel(i))
 				return (true);
@@ -427,7 +427,7 @@ public class KrovetzStemmer {
 	}
 
 	/* return TRUE if word ends with a double consonant */
-	private boolean doublec(int i) {
+	private boolean doubleC(int i) {
 		if (i < 1)
 			return (false);
 
@@ -440,15 +440,15 @@ public class KrovetzStemmer {
 	/* convert plurals to singular form, and `-ies' to `y' */
 	private void plural() {
 		if ((word.charAt(k)) == 's') {
-			if (ends_in("ies")) {
+			if (endsIn("ies")) {
 				word.setLength(j + 3);
 				k--;
 				if (lookup(word)) /* ensure calories -> calorie */
 					return;
 				k++;
 				word.setCharAt(j + 3, 's');
-				setsuffix("y");
-			} else if (ends_in("es")) {
+				setSuffix("y");
+			} else if (endsIn("es")) {
 				/* try just removing the "s" */
 				word.setLength(j + 2);
 				k--;
@@ -480,7 +480,7 @@ public class KrovetzStemmer {
 				return;
 			} else {
 				if ((k + 1) > 3 && (word.charAt(k - 1)) != 's'
-						&& !ends_in("ous")) {
+						&& !endsIn("ous")) {
 					/*
 					 * unless the word ends in "ous" or a double "s", remove the
 					 * final "s"
@@ -493,7 +493,7 @@ public class KrovetzStemmer {
 	}
 
 	/* convert past tense (-ed) to present, and `-ied' to `y' */
-	private void past_tense() {
+	private void pastTense() {
 		/*
 		 * Handle words less than 5 letters with a direct mapping This prevents
 		 * (fled -> fl).
@@ -504,7 +504,7 @@ public class KrovetzStemmer {
 
 		DictEntry dep = null;
 
-		if (ends_in("ied")) {
+		if (endsIn("ied")) {
 			word.setLength(j + 3);
 			k--;
 			if (lookup(word)) /* we almost always want to convert -ied to -y, but */
@@ -512,17 +512,17 @@ public class KrovetzStemmer {
 			k++; /* I don't know any long words that this applies to, */
 			// word.setLength(j + 4);
 			word.setCharAt(j + 3, 'd'); /* but just in case... */
-			setsuffix("y");
+			setSuffix("y");
 			return;
 		}
 
 		/* the vowelinstem() is necessary so we don't stem acronyms */
-		if (ends_in("ed") && vowelinstem()) {
+		if (endsIn("ed") && vowelInStem()) {
 			/* see if the root ends in `e' */
 			word.setLength(j + 2);
 			k = j + 1;
 
-			if ((dep = getdep(word)) != null)
+			if ((dep = getDep(word)) != null)
 				if (!(dep.exception)) /*
 									 * if it's in the dictionary and not an
 									 * exception
@@ -542,7 +542,7 @@ public class KrovetzStemmer {
 			 * `backfill' -> `backfille', and seems correct most of the time
 			 */
 
-			if (doublec(k)) {
+			if (doubleC(k)) {
 				word.setLength(k);
 				k--;
 				if (lookup(word))
@@ -589,14 +589,14 @@ public class KrovetzStemmer {
 
 		DictEntry dep = null;
 		/* the vowelinstem() is necessary so we don't stem acronyms */
-		if (ends_in("ing") && vowelinstem()) {
+		if (endsIn("ing") && vowelInStem()) {
 
 			/* try adding an `e' to the stem and check against the dictionary */
 			word.setCharAt(j + 1, 'e');
 			word.setLength(j + 2);
 			k = j + 1;
 
-			if ((dep = getdep(word)) != null)
+			if ((dep = getDep(word)) != null)
 				if (!(dep.exception)) /*
 									 * if it's in the dictionary and not an
 									 * exception
@@ -611,7 +611,7 @@ public class KrovetzStemmer {
 				return;
 
 			/* if I can remove a doubled consonant and get a word, then do so */
-			if (doublec(k)) {
+			if (doubleC(k)) {
 				k--;
 				word.setLength(k + 1);
 				if (lookup(word))
@@ -670,7 +670,7 @@ public class KrovetzStemmer {
 	private void ion_endings() {
 		int old_k = k;
 
-		if (ends_in("ization")) { /*
+		if (endsIn("ization")) { /*
 								 * the -ize ending is very productive, so simply
 								 * accept it as the root
 								 */
@@ -680,7 +680,7 @@ public class KrovetzStemmer {
 			return;
 		}
 
-		if (ends_in("ition")) {
+		if (endsIn("ition")) {
 			word.setCharAt(j + 1, 'e');
 			word.setLength(j + 2);
 			k = j + 1;
@@ -696,7 +696,7 @@ public class KrovetzStemmer {
 			k = old_k;
 		}
 
-		if (ends_in("ation")) {
+		if (endsIn("ation")) {
 			word.setCharAt(j + 3, 'e');
 			word.setLength(j + 4);
 			k = j + 3;
@@ -739,7 +739,7 @@ public class KrovetzStemmer {
 		 * `complication->complicate' rather than `complication->comply')
 		 */
 
-		if (ends_in("ication")) {
+		if (endsIn("ication")) {
 			word.setCharAt(j + 1, 'y');
 			word.setLength(j + 2);
 			k = j + 1;
@@ -755,7 +755,7 @@ public class KrovetzStemmer {
 			k = old_k;
 		}
 
-		if (ends_in("ion")) {
+		if (endsIn("ion")) {
 			word.setCharAt(j + 1, 'e');
 			word.setLength(j + 2);
 			k = j + 1;
@@ -791,18 +791,17 @@ public class KrovetzStemmer {
 
 		char word_char; /* so we can remember if it was -er or -or */
 
-		if (ends_in("izer")) { /*
-								 * -ize is very productive, so accept it as the
-								 * root
-								 */
+		if (endsIn("izer")) { /*
+							 * -ize is very productive, so accept it as the root
+							 */
 			word.setLength(j + 4);
 			k = j + 3;
 			return;
 		}
 
-		if (ends_in("er") || ends_in("or")) {
+		if (endsIn("er") || endsIn("or")) {
 			word_char = word.charAt(j + 1);
-			if (doublec(j)) {
+			if (doubleC(j)) {
 				word.setLength(j);
 				k = j - 1;
 				if (lookup(word))
@@ -863,7 +862,7 @@ public class KrovetzStemmer {
 	private void ly_endings() {
 		int old_k = k;
 
-		if (ends_in("ly")) {
+		if (endsIn("ly")) {
 			word.setCharAt(j + 2, 'e'); /* try converting -ly to -le */
 			if (lookup(word))
 				return;
@@ -914,13 +913,13 @@ public class KrovetzStemmer {
 	private void al_endings() {
 		int old_k = k;
 
-		if (ends_in("al")) {
+		if (endsIn("al")) {
 			word.setLength(j + 1);
 			k = j;
 			if (lookup(word)) /* try just removing the -al */
 				return;
 
-			if (doublec(j)) { /* allow for a doubled consonant */
+			if (doubleC(j)) { /* allow for a doubled consonant */
 				word.setLength(j);
 				k = j - 1;
 				if (lookup(word))
@@ -993,7 +992,7 @@ public class KrovetzStemmer {
 	private void ive_endings() {
 		int old_k = k;
 
-		if (ends_in("ive")) {
+		if (endsIn("ive")) {
 			word.setLength(j + 1); /* try removing -ive entirely */
 			k = j;
 			if (lookup(word))
@@ -1038,14 +1037,14 @@ public class KrovetzStemmer {
 	private void ize_endings() {
 		int old_k = k;
 
-		if (ends_in("ize")) {
+		if (endsIn("ize")) {
 			word.setLength(j + 1); /* try removing -ize entirely */
 			k = j;
 			if (lookup(word))
 				return;
 			word.setCharAt(j + 1, 'i');
 
-			if (doublec(j)) { /* allow for a doubled consonant */
+			if (doubleC(j)) { /* allow for a doubled consonant */
 				word.setLength(j);
 				k = j - 1;
 				if (lookup(word))
@@ -1069,7 +1068,7 @@ public class KrovetzStemmer {
 	private void ment_endings() {
 		int old_k = k;
 
-		if (ends_in("ment")) {
+		if (endsIn("ment")) {
 			word.setLength(j + 1);
 			k = j;
 			if (lookup(word))
@@ -1089,7 +1088,7 @@ public class KrovetzStemmer {
 	private void ity_endings() {
 		int old_k = k;
 
-		if (ends_in("ity")) {
+		if (endsIn("ity")) {
 			word.setLength(j + 1); /* try just removing -ity */
 			k = j;
 			if (lookup(word))
@@ -1152,7 +1151,7 @@ public class KrovetzStemmer {
 		int old_k = k;
 		char word_char;
 
-		if (ends_in("ble")) {
+		if (endsIn("ble")) {
 			if (!((word.charAt(j) == 'a') || (word.charAt(j) == 'i')))
 				return;
 			word_char = word.charAt(j);
@@ -1160,7 +1159,7 @@ public class KrovetzStemmer {
 			k = j - 1;
 			if (lookup(word))
 				return;
-			if (doublec(k)) { /* allow for a doubled consonant */
+			if (doubleC(k)) { /* allow for a doubled consonant */
 				word.setLength(k);
 				k--;
 				if (lookup(word))
@@ -1193,10 +1192,10 @@ public class KrovetzStemmer {
 
 	/* handle -ness */
 	private void ness_endings() {
-		if (ends_in("ness")) { /*
-								 * this is a very productive endings, so just
-								 * accept it
-								 */
+		if (endsIn("ness")) { /*
+							 * this is a very productive endings, so just accept
+							 * it
+							 */
 			word.setLength(j + 1);
 			k = j;
 			if (word.charAt(j) == 'i')
@@ -1207,7 +1206,7 @@ public class KrovetzStemmer {
 
 	/* handle -ism */
 	private void ism_endings() {
-		if (ends_in("ism")) { /*
+		if (endsIn("ism")) { /*
 							 * this is a very productive ending, so just accept
 							 * it
 							 */
@@ -1223,7 +1222,7 @@ public class KrovetzStemmer {
 	 * cases like `canonic' -> `canonical'
 	 */
 	private void ic_endings() {
-		if (ends_in("ic")) {
+		if (endsIn("ic")) {
 			word.setCharAt(j + 3, 'a'); /* try converting -ic to -ical */
 			word.setCharAt(j + 4, 'l');
 			word.setLength(j + 5);
@@ -1256,7 +1255,7 @@ public class KrovetzStemmer {
 
 	/* handle -ency and -ancy */
 	private void ncy_endings() {
-		if (ends_in("ncy")) {
+		if (endsIn("ncy")) {
 			if (!((word.charAt(j) == 'e') || (word.charAt(j) == 'a')))
 				return;
 			word.setCharAt(j + 2, 't'); /* try converting -ncy to -nt */
@@ -1279,7 +1278,7 @@ public class KrovetzStemmer {
 
 		char word_char;
 
-		if (ends_in("nce")) {
+		if (endsIn("nce")) {
 			if (!((word.charAt(j) == 'e') || (word.charAt(j) == 'a')))
 				return;
 			word_char = word.charAt(j);
@@ -1310,21 +1309,26 @@ public class KrovetzStemmer {
 		/* Initialize hash table */
 		Scanner in;
 
-		in = new Scanner(new File("res/KrovetzStemmer-exceptions"));
-		while (in.hasNext()) {
-			kstem_add_table_entry(in.next(), "", true);
-		}
+		try {
+			in = new Scanner(new File("res/KrovetzStemmer-exceptions"));
+			while (in.hasNext()) {
+				addTableEntry(in.next(), "", true);
+			}
 
-		in = new Scanner(new File("res/KrovetzStemmer-headwords"));
-		while (in.hasNext()) {
-			kstem_add_table_entry(in.next(), "");
-		}
+			in = new Scanner(new File("res/KrovetzStemmer-headwords"));
+			while (in.hasNext()) {
+				addTableEntry(in.next(), "");
+			}
 
-		in = new Scanner(new File("res/KrovetzStemmer-conflation_pair"));
-		while (in.hasNext()) {
-			String v = in.next();
-			String w = in.next();
-			kstem_add_table_entry(v, w);
+			in = new Scanner(new File("res/KrovetzStemmer-conflation_pair"));
+			while (in.hasNext()) {
+				String v = in.next();
+				String w = in.next();
+				addTableEntry(v, w);
+			}
+		} catch (FileNotFoundException e) {
+			System.out.println(e.getMessage());
+			throw e;
 		}
 	}
 

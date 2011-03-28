@@ -1,4 +1,4 @@
-package core.preprocess;
+package core.preprocess.util;
 
 public class DicTree {
 	
@@ -30,58 +30,58 @@ public class DicTree {
 	/*
 	 * 
 	 * */
-	public void SetAttribute(char val){
+	public void setAttribute(char val){
 		this.val = val;
 	}
 	
 	/*
 	 * */
-	public void SetOccurrence(int occurrence){
+	public void setOccurrence(int occurrence){
 		this.occurrence = occurrence;
 	}
 	
 	/*
 	 * */
-	public void SetFirstChild(DicTree Child){
+	public void setFirstChild(DicTree Child){
 		this.Child = Child;
 	}
 	/*
 	 * */
-	public void SetFirstBrother(DicTree Brother){
+	public void setFirstBrother(DicTree Brother){
 		this.Brother = Brother;
 	}
 	
 	/*
 	 * */
-	public char GetAttribute(){
+	public char getAttribute(){
 		return this.val;
 	}
 	
 	/*
 	 * Get Occurrence of the current node
 	 * */
-	public int GetOccurrence(){
+	public int getOccurrence(){
 		return this.occurrence;
 	}
 	
 	/*
 	 * Get The Firt Child
 	 * */
-	public DicTree GetFirstChild(){
+	public DicTree getFirstChild(){
 		return this.Child;
 	}
 	
 	/*
 	 * Get the first brother
 	 * */
-	public DicTree GetFirstBrother(){
+	public DicTree getFirstBrother(){
 		return this.Brother;
 	}
 	
 	/*
 	 * Add Word To The DicTree
 	 * */
-	public int AddToDicTree(String word){
+	public int addToDicTree(String word){
 		DicTree tmp = this;
 		int flag;
 		int i;
@@ -91,24 +91,24 @@ public class DicTree {
 				tmp = tmp.Child;
 			}
 			else{
-				if(tmp.Child.GetAttribute() > word.charAt(i)){/*Add To The Head Of The List*/
+				if(tmp.Child.getAttribute() > word.charAt(i)){/*Add To The Head Of The List*/
 					DicTree t = new DicTree(word.charAt(i),0,null,tmp.Child);
 					tmp.Child = t;
 					tmp = t;
 				}
-				else if(word.charAt(i) == tmp.Child.GetAttribute()){
+				else if(word.charAt(i) == tmp.Child.getAttribute()){
 					tmp = tmp.Child;
 				}
 				else{
 					tmp = tmp.Child;
 					flag = 1;
 					while(tmp.Brother != null){
-						if(word.charAt(i) == tmp.Brother.GetAttribute()){
+						if(word.charAt(i) == tmp.Brother.getAttribute()){
 							tmp = tmp.Brother;
 							flag = 0;
 							break;
 						}
-						else if(word.charAt(i) < tmp.Brother.GetAttribute()){
+						else if(word.charAt(i) < tmp.Brother.getAttribute()){
 							DicTree t = new DicTree(word.charAt(i),0,null,tmp.Brother);
 							tmp.Brother = t;
 							tmp = t;
@@ -125,28 +125,28 @@ public class DicTree {
 				}
 			}
 		}
-		tmp.SetOccurrence(tmp.GetOccurrence()+1);
+		tmp.setOccurrence(tmp.getOccurrence()+1);
 		return 0;
 	}
 	
 	/*
 	 * Write DicTree
 	 * */
-	public int WriteDicTree(){
+	public int writeDicTree(){
 		return 0;
 	}
 	
 	/*
 	 * */
-	public static void TravelDicTree(DicTree root, String s){
+	public static void travelDicTree(DicTree root, String s){
 		if(root.Child == null){
 			return ;
 		}
 		else{
-			s = s+root.Child.GetAttribute();
-			TravelDicTree(root.Child,s);
-			if(root.Child.GetOccurrence() != 0)
-				System.out.println(root.Child.GetOccurrence()+" "+s);
+			s = s+root.Child.getAttribute();
+			travelDicTree(root.Child,s);
+			if(root.Child.getOccurrence() != 0)
+				System.out.println(root.Child.getOccurrence()+" "+s);
 			if(s.length() == 1){
 				s = "";
 			}
@@ -154,8 +154,8 @@ public class DicTree {
 				s = s.substring(0, s.length()-2);
 			}
 			if(root.Brother != null){
-				s = s+root.Brother.GetAttribute();
-				TravelDicTree(root.Brother,s);
+				s = s+root.Brother.getAttribute();
+				travelDicTree(root.Brother,s);
 			}
 		}
 	}
