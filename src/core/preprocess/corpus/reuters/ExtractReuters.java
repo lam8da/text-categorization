@@ -62,15 +62,57 @@ public class ExtractReuters {
 	private Pattern TITLE_PATTERN = Pattern.compile("<TITLE>(.*?)</TITLE>");
 	private Pattern CONTENT_PATTERN = Pattern.compile("<BODY>(.*?)</BODY>");
 
-	private static String[] META_CHARS_SERIALIZATIONS = { "&amp;", "&lt;",
-			"&gt;", "&quot;", "&apos;" };
-	private static String[] META_CHARS = { "&", "<", ">", "\"", "'" };
+	private static String[] META_CHARS_SERIALIZATIONS = {
+		"&amp;",
+		"&lt;",
+		"&gt;",
+		"&quot;",
+		"&apos;"
+		};
+	private static String[] META_CHARS = {
+		"&",
+		"<",
+		">",
+		"\"",
+		"'"
+		};
+
 	private static String[] BAD_CHAR_PATTERN = {
-			"[?]|[#=]|[*+:&_^$@!\\[\\]\\s\\(\\)\\{\\}<>,;/-]", "[.][.]+",
-			"(?<=\\d)[.](?=\\d)", "['\"] ", "[.] ", "'[sS] ", " ['\"]", "~",
-			"& ", ".\"", "['\"] ", "[.] ", "'[sS] ", " ['\"]" };
-	private static String[] BAD_CHAR_REPLACE = { " ", " ", " ", " ", " ", " ",
-			" ", "", " ", " ", " ", " ", " ", " " };
+		"\\p{Punct}\\p{Punct}+",							//consecutive punctuations -> " "
+		"[?]|[#=]|[*+:&_^$@!\\[\\]\\s\\(\\)\\{\\}\"<>,;/-]",//single punctuation (not all) -> " "
+		"(?<=\\d)[.](?=\\d)",								//single dot between digits -> ""(empty string)
+		"' ",												//ending quotes of single word -> " "
+		"[.] ",												//ending dot of single word -> " "
+		"'[sS] ",											//ending 's or 'S of single word (may be name) -> " "
+		" '",												//beginning quotes -> " "
+		" [.]",												//beginning dot -> " "
+		"~",												//tilde -> ""
+		"& ",												//ending logical AND mark -> " "
+		"' ",												//again: ending quotes
+		"[.] ",												//again: ending dot
+		"'[sS] ",											//again: ending 's or 'S
+		" '",												//again: beginning quotes
+		" [.]",												//again: beginning dot
+		"[.]\\W"											//special judge for the word: growth.?
+		};
+	private static String[] BAD_CHAR_REPLACE = {
+		" ",
+		" ",
+		"",
+		" ",
+		" ",
+		" ",
+		" ",
+		" ",
+		"",
+		" ",
+		" ",
+		" ",
+		" ",
+		" ",
+		" ",
+		" "
+		};
 
 	private int checkModLewis(String splitTopics, String splitLewis,
 			String splitCgi) {
@@ -159,6 +201,16 @@ public class ExtractReuters {
 		return res.toString();
 	}
 
+	private String processBadWords(String str) {
+		for (int i = 0; i < META_CHARS_SERIALIZATIONS.length; i++) {
+			str = str.replaceAll(META_CHARS_SERIALIZATIONS[i], META_CHARS[i]);
+		}
+		for (int i = 0; i < BAD_CHAR_PATTERN.length; i++) {
+			str = str.replaceAll(BAD_CHAR_PATTERN[i], BAD_CHAR_REPLACE[i]);
+		}
+		return str;
+	}
+
 	private void extractFile(File sgmFile) throws Exception {
 		try {
 			BufferedReader reader = new BufferedReader(new FileReader(sgmFile));
@@ -182,31 +234,8 @@ public class ExtractReuters {
 						String content = findRelevantPiece(CONTENT_PATTERN,
 								buffer);
 
-						for (int i = 0; i < META_CHARS_SERIALIZATIONS.length; i++) {
-							for (int j = 0; j < labels.length; j++) {
-								labels[j] = labels[j].replaceAll(
-										META_CHARS_SERIALIZATIONS[i],
-										META_CHARS[i]);
-							}
-							title = title
-									.replaceAll(META_CHARS_SERIALIZATIONS[i],
-											META_CHARS[i]);
-							content = content
-									.replaceAll(META_CHARS_SERIALIZATIONS[i],
-											META_CHARS[i]);
-						}
-
-						for (int i = 0; i < BAD_CHAR_PATTERN.length; i++) {
-							for (int j = 0; j < labels.length; j++) {
-								labels[j] = labels[j].replaceAll(
-										BAD_CHAR_PATTERN[i],
-										BAD_CHAR_REPLACE[i]);
-							}
-							title = title.replaceAll(BAD_CHAR_PATTERN[i],
-									BAD_CHAR_REPLACE[i]);
-							content = content.replaceAll(BAD_CHAR_PATTERN[i],
-									BAD_CHAR_REPLACE[i]);
-						}
+						title = processBadWords(title);
+						content = processBadWords(content);
 
 						// System.out.print("labels = ");
 						// for (int i = 0; i < labels.length; i++) {
