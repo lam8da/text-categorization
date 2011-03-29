@@ -62,9 +62,15 @@ public class ExtractReuters {
 	private Pattern TITLE_PATTERN = Pattern.compile("<TITLE>(.*?)</TITLE>");
 	private Pattern CONTENT_PATTERN = Pattern.compile("<BODY>(.*?)</BODY>");
 
-	private static String[] META_CHARS = { "&", "<", ">", "\"", "'" };
 	private static String[] META_CHARS_SERIALIZATIONS = { "&amp;", "&lt;",
 			"&gt;", "&quot;", "&apos;" };
+	private static String[] META_CHARS = { "&", "<", ">", "\"", "'" };
+	private static String[] BAD_CHAR_PATTERN = {
+			"[?]|[#=]|[*+:&_^$@!\\[\\]\\s\\(\\)\\{\\}<>,;/-]", "[.][.]+",
+			"(?<=\\d)[.](?=\\d)", "['\"] ", "[.] ", "'[sS] ", " ['\"]", "~",
+			"& ", ".\"", "['\"] ", "[.] ", "'[sS] ", " ['\"]" };
+	private static String[] BAD_CHAR_REPLACE = { " ", " ", " ", " ", " ", " ",
+			" ", "", " ", " ", " ", " ", " ", " " };
 
 	private int checkModLewis(String splitTopics, String splitLewis,
 			String splitCgi) {
@@ -188,6 +194,18 @@ public class ExtractReuters {
 							content = content
 									.replaceAll(META_CHARS_SERIALIZATIONS[i],
 											META_CHARS[i]);
+						}
+
+						for (int i = 0; i < BAD_CHAR_PATTERN.length; i++) {
+							for (int j = 0; j < labels.length; j++) {
+								labels[j] = labels[j].replaceAll(
+										BAD_CHAR_PATTERN[i],
+										BAD_CHAR_REPLACE[i]);
+							}
+							title = title.replaceAll(BAD_CHAR_PATTERN[i],
+									BAD_CHAR_REPLACE[i]);
+							content = content.replaceAll(BAD_CHAR_PATTERN[i],
+									BAD_CHAR_REPLACE[i]);
 						}
 
 						// System.out.print("labels = ");
