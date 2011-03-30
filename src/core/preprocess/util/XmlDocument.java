@@ -21,21 +21,34 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-public class XmlFormatter {
+/**
+ * 
+ * @author lambda
+ * 
+ */
+public class XmlDocument {
 	private Document document;
 	private String[] labels;
 	private String title;
 	private String content;
 
-	public static void createXml(File outputDir, String filename,
-			String[] labels, String title, String content) throws Exception {
+	/**
+	 * 
+	 * @param outputDir
+	 * @param filename
+	 * @param labels
+	 * @param title
+	 * @param content
+	 * @throws Exception
+	 */
+	public static void createDocument(File outputDir, String filename, String[] labels, String title, String content) throws Exception {
 		Document doc;
 		try {
-			DocumentBuilderFactory factory = DocumentBuilderFactory
-					.newInstance();
+			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder builder = factory.newDocumentBuilder();
 			doc = builder.newDocument();
-		} catch (ParserConfigurationException e) {
+		}
+		catch (ParserConfigurationException e) {
 			System.out.println(e.getMessage());
 			throw e;
 		}
@@ -65,45 +78,58 @@ public class XmlFormatter {
 			// transformer.setOutputProperty(OutputKeys.ENCODING, "gb2312");
 			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 
-			PrintWriter pw = new PrintWriter(new FileOutputStream(new File(
-					outputDir, filename)));
+			PrintWriter pw = new PrintWriter(new FileOutputStream(new File(outputDir, filename)));
 			StreamResult result = new StreamResult(pw);
 
 			DOMSource source = new DOMSource(doc);
 			transformer.transform(source, result);
-		} catch (TransformerConfigurationException e) {
+		}
+		catch (TransformerConfigurationException e) {
 			System.out.println(e.getMessage());
 			throw e;
-		} catch (IllegalArgumentException e) {
+		}
+		catch (IllegalArgumentException e) {
 			System.out.println(e.getMessage());
 			throw e;
-		} catch (FileNotFoundException e) {
+		}
+		catch (FileNotFoundException e) {
 			System.out.println(e.getMessage());
 			throw e;
-		} catch (TransformerException e) {
+		}
+		catch (TransformerException e) {
 			System.out.println(e.getMessage());
 			throw e;
 		}
 	}
 
-	public void parseXml(File inputDir, String filename) throws Exception {
+	/**
+	 * 
+	 * @param inputDir
+	 * @param filename
+	 * @throws Exception
+	 */
+	public void parseDocument(File inputDir, String filename) throws Exception {
 		try {
 			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 			DocumentBuilder db = dbf.newDocumentBuilder();
-			document = db.parse(filename);
+			document = db.parse(new File(inputDir, filename));
 
-			NodeList rootNode = document.getChildNodes().item(0)
-					.getChildNodes();
+			NodeList rootNode = document.getChildNodes().item(0).getChildNodes();
 			NodeList labelsNode = rootNode.item(1).getChildNodes();
 			Node titleNode = rootNode.item(3);
 			Node contentNode = rootNode.item(5);
 
 			// System.out.println(labelsNode.getLength());
 			labels = new String[labelsNode.getLength() / 2];
-			for (int i = 1; i < labelsNode.getLength(); i += 2) {
-				labels[i / 2] = labelsNode.item(i).getTextContent();
-				// System.out.println(labelsNode.item(i).getNodeName() + ": "
-				// + labels[i / 2]);
+			if (labels.length == 0) {
+				labels = new String[1];
+				labels[0] = Constant.EMPTY_LABEL;
+			}
+			else {
+				for (int i = 1; i < labelsNode.getLength(); i += 2) {
+					labels[i / 2] = labelsNode.item(i).getTextContent();
+					// System.out.println(labelsNode.item(i).getNodeName() + ": " + labels[i / 2]);
+				}
 			}
 
 			title = titleNode.getTextContent();
@@ -111,16 +137,20 @@ public class XmlFormatter {
 
 			content = contentNode.getTextContent();
 			// System.out.println(contentNode.getNodeName() + ": " + content);
-		} catch (FileNotFoundException e) {
+		}
+		catch (FileNotFoundException e) {
 			System.out.println(e.getMessage());
 			throw e;
-		} catch (ParserConfigurationException e) {
+		}
+		catch (ParserConfigurationException e) {
 			System.out.println(e.getMessage());
 			throw e;
-		} catch (SAXException e) {
+		}
+		catch (SAXException e) {
 			System.out.println(e.getMessage());
 			throw e;
-		} catch (IOException e) {
+		}
+		catch (IOException e) {
 			System.out.println(e.getMessage());
 			throw e;
 		}

@@ -1,9 +1,9 @@
-package test.preprocess;
+package test.preprocess.extraction;
 
 import java.util.Scanner;
-import java.io.*;
+import java.io.FileNotFoundException;
 
-import core.preprocess.KrovetzStemmer;
+import core.preprocess.extraction.KrovetzStemmer;
 
 public class KrovetzStemmerTest {
 
@@ -15,10 +15,10 @@ public class KrovetzStemmerTest {
 
 		do {
 			word = in.next();
-			if (word.equals("exit"))
-				break;
-			ret = stemmer.stem(word);
+			if (word.equals("exit")) break;
+			ret = stemmer.stem(word, true);
 			System.out.println(ret + "->" + ret.length());
-		} while (true);
+		}
+		while (true);
 	}
 }
