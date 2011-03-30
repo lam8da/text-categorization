@@ -1,10 +1,11 @@
-package core.preprocess;
+package core.preprocess.extraction;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Scanner;
 
-public class KrovetzStemmer {
+public class KrovetzStemmer extends Stemmer {
 
 	private class CharBuffer {
 		private char[] bf = new char[MAX_WORD_LENGTH << 2];
@@ -21,8 +22,7 @@ public class KrovetzStemmer {
 		}
 
 		private int length() {
-			if (bf[len] == '\0')
-				return len;
+			if (bf[len] == '\0') return len;
 			for (len = 0; bf[len] != '\0'; len++)
 				;
 			return len;
@@ -76,20 +76,6 @@ public class KrovetzStemmer {
 	 * argument.
 	 */
 
-	private boolean myIsalpha(char ch) {
-		if (ch >= 'a' && ch <= 'z')
-			return true;
-		if (ch >= 'A' && ch <= 'Z')
-			return true;
-		return false;
-	}
-
-	private char myToLower(char ch) {
-		if (ch >= 'A' && ch <= 'Z')
-			return (char) (ch + 'a' - 'A');
-		return ch;
-	}
-
 	/*
 	 * ! \brief stem a term using the Krovetz algorithm into the specified
 	 * buffer. The stem returned may be longer than the input term. Performs
@@ -103,23 +89,21 @@ public class KrovetzStemmer {
 	 * @return the number of characters written to the buffer, including the
 	 * terminating '\\0'. If 0, the caller should use the value in term.
 	 */
-	public String stem(String termS) {
+	public String stem(String termStr, boolean toLower) {
 		int i;
 		boolean stem_it = true;
 
-		CharBuffer term = new CharBuffer(termS);
-		k = term.length() - 1;
+		k = termStr.length() - 1;
 
 		/*
 		 * if the word is too long or too short, or not entirely alphabetic,
 		 * just lowercase copy it into stem and return
 		 */
-		if ((k <= 2 - 1) || (k >= MAX_WORD_LENGTH - 1))
-			stem_it = false;
+		if ((k <= 2 - 1) || (k >= MAX_WORD_LENGTH - 1)) stem_it = false;
 		else {
 			for (i = 0; i <= k; i++) {
 				// 8 bit characters can be a problem on windows
-				if (!myIsalpha(term.charAt(i))) {
+				if (!Character.isLetter(termStr.charAt(i))) {
 					stem_it = false;
 					break;
 				}
@@ -127,10 +111,12 @@ public class KrovetzStemmer {
 		}
 
 		if (!stem_it) {
-			for (i = 0; i <= k; i++)
-				term.setCharAt(i, myToLower(term.charAt(i)));
-			term.setLength(k + 1);
-			return term.toString();
+			if (toLower) {
+				return termStr.toLowerCase();
+			}
+			else {
+				return termStr;
+			}
 		}
 
 		/* Check to see if it's in the cache. */
@@ -143,15 +129,16 @@ public class KrovetzStemmer {
 		// strncpy((char *)ptr, term, 12);
 		// int hval = ((ptr[0]<<4)^ptr[1]^ptr[2]^ptr[3]^ptr[4]^ptr[5]) %
 		// stemhtsize;
-		int hval = termS.hashCode() % stemhtsize;
+		int hval = termStr.hashCode() % stemhtsize;
 		if (hval < 0) {
 			hval = hval + stemhtsize;
 		}
 
-		if (termS.equals(stemCache[hval].word1)) {
+		if (termStr.equals(stemCache[hval].word1)) {
 			stemCache[hval].flag = 1;
 			return stemCache[hval].stem1;
-		} else if (termS.equals(stemCache[hval].word2)) {
+		}
+		else if (termStr.equals(stemCache[hval].word2)) {
 			stemCache[hval].flag = 2;
 			return stemCache[hval].stem2;
 		}
@@ -160,7 +147,12 @@ public class KrovetzStemmer {
 		 * 'word' is a pointer, global to this file, for manipulating the word
 		 * in the buffer provided through the passed in pointer 'stem'.
 		 */
-		word = new CharBuffer(termS.toLowerCase());/* lowercase the local copy */
+		if (toLower) {
+			word = new CharBuffer(termStr.toLowerCase());
+		}
+		else {
+			word = new CharBuffer(termStr);
+		}
 		word.setLength(k + 1);
 
 		/*
@@ -181,88 +173,71 @@ public class KrovetzStemmer {
 		 */
 		// int lambdacnt = -1;
 		while (true) {
-			if ((dep = getDep(word)) != null)
-				break;
+			if ((dep = getDep(word)) != null) break;
 			plural();
 			// System.out.println((lambdacnt += 1) + " " + word);
 
-			if ((dep = getDep(word)) != null)
-				break;
+			if ((dep = getDep(word)) != null) break;
 			pastTense();
 			// System.out.println((lambdacnt += 1) + " " + word);
 
-			if ((dep = getDep(word)) != null)
-				break;
+			if ((dep = getDep(word)) != null) break;
 			aspect();
 			// System.out.println((lambdacnt += 1) + " " + word);
 
-			if ((dep = getDep(word)) != null)
-				break;
+			if ((dep = getDep(word)) != null) break;
 			ity_endings();
 			// System.out.println((lambdacnt += 1) + " " + word);
 
-			if ((dep = getDep(word)) != null)
-				break;
+			if ((dep = getDep(word)) != null) break;
 			ness_endings();
 			// System.out.println((lambdacnt += 1) + " " + word);
 
-			if ((dep = getDep(word)) != null)
-				break;
+			if ((dep = getDep(word)) != null) break;
 			ion_endings();
 			// System.out.println((lambdacnt += 1) + " " + word);
 
-			if ((dep = getDep(word)) != null)
-				break;
+			if ((dep = getDep(word)) != null) break;
 			er_and_or_endings();
 			// System.out.println((lambdacnt += 1) + " " + word);
 
-			if ((dep = getDep(word)) != null)
-				break;
+			if ((dep = getDep(word)) != null) break;
 			ly_endings();
 			// System.out.println((lambdacnt += 1) + " " + word);
 
-			if ((dep = getDep(word)) != null)
-				break;
+			if ((dep = getDep(word)) != null) break;
 			al_endings();
 			// System.out.println((lambdacnt += 1) + " " + word);
 
-			if ((dep = getDep(word)) != null)
-				break;
+			if ((dep = getDep(word)) != null) break;
 			ive_endings();
 			// System.out.println((lambdacnt += 1) + " " + word);
 
-			if ((dep = getDep(word)) != null)
-				break;
+			if ((dep = getDep(word)) != null) break;
 			ize_endings();
 			// System.out.println((lambdacnt += 1) + " " + word);
 
-			if ((dep = getDep(word)) != null)
-				break;
+			if ((dep = getDep(word)) != null) break;
 			ment_endings();
 			// System.out.println((lambdacnt += 1) + " " + word);
 
-			if ((dep = getDep(word)) != null)
-				break;
+			if ((dep = getDep(word)) != null) break;
 			ble_endings();
 			// System.out.println((lambdacnt += 1) + " " + word);
 
-			if ((dep = getDep(word)) != null)
-				break;
+			if ((dep = getDep(word)) != null) break;
 			ism_endings();
 			// System.out.println((lambdacnt += 1) + " " + word);
 
-			if ((dep = getDep(word)) != null)
-				break;
+			if ((dep = getDep(word)) != null) break;
 			ic_endings();
 			// System.out.println((lambdacnt += 1) + " " + word);
 
-			if ((dep = getDep(word)) != null)
-				break;
+			if ((dep = getDep(word)) != null) break;
 			ncy_endings();
 			// System.out.println((lambdacnt += 1) + " " + word);
 
-			if ((dep = getDep(word)) != null)
-				break;
+			if ((dep = getDep(word)) != null) break;
 			nce_endings();
 			// System.out.println((lambdacnt += 1) + " " + word);
 
@@ -277,16 +252,18 @@ public class KrovetzStemmer {
 		 */
 		if (dep != null && dep.root.length() != 0) {
 			word = new CharBuffer(dep.root);
-		} else {
+		}
+		else {
 			// word = new CharBuffer(termS);// ????
 		}
 		/* Enter into cache, at the place not used by the last cache hit */
 		if (stemCache[hval].flag == 2) {
-			stemCache[hval].word1 = termS;
+			stemCache[hval].word1 = termStr;
 			stemCache[hval].stem1 = word.toString();
 			stemCache[hval].flag = 1;
-		} else {
-			stemCache[hval].word2 = termS;
+		}
+		else {
+			stemCache[hval].word2 = termStr;
 			stemCache[hval].stem2 = word.toString();
 			stemCache[hval].flag = 2;
 		}
@@ -310,8 +287,7 @@ public class KrovetzStemmer {
 	private void addTableEntry(String variant, String word, boolean exc) {
 		if (dictEntries.containsKey(variant)) {
 			// duplicate.
-			System.out.println("kstem_add_table_entry: Duplicate word "
-					+ variant + " will be ignored.");
+			System.out.println("kstem_add_table_entry: Duplicate word " + variant + " will be ignored.");
 			return;
 		}
 		DictEntry entry = new DictEntry(exc, word);
@@ -356,8 +332,7 @@ public class KrovetzStemmer {
 		int r = (k + 1) - sufflength; /* length of word before this suffix */
 		boolean match;
 
-		if (sufflength > k)
-			return (false);
+		if (sufflength > k) return (false);
 
 		match = (word.substring(r).equals(str));
 		j = (match ? r - 1 : k); /*
@@ -383,7 +358,8 @@ public class KrovetzStemmer {
 		/* don't bother to check for words that are short */
 		if (w.length() <= 1) {
 			return null;
-		} else {
+		}
+		else {
 			return dictEntries.get(w.toString());
 		}
 	}
@@ -399,11 +375,9 @@ public class KrovetzStemmer {
 	/* cons() returns TRUE if word[i] is a consonant. */
 	private boolean cons(int i) {
 		char ch = word.charAt(i);
-		if (ch == 'a' || ch == 'e' || ch == 'i' || ch == 'o' || ch == 'u')
-			return (false);
+		if (ch == 'a' || ch == 'e' || ch == 'i' || ch == 'o' || ch == 'u') return (false);
 
-		if (ch != 'y' || i == 0)
-			return (true);
+		if (ch != 'y' || i == 0) return (true);
 		else {
 			/*
 			 * ch == y, test previous char. If vowel, y is consonant the case of
@@ -417,8 +391,7 @@ public class KrovetzStemmer {
 	/* This routine is useful for ensuring that we don't stem acronyms */
 	private boolean vowelInStem() {
 		for (int i = 0; i < (j + 1); i++)
-			if (vowel(i))
-				return (true);
+			if (vowel(i)) return (true);
 		return (false);
 	}
 
@@ -428,11 +401,9 @@ public class KrovetzStemmer {
 
 	/* return TRUE if word ends with a double consonant */
 	private boolean doubleC(int i) {
-		if (i < 1)
-			return (false);
+		if (i < 1) return (false);
 
-		if (word.charAt(i) != word.charAt(i - 1))
-			return (false);
+		if (word.charAt(i) != word.charAt(i - 1)) return (false);
 
 		return (cons(i));
 	}
@@ -444,11 +415,12 @@ public class KrovetzStemmer {
 				word.setLength(j + 3);
 				k--;
 				if (lookup(word)) /* ensure calories -> calorie */
-					return;
+				return;
 				k++;
 				word.setCharAt(j + 3, 's');
 				setSuffix("y");
-			} else if (endsIn("es")) {
+			}
+			else if (endsIn("es")) {
 				/* try just removing the "s" */
 				word.setLength(j + 2);
 				k--;
@@ -461,26 +433,22 @@ public class KrovetzStemmer {
 				 * but the verb is much more common
 				 */
 
-				if ((lookup(word))
-						&& j > 0
-						&& !((word.charAt(j) == 's') && (word.charAt(j - 1) == 's')))
-					return;
+				if ((lookup(word)) && j > 0 && !((word.charAt(j) == 's') && (word.charAt(j - 1) == 's'))) return;
 
 				/* try removing the "es" */
 
 				word.setLength(j + 1);
 				k--;
-				if (lookup(word))
-					return;
+				if (lookup(word)) return;
 
 				/* the default is to retain the "e" */
 				word.setCharAt(j + 1, 'e');
 				word.setLength(j + 2);
 				k++;
 				return;
-			} else {
-				if ((k + 1) > 3 && (word.charAt(k - 1)) != 's'
-						&& !endsIn("ous")) {
+			}
+			else {
+				if ((k + 1) > 3 && (word.charAt(k - 1)) != 's' && !endsIn("ous")) {
 					/*
 					 * unless the word ends in "ous" or a double "s", remove the
 					 * final "s"
@@ -499,8 +467,7 @@ public class KrovetzStemmer {
 		 * (fled -> fl).
 		 */
 
-		if ((k + 1) <= 4)
-			return;
+		if ((k + 1) <= 4) return;
 
 		DictEntry dep = null;
 
@@ -508,7 +475,7 @@ public class KrovetzStemmer {
 			word.setLength(j + 3);
 			k--;
 			if (lookup(word)) /* we almost always want to convert -ied to -y, but */
-				return; /* this isn't true for short words (died->die) */
+			return; /* this isn't true for short words (died->die) */
 			k++; /* I don't know any long words that this applies to, */
 			// word.setLength(j + 4);
 			word.setCharAt(j + 3, 'd'); /* but just in case... */
@@ -522,18 +489,20 @@ public class KrovetzStemmer {
 			word.setLength(j + 2);
 			k = j + 1;
 
-			if ((dep = getDep(word)) != null)
-				if (!(dep.exception)) /*
-									 * if it's in the dictionary and not an
-									 * exception
-									 */
-					return;
+			if ((dep = getDep(word)) != null) if (!(dep.exception)) /*
+																	 * if it's
+																	 * in the
+																	 * dictionary
+																	 * and not
+																	 * an
+																	 * exception
+																	 */
+			return;
 
 			/* try removing the "ed" */
 			word.setLength(j + 1);
 			k = j;
-			if (lookup(word))
-				return;
+			if (lookup(word)) return;
 
 			/*
 			 * try removing a doubled consonant. if the root isn't found in the
@@ -545,8 +514,7 @@ public class KrovetzStemmer {
 			if (doubleC(k)) {
 				word.setLength(k);
 				k--;
-				if (lookup(word))
-					return;
+				if (lookup(word)) return;
 				word.setCharAt(k + 1, word.charAt(k));
 				k++;
 				return;
@@ -584,8 +552,7 @@ public class KrovetzStemmer {
 		 * root is also present)
 		 */
 
-		if ((k + 1) <= 5)
-			return;
+		if ((k + 1) <= 5) return;
 
 		DictEntry dep = null;
 		/* the vowelinstem() is necessary so we don't stem acronyms */
@@ -596,26 +563,27 @@ public class KrovetzStemmer {
 			word.setLength(j + 2);
 			k = j + 1;
 
-			if ((dep = getDep(word)) != null)
-				if (!(dep.exception)) /*
-									 * if it's in the dictionary and not an
-									 * exception
-									 */
-					return;
+			if ((dep = getDep(word)) != null) if (!(dep.exception)) /*
+																	 * if it's
+																	 * in the
+																	 * dictionary
+																	 * and not
+																	 * an
+																	 * exception
+																	 */
+			return;
 
 			/* adding on the `e' didn't work, so remove it */
 			word.setLength(k);
 			k--; /* note that `ing' has also been removed */
 
-			if (lookup(word))
-				return;
+			if (lookup(word)) return;
 
 			/* if I can remove a doubled consonant and get a word, then do so */
 			if (doubleC(k)) {
 				k--;
 				word.setLength(k + 1);
-				if (lookup(word))
-					return;
+				if (lookup(word)) return;
 				word.setCharAt(k + 1, word.charAt(k)); /*
 														 * restore the doubled
 														 * consonant
@@ -688,7 +656,7 @@ public class KrovetzStemmer {
 							 * remove -ition and add `e', and check against the
 							 * dictionary
 							 */
-				return; /* (e.g., definition->define, opposition->oppose) */
+			return; /* (e.g., definition->define, opposition->oppose) */
 
 			/* restore original values */
 			word.setCharAt(j + 1, 'i');
@@ -704,7 +672,7 @@ public class KrovetzStemmer {
 							 * remove -ion and add `e', and check against the
 							 * dictionary
 							 */
-				return; /* (elmination -> eliminate) */
+			return; /* (elmination -> eliminate) */
 
 			word.setCharAt(j + 1, 'e'); /*
 										 * remove -ation and add `e', and check
@@ -712,16 +680,14 @@ public class KrovetzStemmer {
 										 */
 			word.setLength(j + 2); /* (allegation -> allege) */
 			k = j + 1;
-			if (lookup(word))
-				return;
+			if (lookup(word)) return;
 
 			word.setLength(j + 1); /*
 									 * just remove -ation (resignation->resign)
 									 * and check dictionary
 									 */
 			k = j;
-			if (lookup(word))
-				return;
+			if (lookup(word)) return;
 
 			/* restore original values */
 			word.setCharAt(j + 1, 'a');
@@ -747,7 +713,7 @@ public class KrovetzStemmer {
 							 * remove -ication and add `y', and check against
 							 * the dictionary
 							 */
-				return; /* (e.g., amplification -> amplify) */
+			return; /* (e.g., amplification -> amplify) */
 
 			/* restore original values */
 			word.setCharAt(j + 1, 'i');
@@ -763,7 +729,7 @@ public class KrovetzStemmer {
 							 * remove -ion and add `e', and check against the
 							 * dictionary
 							 */
-				return;
+			return;
 
 			word.setLength(j + 1);
 			k = j;
@@ -771,7 +737,7 @@ public class KrovetzStemmer {
 							 * remove -ion, and if it's found, treat that as the
 							 * root
 							 */
-				return;
+			return;
 
 			/* restore original values */
 			word.setCharAt(j + 1, 'i');
@@ -804,8 +770,7 @@ public class KrovetzStemmer {
 			if (doubleC(j)) {
 				word.setLength(j);
 				k = j - 1;
-				if (lookup(word))
-					return;
+				if (lookup(word)) return;
 				word.setCharAt(j, word.charAt(j - 1)); /*
 														 * restore the doubled
 														 * consonant
@@ -817,7 +782,7 @@ public class KrovetzStemmer {
 				word.setLength(j + 1);
 				k = j;
 				if (lookup(word)) /* yes, so check against the dictionary */
-					return;
+				return;
 				word.setCharAt(j, 'i'); /* restore the endings */
 				word.setCharAt(j + 1, 'e');
 			}
@@ -825,24 +790,20 @@ public class KrovetzStemmer {
 			if (word.charAt(j) == 'e') { /* handle -eer */
 				word.setLength(j);
 				k = j - 1;
-				if (lookup(word))
-					return;
+				if (lookup(word)) return;
 				word.setCharAt(j, 'e');
 			}
 
 			word.setLength(j + 2); /* remove the -r ending */
 			k = j + 1;
-			if (lookup(word))
-				return;
+			if (lookup(word)) return;
 			word.setLength(j + 1); /* try removing -er/-or */
 			k = j;
-			if (lookup(word))
-				return;
+			if (lookup(word)) return;
 			word.setCharAt(j + 1, 'e'); /* try removing -or and adding -e */
 			word.setLength(j + 2);
 			k = j + 1;
-			if (lookup(word))
-				return;
+			if (lookup(word)) return;
 
 			word.setCharAt(j + 1, word_char); /*
 											 * restore the word to the way it
@@ -864,19 +825,17 @@ public class KrovetzStemmer {
 
 		if (endsIn("ly")) {
 			word.setCharAt(j + 2, 'e'); /* try converting -ly to -le */
-			if (lookup(word))
-				return;
+			if (lookup(word)) return;
 			word.setCharAt(j + 2, 'y');
 
 			word.setLength(j + 1); /* try just removing the -ly */
 			k = j;
-			if (lookup(word))
-				return;
+			if (lookup(word)) return;
 			if (j > 0 && (word.charAt(j - 1) == 'a') && (word.charAt(j) == 'l'))
-				/*
-				 * always convert -ally to -al
-				 */
-				return;
+			/*
+			 * always convert -ally to -al
+			 */
+			return;
 			word.setCharAt(j + 1, 'l');
 			k = old_k;
 
@@ -893,8 +852,7 @@ public class KrovetzStemmer {
 				word.setCharAt(j, 'y');
 				word.setLength(j + 1);
 				k = j;
-				if (lookup(word))
-					return;
+				if (lookup(word)) return;
 				word.setCharAt(j, 'i');
 				word.setCharAt(j + 1, 'l');
 				k = old_k;
@@ -917,27 +875,24 @@ public class KrovetzStemmer {
 			word.setLength(j + 1);
 			k = j;
 			if (lookup(word)) /* try just removing the -al */
-				return;
+			return;
 
 			if (doubleC(j)) { /* allow for a doubled consonant */
 				word.setLength(j);
 				k = j - 1;
-				if (lookup(word))
-					return;
+				if (lookup(word)) return;
 				word.setCharAt(j, word.charAt(j - 1));
 			}
 
 			word.setCharAt(j + 1, 'e'); /* try removing the -al and adding -e */
 			word.setLength(j + 2);
 			k = j + 1;
-			if (lookup(word))
-				return;
+			if (lookup(word)) return;
 
 			word.setCharAt(j + 1, 'u'); /* try converting -al to -um */
 			word.setCharAt(j + 2, 'm'); /* (e.g., optimal - > optimum ) */
 			k = j + 2;
-			if (lookup(word))
-				return;
+			if (lookup(word)) return;
 
 			word.setCharAt(j + 1, 'a'); /* restore the ending to the way it was */
 			word.setCharAt(j + 2, 'l');
@@ -947,8 +902,7 @@ public class KrovetzStemmer {
 			if (j > 0 && (word.charAt(j - 1) == 'i') && (word.charAt(j) == 'c')) {
 				word.setLength(j - 1); /* try removing -ical */
 				k = j - 2;
-				if (lookup(word))
-					return;
+				if (lookup(word)) return;
 
 				word.setCharAt(j - 1, 'y'); /*
 											 * try turning -ical to -y (e.g.,
@@ -956,8 +910,7 @@ public class KrovetzStemmer {
 											 */
 				word.setLength(j);
 				k = j - 1;
-				if (lookup(word))
-					return;
+				if (lookup(word)) return;
 
 				word.setCharAt(j - 1, 'i');
 				word.setCharAt(j, 'c');
@@ -975,8 +928,7 @@ public class KrovetzStemmer {
 										 */
 				word.setLength(j); /* (sometimes it gets turned into -y, but we */
 				k = j - 1; /* aren't dealing with that case for now) */
-				if (lookup(word))
-					return;
+				if (lookup(word)) return;
 				word.setCharAt(j, 'i');
 				k = old_k;
 			}
@@ -995,14 +947,12 @@ public class KrovetzStemmer {
 		if (endsIn("ive")) {
 			word.setLength(j + 1); /* try removing -ive entirely */
 			k = j;
-			if (lookup(word))
-				return;
+			if (lookup(word)) return;
 
 			word.setCharAt(j + 1, 'e'); /* try removing -ive and adding -e */
 			word.setLength(j + 2);
 			k = j + 1;
-			if (lookup(word))
-				return;
+			if (lookup(word)) return;
 			word.setCharAt(j + 1, 'i');
 			word.setCharAt(j + 2, 'v');
 
@@ -1010,11 +960,9 @@ public class KrovetzStemmer {
 				word.setCharAt(j - 1, 'e'); /* try removing -ative and adding -e */
 				word.setLength(j); /* (e.g., determinative -> determine) */
 				k = j - 1;
-				if (lookup(word))
-					return;
+				if (lookup(word)) return;
 				word.setLength(j - 1); /* try just removing -ative */
-				if (lookup(word))
-					return;
+				if (lookup(word)) return;
 				word.setCharAt(j - 1, 'a');
 				word.setCharAt(j, 't');
 				k = old_k;
@@ -1023,8 +971,7 @@ public class KrovetzStemmer {
 			/* try mapping -ive to -ion (e.g., injunctive/injunction) */
 			word.setCharAt(j + 2, 'o');
 			word.setCharAt(j + 3, 'n');
-			if (lookup(word))
-				return;
+			if (lookup(word)) return;
 
 			word.setCharAt(j + 2, 'v'); /* restore the original values */
 			word.setCharAt(j + 3, 'e');
@@ -1040,23 +987,20 @@ public class KrovetzStemmer {
 		if (endsIn("ize")) {
 			word.setLength(j + 1); /* try removing -ize entirely */
 			k = j;
-			if (lookup(word))
-				return;
+			if (lookup(word)) return;
 			word.setCharAt(j + 1, 'i');
 
 			if (doubleC(j)) { /* allow for a doubled consonant */
 				word.setLength(j);
 				k = j - 1;
-				if (lookup(word))
-					return;
+				if (lookup(word)) return;
 				word.setCharAt(j, word.charAt(j - 1));
 			}
 
 			word.setCharAt(j + 1, 'e'); /* try removing -ize and adding -e */
 			word.setLength(j + 2);
 			k = j + 1;
-			if (lookup(word))
-				return;
+			if (lookup(word)) return;
 			word.setCharAt(j + 1, 'i');
 			word.setCharAt(j + 2, 'z');
 			k = old_k;
@@ -1071,8 +1015,7 @@ public class KrovetzStemmer {
 		if (endsIn("ment")) {
 			word.setLength(j + 1);
 			k = j;
-			if (lookup(word))
-				return;
+			if (lookup(word)) return;
 			word.setCharAt(j + 1, 'm');
 			k = old_k;
 		}
@@ -1091,13 +1034,11 @@ public class KrovetzStemmer {
 		if (endsIn("ity")) {
 			word.setLength(j + 1); /* try just removing -ity */
 			k = j;
-			if (lookup(word))
-				return;
+			if (lookup(word)) return;
 			word.setCharAt(j + 1, 'e'); /* try removing -ity and adding -e */
 			word.setLength(j + 2);
 			k = j + 1;
-			if (lookup(word))
-				return;
+			if (lookup(word)) return;
 			word.setCharAt(j + 1, 'i');
 			word.setCharAt(j + 2, 't');
 			k = old_k;
@@ -1136,8 +1077,7 @@ public class KrovetzStemmer {
 			 * form are in the dictionary, then remove the ending as a default
 			 */
 
-			if (lookup(word))
-				return;
+			if (lookup(word)) return;
 
 			/* the default is to remove -ity altogether */
 			word.setLength(j + 1);
@@ -1152,34 +1092,29 @@ public class KrovetzStemmer {
 		char word_char;
 
 		if (endsIn("ble")) {
-			if (!((word.charAt(j) == 'a') || (word.charAt(j) == 'i')))
-				return;
+			if (!((word.charAt(j) == 'a') || (word.charAt(j) == 'i'))) return;
 			word_char = word.charAt(j);
 			word.setLength(j); /* try just removing the ending */
 			k = j - 1;
-			if (lookup(word))
-				return;
+			if (lookup(word)) return;
 			if (doubleC(k)) { /* allow for a doubled consonant */
 				word.setLength(k);
 				k--;
-				if (lookup(word))
-					return;
+				if (lookup(word)) return;
 				k++;
 				word.setCharAt(k, word.charAt(k - 1));
 			}
 			word.setCharAt(j, 'e'); /* try removing -a/ible and adding -e */
 			word.setLength(j + 1);
 			k = j;
-			if (lookup(word))
-				return;
+			if (lookup(word)) return;
 
 			word.setCharAt(j, 'a'); /* try removing -able and adding -ate */
 			word.setCharAt(j + 1, 't'); /* (e.g., compensable/compensate) */
 			word.setCharAt(j + 2, 'e');
 			word.setLength(j + 3);
 			k = j + 2;
-			if (lookup(word))
-				return;
+			if (lookup(word)) return;
 
 			word.setCharAt(j, word_char); /* restore the original values */
 			word.setCharAt(j + 1, 'b');
@@ -1198,8 +1133,7 @@ public class KrovetzStemmer {
 							 */
 			word.setLength(j + 1);
 			k = j;
-			if (word.charAt(j) == 'i')
-				word.setCharAt(j, 'y');
+			if (word.charAt(j) == 'i') word.setCharAt(j, 'y');
 		}
 		return;
 	}
@@ -1227,23 +1161,19 @@ public class KrovetzStemmer {
 			word.setCharAt(j + 4, 'l');
 			word.setLength(j + 5);
 			k = j + 4;
-			if (lookup(word))
-				return;
+			if (lookup(word)) return;
 
 			word.setCharAt(j + 1, 'y'); /* try converting -ic to -y */
 			word.setLength(j + 2);
 			k = j + 1;
-			if (lookup(word))
-				return;
+			if (lookup(word)) return;
 
 			word.setCharAt(j + 1, 'e'); /* try converting -ic to -e */
-			if (lookup(word))
-				return;
+			if (lookup(word)) return;
 
 			word.setLength(j + 1); /* try removing -ic altogether */
 			k = j;
-			if (lookup(word))
-				return;
+			if (lookup(word)) return;
 
 			word.setCharAt(j + 1, 'i'); /* restore the original ending */
 			word.setCharAt(j + 2, 'c');
@@ -1256,14 +1186,12 @@ public class KrovetzStemmer {
 	/* handle -ency and -ancy */
 	private void ncy_endings() {
 		if (endsIn("ncy")) {
-			if (!((word.charAt(j) == 'e') || (word.charAt(j) == 'a')))
-				return;
+			if (!((word.charAt(j) == 'e') || (word.charAt(j) == 'a'))) return;
 			word.setCharAt(j + 2, 't'); /* try converting -ncy to -nt */
 			word.setLength(j + 3); /* (e.g., constituency -> constituent) */
 			k = j + 2;
 
-			if (lookup(word))
-				return;
+			if (lookup(word)) return;
 
 			word.setCharAt(j + 2, 'c'); /* the default is to convert it to -nce */
 			word.setCharAt(j + 3, 'e');
@@ -1279,8 +1207,7 @@ public class KrovetzStemmer {
 		char word_char;
 
 		if (endsIn("nce")) {
-			if (!((word.charAt(j) == 'e') || (word.charAt(j) == 'a')))
-				return;
+			if (!((word.charAt(j) == 'e') || (word.charAt(j) == 'a'))) return;
 			word_char = word.charAt(j);
 			word.setCharAt(j, 'e'); /*
 									 * try converting -e/ance to -e
@@ -1288,15 +1215,13 @@ public class KrovetzStemmer {
 									 */
 			word.setLength(j + 1);
 			k = j;
-			if (lookup(word))
-				return;
+			if (lookup(word)) return;
 			word.setLength(j); /*
 								 * try removing -e/ance altogether
 								 * (disappearance/disappear)
 								 */
 			k = j - 1;
-			if (lookup(word))
-				return;
+			if (lookup(word)) return;
 			word.setCharAt(j, word_char); /* restore the original ending */
 			word.setCharAt(j + 1, 'n');
 			k = old_k;
@@ -1326,7 +1251,8 @@ public class KrovetzStemmer {
 				String w = in.next();
 				addTableEntry(v, w);
 			}
-		} catch (FileNotFoundException e) {
+		}
+		catch (FileNotFoundException e) {
 			System.out.println(e.getMessage());
 			throw e;
 		}

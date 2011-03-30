@@ -1,8 +1,8 @@
-package test.preprocess;
+package test.preprocess.extraction;
 
-import java.util.*;
+import java.util.Scanner;
 
-import core.preprocess.PorterStemmer;
+import core.preprocess.extraction.PorterStemmer;
 
 public class PorterStemmerTest {
 
@@ -14,11 +14,11 @@ public class PorterStemmerTest {
 
 		do {
 			word = in.next();
-			if (word.equals("exit"))
-				break;
-			ret = stemmer.stem(word);
+			if (word.equals("exit")) break;
+			ret = stemmer.stem(word, true);
 			System.out.println(ret + "->" + ret.length());
-		} while (true);
+		}
+		while (true);
 	}
 
 }

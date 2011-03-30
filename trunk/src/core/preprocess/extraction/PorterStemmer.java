@@ -1,6 +1,6 @@
-package core.preprocess;
+package core.preprocess.extraction;
 
-public class PorterStemmer {
+public class PorterStemmer extends Stemmer {
 
 	private char[] b; /* buffer for word to be stemmed */
 	private int k, k0, j; /* j is a general offset into the string */
@@ -33,28 +33,22 @@ public class PorterStemmer {
 		int n = 0;
 		int i = k0;
 		while (true) {
-			if (i > j)
-				return n;
-			if (!cons(i))
-				break;
+			if (i > j) return n;
+			if (!cons(i)) break;
 			i++;
 		}
 		i++;
 		while (true) {
 			while (true) {
-				if (i > j)
-					return n;
-				if (cons(i))
-					break;
+				if (i > j) return n;
+				if (cons(i)) break;
 				i++;
 			}
 			i++;
 			n++;
 			while (true) {
-				if (i > j)
-					return n;
-				if (!cons(i))
-					break;
+				if (i > j) return n;
+				if (!cons(i)) break;
 				i++;
 			}
 			i++;
@@ -65,17 +59,14 @@ public class PorterStemmer {
 	private boolean vowelInStem() {
 		int i;
 		for (i = k0; i <= j; i++)
-			if (!cons(i))
-				return true;
+			if (!cons(i)) return true;
 		return false;
 	}
 
 	/* doublec(j) is TRUE <=> j,(j-1) contain a double consonant. */
 	private boolean doubleC(int j) {
-		if (j < k0 + 1)
-			return false;
-		if (b[j] != b[j - 1])
-			return false;
+		if (j < k0 + 1) return false;
+		if (b[j] != b[j - 1]) return false;
 		return cons(j);
 	}
 
@@ -87,19 +78,16 @@ public class PorterStemmer {
 	 * cav(e), lov(e), hop(e), crim(e), but snow, box, tray.
 	 */
 	private boolean cvc(int i) {
-		if (i < k0 + 2 || !cons(i) || cons(i - 1) || !cons(i - 2))
-			return false;
+		if (i < k0 + 2 || !cons(i) || cons(i - 1) || !cons(i - 2)) return false;
 		int ch = b[i];
-		if (ch == 'w' || ch == 'x' || ch == 'y')
-			return false;
+		if (ch == 'w' || ch == 'x' || ch == 'y') return false;
 		return true;
 	}
 
 	/* compare b1[i1,...,i1+len-1] with b2[i2,...,i2+len-1] */
 	private int memcmp(char[] b1, int i1, char[] b2, int i2, int len) {
 		for (int i = 0; i < len; i++) {
-			if (b1[i1 + i] != b2[i2 + i])
-				return ((int) b1[i1 + i]) - ((int) b2[i2 + i]);
+			if (b1[i1 + i] != b2[i2 + i]) return ((int) b1[i1 + i]) - ((int) b2[i2 + i]);
 		}
 		return 0;
 	}
@@ -108,12 +96,9 @@ public class PorterStemmer {
 	private boolean ends(String str) {
 		char[] s = str.toCharArray();
 		int length = s[0];
-		if (s[length] != b[k])
-			return false; /* tiny speed-up */
-		if (length > k - k0 + 1)
-			return false;
-		if (memcmp(b, k - length + 1, s, 1, length) != 0)
-			return false;
+		if (s[length] != b[k]) return false; /* tiny speed-up */
+		if (length > k - k0 + 1) return false;
+		if (memcmp(b, k - length + 1, s, 1, length) != 0) return false;
 		j = k - length;
 		return true;
 	}
@@ -138,8 +123,7 @@ public class PorterStemmer {
 
 	/* r(s) is used further down. */
 	private void r(String s) {
-		if (m() > 0)
-			setTo(s);
+		if (m() > 0) setTo(s);
 	}
 
 	/*
@@ -156,38 +140,30 @@ public class PorterStemmer {
 	 */
 	private void step1ab() {
 		if (b[k] == 's') {
-			if (ends("\04" + "sses"))
-				k -= 2;
-			else if (ends("\03" + "ies"))
-				setTo("\01" + "i");
-			else if (b[k - 1] != 's')
-				k--;
+			if (ends("\04" + "sses")) k -= 2;
+			else if (ends("\03" + "ies")) setTo("\01" + "i");
+			else if (b[k - 1] != 's') k--;
 		}
 		if (ends("\03" + "eed")) {
-			if (m() > 0)
-				k--;
-		} else if ((ends("\02" + "ed") || ends("\03" + "ing")) && vowelInStem()) {
+			if (m() > 0) k--;
+		}
+		else if ((ends("\02" + "ed") || ends("\03" + "ing")) && vowelInStem()) {
 			k = j;
-			if (ends("\02" + "at"))
-				setTo("\03" + "ate");
-			else if (ends("\02" + "bl"))
-				setTo("\03" + "ble");
-			else if (ends("\02" + "iz"))
-				setTo("\03" + "ize");
+			if (ends("\02" + "at")) setTo("\03" + "ate");
+			else if (ends("\02" + "bl")) setTo("\03" + "ble");
+			else if (ends("\02" + "iz")) setTo("\03" + "ize");
 			else if (doubleC(k)) {
 				k--;
 				int ch = b[k];
-				if (ch == 'l' || ch == 's' || ch == 'z')
-					k++;
-			} else if (m() == 1 && cvc(k))
-				setTo("\01" + "e");
+				if (ch == 'l' || ch == 's' || ch == 'z') k++;
+			}
+			else if (m() == 1 && cvc(k)) setTo("\01" + "e");
 		}
 	}
 
 	/* step1c() turns terminal y to i when there is another vowel in the stem. */
 	private void step1c() {
-		if (ends("\01" + "y") && vowelInStem())
-			b[k] = 'i';
+		if (ends("\01" + "y") && vowelInStem()) b[k] = 'i';
 	}
 
 	/*
@@ -352,73 +328,53 @@ public class PorterStemmer {
 	private void step4() {
 		switch (b[k - 1]) {
 		case 'a':
-			if (ends("\02" + "al"))
-				break;
+			if (ends("\02" + "al")) break;
 			return;
 		case 'c':
-			if (ends("\04" + "ance"))
-				break;
-			if (ends("\04" + "ence"))
-				break;
+			if (ends("\04" + "ance")) break;
+			if (ends("\04" + "ence")) break;
 			return;
 		case 'e':
-			if (ends("\02" + "er"))
-				break;
+			if (ends("\02" + "er")) break;
 			return;
 		case 'i':
-			if (ends("\02" + "ic"))
-				break;
+			if (ends("\02" + "ic")) break;
 			return;
 		case 'l':
-			if (ends("\04" + "able"))
-				break;
-			if (ends("\04" + "ible"))
-				break;
+			if (ends("\04" + "able")) break;
+			if (ends("\04" + "ible")) break;
 			return;
 		case 'n':
-			if (ends("\03" + "ant"))
-				break;
-			if (ends("\05" + "ement"))
-				break;
-			if (ends("\04" + "ment"))
-				break;
-			if (ends("\03" + "ent"))
-				break;
+			if (ends("\03" + "ant")) break;
+			if (ends("\05" + "ement")) break;
+			if (ends("\04" + "ment")) break;
+			if (ends("\03" + "ent")) break;
 			return;
 		case 'o':
-			if (ends("\03" + "ion") && (b[j] == 's' || b[j] == 't'))
-				break;
-			if (ends("\02" + "ou"))
-				break;
+			if (ends("\03" + "ion") && (b[j] == 's' || b[j] == 't')) break;
+			if (ends("\02" + "ou")) break;
 			return;
 			/* takes care of -ous */
 		case 's':
-			if (ends("\03" + "ism"))
-				break;
+			if (ends("\03" + "ism")) break;
 			return;
 		case 't':
-			if (ends("\03" + "ate"))
-				break;
-			if (ends("\03" + "iti"))
-				break;
+			if (ends("\03" + "ate")) break;
+			if (ends("\03" + "iti")) break;
 			return;
 		case 'u':
-			if (ends("\03" + "ous"))
-				break;
+			if (ends("\03" + "ous")) break;
 			return;
 		case 'v':
-			if (ends("\03" + "ive"))
-				break;
+			if (ends("\03" + "ive")) break;
 			return;
 		case 'z':
-			if (ends("\03" + "ize"))
-				break;
+			if (ends("\03" + "ize")) break;
 			return;
 		default:
 			return;
 		}
-		if (m() > 1)
-			k = j;
+		if (m() > 1) k = j;
 	}
 
 	/*
@@ -428,11 +384,9 @@ public class PorterStemmer {
 		j = k;
 		if (b[k] == 'e') {
 			int a = m();
-			if (a > 1 || a == 1 && !cvc(k - 1))
-				k--;
+			if (a > 1 || a == 1 && !cvc(k - 1)) k--;
 		}
-		if (b[k] == 'l' && doubleC(k) && m() > 1)
-			k--;
+		if (b[k] == 'l' && doubleC(k) && m() > 1) k--;
 	}
 
 	/*
@@ -452,11 +406,10 @@ public class PorterStemmer {
 	 * 
 	 * @return the new end point of the string.
 	 */
-	public String stem(String str) {
+	public String stem(String str, boolean toLower) {
 		k0 = 0; /* copy the parameters into statics */
 		k = str.length() - 1;
-		if (k <= k0 + 1)
-			return str; /*-DEPARTURE-*/
+		if (k <= k0 + 1) return str; /*-DEPARTURE-*/
 
 		/*
 		 * With this line, strings of length 1 or 2 don't go through the
@@ -465,8 +418,15 @@ public class PorterStemmer {
 		 * algorithm.
 		 */
 		b = new char[100];
-		for (int i = k0; i <= k; i++) {
-			b[i] = str.charAt(i);
+		if (toLower) {
+			for (int i = k0; i <= k; i++) {
+				b[i] = Character.toLowerCase(str.charAt(i));
+			}
+		}
+		else {
+			for (int i = k0; i <= k; i++) {
+				b[i] = str.charAt(i);
+			}
 		}
 		// System.out.println(new String(b));
 

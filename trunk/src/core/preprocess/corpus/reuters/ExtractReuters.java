@@ -5,13 +5,16 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.FileNotFoundException;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.lang.CharSequence;
 
 import core.preprocess.util.Constant;
-import core.preprocess.util.XmlFormatter;
+import core.preprocess.util.XmlDocument;
+import core.preprocess.extraction.Stemmer;
+import core.preprocess.selection.Stopper;
 
 //Split the Reuters SGML documents into Simple Text files containing: Label, Title, Content
 public class ExtractReuters {
@@ -23,6 +26,9 @@ public class ExtractReuters {
 	private File reutersDir;
 	private File trainingDir;
 	private File testDir;
+	private Stemmer stemmer;
+	private Stopper stopper;
+	private boolean toLower;
 
 	public ExtractReuters(File reutersDir, File outputDir, int splitting) {
 		this.splitting = splitting;
@@ -30,16 +36,30 @@ public class ExtractReuters {
 		this.trainingDir = new File(outputDir, Constant.TRAINING_FOLDER);
 		this.testDir = new File(outputDir, Constant.TEST_FOLDER);
 
-		System.out.println("Deleting all files in " + outputDir);
+		//System.out.println("Deleting all files in " + outputDir);
 		File[] files = outputDir.listFiles();
 		for (int i = 0; i < files.length; i++) {
 			files[i].delete();
 		}
+
 		this.trainingDir.mkdirs();
 		this.testDir.mkdirs();
+		this.stemmer = null;
+		this.stopper = null;
 	}
 
-	public void extract() throws Exception {
+	/**
+	 * extract the reuters data from original sgm files and do stopping and stemming according to the parameters
+	 * @param stopper if stopper==null, no stopping will be done
+	 * @param stemmer if stemmer==null, no stemming will be done
+	 * @param toLower whether the title and the content should be turned to lower case
+	 * @throws Exception
+	 */
+	public void extract(Stopper stopper, Stemmer stemmer, boolean toLower) throws Exception {
+		this.stemmer = stemmer;
+		this.stopper = stopper;
+		this.toLower = toLower;
+
 		File[] sgmFiles = this.reutersDir.listFiles(new FileFilter() {
 			public boolean accept(File file) {
 				return file.getName().endsWith(".sgm");
@@ -50,32 +70,21 @@ public class ExtractReuters {
 				File sgmFile = sgmFiles[i];
 				extractFile(sgmFile);
 			}
-		} else {
-			System.err.println("No .sgm files in " + this.reutersDir);
+		}
+		else {
+			//System.err.println("No .sgm files in " + this.reutersDir);
+			throw new FileNotFoundException("No .sgm files in " + this.reutersDir);
 		}
 	}
 
-	private Pattern HEAD_ATTRIBUTE_PATTERN = Pattern
-			.compile("<REUTERS TOPICS=\"([^\"]*)\" LEWISSPLIT=\"([^\"]*)\" CGISPLIT=\"([^\"]*)\".*?>");
+	private Pattern HEAD_ATTRIBUTE_PATTERN = Pattern.compile("<REUTERS TOPICS=\"([^\"]*)\" LEWISSPLIT=\"([^\"]*)\" CGISPLIT=\"([^\"]*)\".*?>");
 	private Pattern LABELS_PATTERN = Pattern.compile("<TOPICS>(.*?)</TOPICS>");
 	private Pattern LABEL_PATTERN = Pattern.compile("<D>(.*?)</D>");
 	private Pattern TITLE_PATTERN = Pattern.compile("<TITLE>(.*?)</TITLE>");
 	private Pattern CONTENT_PATTERN = Pattern.compile("<BODY>(.*?)</BODY>");
 
-	private static String[] META_CHARS_SERIALIZATIONS = {
-		"&amp;",
-		"&lt;",
-		"&gt;",
-		"&quot;",
-		"&apos;"
-		};
-	private static String[] META_CHARS = {
-		"&",
-		"<",
-		">",
-		"\"",
-		"'"
-		};
+	private static String[] META_CHARS_SERIALIZATIONS = { "&amp;", "&lt;", "&gt;", "&quot;", "&apos;" };
+	private static String[] META_CHARS = { "&", "<", ">", "\"", "'" };
 
 	private static String[] BAD_CHAR_PATTERN = {
 		"\\p{Punct}\\p{Punct}+",							//consecutive punctuations -> " "
@@ -114,38 +123,40 @@ public class ExtractReuters {
 		" "
 		};
 
-	private int checkModLewis(String splitTopics, String splitLewis,
-			String splitCgi) {
+	private int checkModLewis(String splitTopics, String splitLewis, String splitCgi) {
 		if (splitLewis.equals("NOT-USED") || splitTopics.equals("BYPASS")) {
 			return FIRED;
 		}
 		if (splitLewis.equals("TRAIN")) {
 			return TRAINING;
-		} else {
+		}
+		else {
 			return TEST;
 		}
 	}
 
-	private int checkModApte(String splitTopics, String splitLewis,
-			String splitCgi) {
+	private int checkModApte(String splitTopics, String splitLewis, String splitCgi) {
 		if (splitTopics.equals("YES")) {
 			if (splitLewis.equals("TRAIN")) {
 				return TRAINING;
-			} else if (splitLewis.equals("TEST")) {
+			}
+			else if (splitLewis.equals("TEST")) {
 				return TEST;
-			} else {
+			}
+			else {
 				return FIRED;
 			}
-		} else {
+		}
+		else {
 			return FIRED;
 		}
 	}
 
-	private int checkModHayes(String splitTopics, String splitLewis,
-			String splitCgi) {
+	private int checkModHayes(String splitTopics, String splitLewis, String splitCgi) {
 		if (splitCgi.equals("TRAINING-SET")) {
 			return TRAINING;
-		} else {
+		}
+		else {
 			return TEST;
 		}
 	}
@@ -165,11 +176,13 @@ public class ExtractReuters {
 		// System.out.println("LEWISSPLIT = " + splitLewis);
 		// System.out.println("CGISPLIT = " + splitCgi);
 
-		if (this.splitting == Constant.MODLEWIS) {
+		if (this.splitting == Constant.MOD_LEWIS) {
 			return checkModLewis(splitTopics, splitLewis, splitCgi);
-		} else if (this.splitting == Constant.MODAPTE) {
+		}
+		else if (this.splitting == Constant.MOD_APTE) {
 			return checkModApte(splitTopics, splitLewis, splitCgi);
-		} else {
+		}
+		else {
 			return checkModHayes(splitTopics, splitLewis, splitCgi);
 		}
 	}
@@ -221,57 +234,62 @@ public class ExtractReuters {
 			while ((line = reader.readLine()) != null) {
 				// when we see a closing reuters tag, flush the file
 
-				if ((line.indexOf("</REUTERS")) == -1) {// if "</REUTERS"
-														// occurs, it will
-														// always occur at index
-														// 0
+				if ((line.indexOf("</REUTERS")) == -1) {//if "</REUTERS" occurs, it will always occur at index 0
 					buffer.append(line).append(' ');
-				} else {
+				}
+				else {
 					int usage = checkUsage(buffer);
 					if (usage != FIRED) {
 						String[] labels = findLabels(buffer);
 						String title = findRelevantPiece(TITLE_PATTERN, buffer);
-						String content = findRelevantPiece(CONTENT_PATTERN,
-								buffer);
+						String content = findRelevantPiece(CONTENT_PATTERN, buffer);
 
 						title = processBadWords(title);
 						content = processBadWords(content);
+						
+						if (this.stopper != null) {
+							title = this.stopper.stopTextBlock(title);
+							content = this.stopper.stopTextBlock(content);
+						}
+						if (this.stemmer != null) {
+							title = this.stemmer.stemTextBlock(title, this.toLower);
+							content = this.stemmer.stemTextBlock(content, this.toLower);
+						}
+						else if(this.toLower) {
+							title = title.toLowerCase();
+							content = content.toLowerCase();
+						}
 
 						// System.out.print("labels = ");
 						// for (int i = 0; i < labels.length; i++) {
-						// System.out.print(labels[i] + ", ");
+						// 	System.out.print(labels[i] + ", ");
 						// }
 						// System.out.println();
 						// System.out.println("title = " + title);
-						// System.out.println("usage = "
-						// + (usage == TRAINING ? "training" : "test"));
+						// System.out.println("usage = " + (usage == TRAINING ? "training" : "test"));
 						// System.out.println();
 
-						String filename = sgmFile.getName() + "-"
-								+ (docNumber++) + ".txt";
-						// if (docNumber > 10) {
-						// break;
-						// }
+						String filename = sgmFile.getName() + "-" + (docNumber++) + ".xml";
+						// if (docNumber > 10) break;
 
 						if (usage == TRAINING) {
-							XmlFormatter.createXml(this.trainingDir, filename,
-									labels, title, content);
-						} else {
-							XmlFormatter.createXml(this.testDir, filename,
-									labels, title, content);
+							XmlDocument.createDocument(this.trainingDir, filename, labels, title, content);
+						}
+						else {
+							XmlDocument.createDocument(this.testDir, filename, labels, title, content);
 						}
 					}
 					buffer.setLength(0);
 				}
 			}
 			reader.close();
-		} catch (IOException e) {
+		}
+		catch (IOException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
 	public static void printUsage() {
-		System.err
-				.println("Usage: java -cp <...> org.apache.lucene.benchmark.utils.ExtractReuters <Path to Reuters SGM files> <Output Path>");
+		System.err.println("Usage: java -cp <...> org.apache.lucene.benchmark.utils.ExtractReuters <Path to Reuters SGM files> <Output Path>");
 	}
 }

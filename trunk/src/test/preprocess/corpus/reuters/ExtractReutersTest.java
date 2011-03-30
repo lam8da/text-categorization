@@ -17,10 +17,10 @@ public class ExtractReutersTest {
 		if (reutersDir.exists()) {
 			File outputDir = new File(args[1]);
 			outputDir.mkdirs();
-			ExtractReuters extractor = new ExtractReuters(reutersDir,
-					outputDir, Constant.MODLEWIS);
-			extractor.extract();
-		} else {
+			ExtractReuters extractor = new ExtractReuters(reutersDir, outputDir, Constant.MOD_LEWIS);
+			extractor.extract(null, null, false);
+		}
+		else {
 			ExtractReuters.printUsage();
 		}
 	}
