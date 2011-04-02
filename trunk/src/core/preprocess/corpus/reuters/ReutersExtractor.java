@@ -13,54 +13,17 @@ import java.lang.CharSequence;
 
 import core.preprocess.util.Constant;
 import core.preprocess.util.XmlDocument;
-import core.preprocess.extraction.Stemmer;
-import core.preprocess.selection.Stopper;
+import core.preprocess.corpus.Extractor;
 
 //Split the Reuters SGML documents into Simple Text files containing: Label, Title, Content
-public class ExtractReuters {
-	private static final int TRAINING = 0;
-	private static final int TEST = 1;
-	private static final int FIRED = 2;
-
-	private int splitting;
-	private File reutersDir;
-	private File trainingDir;
-	private File testDir;
-	private Stemmer stemmer;
-	private Stopper stopper;
-	private boolean toLower;
-
-	public ExtractReuters(File reutersDir, File outputDir, int splitting) {
-		this.splitting = splitting;
-		this.reutersDir = reutersDir;
-		this.trainingDir = new File(outputDir, Constant.TRAINING_FOLDER);
-		this.testDir = new File(outputDir, Constant.TEST_FOLDER);
-
-		//System.out.println("Deleting all files in " + outputDir);
-		File[] files = outputDir.listFiles();
-		for (int i = 0; i < files.length; i++) {
-			files[i].delete();
-		}
-
-		this.trainingDir.mkdirs();
-		this.testDir.mkdirs();
-		this.stemmer = null;
-		this.stopper = null;
+public class ReutersExtractor extends Extractor {
+	public ReutersExtractor(File reutersDir, File outputDir, int splitting) {
+		super(reutersDir, outputDir, splitting);
 	}
 
-	/**
-	 * extract the reuters data from original sgm files and do stopping and stemming according to the parameters
-	 * @param stopper if stopper==null, no stopping will be done
-	 * @param stemmer if stemmer==null, no stemming will be done
-	 * @param toLower whether the title and the content should be turned to lower case
-	 * @throws Exception
-	 */
-	public void extract(Stopper stopper, Stemmer stemmer, boolean toLower) throws Exception {
-		this.stemmer = stemmer;
-		this.stopper = stopper;
-		this.toLower = toLower;
-
-		File[] sgmFiles = this.reutersDir.listFiles(new FileFilter() {
+	@Override
+	protected void extractFiles() throws Exception {
+		File[] sgmFiles = this.inputDir.listFiles(new FileFilter() {
 			public boolean accept(File file) {
 				return file.getName().endsWith(".sgm");
 			}
@@ -73,7 +36,7 @@ public class ExtractReuters {
 		}
 		else {
 			//System.err.println("No .sgm files in " + this.reutersDir);
-			throw new FileNotFoundException("No .sgm files in " + this.reutersDir);
+			throw new FileNotFoundException("No .sgm files in " + this.inputDir);
 		}
 	}
 
@@ -125,39 +88,39 @@ public class ExtractReuters {
 
 	private int checkModLewis(String splitTopics, String splitLewis, String splitCgi) {
 		if (splitLewis.equals("NOT-USED") || splitTopics.equals("BYPASS")) {
-			return FIRED;
+			return Constant.FIRED;
 		}
 		if (splitLewis.equals("TRAIN")) {
-			return TRAINING;
+			return Constant.TRAINING;
 		}
 		else {
-			return TEST;
+			return Constant.TEST;
 		}
 	}
 
 	private int checkModApte(String splitTopics, String splitLewis, String splitCgi) {
 		if (splitTopics.equals("YES")) {
 			if (splitLewis.equals("TRAIN")) {
-				return TRAINING;
+				return Constant.TRAINING;
 			}
 			else if (splitLewis.equals("TEST")) {
-				return TEST;
+				return Constant.TEST;
 			}
 			else {
-				return FIRED;
+				return Constant.FIRED;
 			}
 		}
 		else {
-			return FIRED;
+			return Constant.FIRED;
 		}
 	}
 
 	private int checkModHayes(String splitTopics, String splitLewis, String splitCgi) {
 		if (splitCgi.equals("TRAINING-SET")) {
-			return TRAINING;
+			return Constant.TRAINING;
 		}
 		else {
-			return TEST;
+			return Constant.TEST;
 		}
 	}
 
@@ -239,7 +202,7 @@ public class ExtractReuters {
 				}
 				else {
 					int usage = checkUsage(buffer);
-					if (usage != FIRED) {
+					if (usage != Constant.FIRED) {
 						String[] labels = findLabels(buffer);
 						String title = findRelevantPiece(TITLE_PATTERN, buffer);
 						String content = findRelevantPiece(CONTENT_PATTERN, buffer);
@@ -272,7 +235,7 @@ public class ExtractReuters {
 						String filename = sgmFile.getName() + "-" + (docNumber++) + ".xml";
 						// if (docNumber > 10) break;
 
-						if (usage == TRAINING) {
+						if (usage == Constant.TRAINING) {
 							XmlDocument.createDocument(this.trainingDir, filename, labels, title, content);
 						}
 						else {

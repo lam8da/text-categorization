@@ -1,7 +1,5 @@
 package core.preprocess.util;
 
-import java.util.UUID;
-
 /**
  * this class provide some constants which may be useful in the procedure of
  * preprocessing
@@ -13,15 +11,24 @@ public final class Constant {
 	//constant strings
 	public static final String LINE_SEPARATOR = "\r\n";
 	public static final String WORD_SEPARATOR = " ";
-	public static final String EMPTY_LABEL = "EMPTY_LABEL-" + UUID.randomUUID().toString();
+	public static final String WORD_SEPARATING_PATTERN = "\\s+";
+	public static final String YES = "yes";
+	public static final String NO = "no";
+	public static final String EMPTY_LABEL = "EMPTY_LABEL-1e3df054";
 
-	//training and test directory name
+	//training, test and other folder name
 	public static final String TRAINING_FOLDER = "training";
 	public static final String TEST_FOLDER = "test";
+	public static final String EXTRACTION_METADATA_FILENAME = "meta.txt";
 
 	//for corpus choosing
 	public static final int REUTERS = 1;
 	public static final int TWENTY_NEWS_GTOUP = 2;
+
+	//for determining the usage of each document
+	public static final int TRAINING = 0;
+	public static final int TEST = 1;
+	public static final int FIRED = 2;
 
 	//for choosing training and test set of reuters corpus
 	public static final int MOD_LEWIS = 1;
