@@ -9,7 +9,8 @@ import core.preprocess.selection.Stopper;
 import core.preprocess.util.Constant;
 import core.preprocess.util.DataAnalyzer;
 import core.preprocess.util.XmlDocument;
-import core.preprocess.corpus.reuters.ExtractReuters;
+import core.preprocess.corpus.Extractor;
+import core.preprocess.corpus.reuters.ReutersExtractor;
 
 /**
  * this class provide a tool for the whole procedure of propressing
@@ -28,6 +29,7 @@ public class Preprocessor {
 	private Stopper stopper;
 	private Stemmer stemmer;
 	private boolean toLower;
+	private Extractor extractor;
 
 	/**
 	 * 
@@ -47,6 +49,7 @@ public class Preprocessor {
 			throws Exception {
 		this.corpusId = corpusId;
 		this.splitting = splitting;
+		
 		if (this.corpusId == Constant.REUTERS) {
 			if (this.splitting != Constant.MOD_APTE && this.splitting != Constant.MOD_HAYES && this.splitting != Constant.MOD_LEWIS) {
 				throw new Exception("splitting does not match corpus id!");
@@ -54,6 +57,9 @@ public class Preprocessor {
 		}
 		else if (this.corpusId == Constant.TWENTY_NEWS_GTOUP) {
 			// not implemented yet
+		}
+		else {
+			throw new Exception("invalid corpus id!");
 		}
 
 		this.inputDir = new File(inputPath);
@@ -95,12 +101,13 @@ public class Preprocessor {
 	 */
 	public boolean preprocess() throws Exception {
 		if (this.corpusId == Constant.REUTERS) {
-			ExtractReuters extractor = new ExtractReuters(inputDir, this.xmlDir, this.splitting);
-			extractor.extract(this.stopper, this.stemmer, this.toLower);
+			this.extractor = new ReutersExtractor(inputDir, this.xmlDir, this.splitting);
 		}
 		else {
 			//not implemented yet
 		}
+
+		extractor.extract(this.stopper, this.stemmer, this.toLower);
 		return true;
 	}
 

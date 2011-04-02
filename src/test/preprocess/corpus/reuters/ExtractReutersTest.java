@@ -2,13 +2,14 @@ package test.preprocess.corpus.reuters;
 
 import java.io.File;
 
-import core.preprocess.corpus.reuters.ExtractReuters;
+import core.preprocess.corpus.Extractor;
+import core.preprocess.corpus.reuters.ReutersExtractor;
 import core.preprocess.util.Constant;
 
 public class ExtractReutersTest {
 	public static void main(String[] args) throws Exception {
 		if (args.length != 2) {
-			ExtractReuters.printUsage();
+			ReutersExtractor.printUsage();
 			return;
 		}
 
@@ -17,11 +18,11 @@ public class ExtractReutersTest {
 		if (reutersDir.exists()) {
 			File outputDir = new File(args[1]);
 			outputDir.mkdirs();
-			ExtractReuters extractor = new ExtractReuters(reutersDir, outputDir, Constant.MOD_LEWIS);
-			extractor.extract(null, null, false);
+			Extractor extractor = new ReutersExtractor(reutersDir, outputDir, Constant.MOD_LEWIS);
+			extractor.extract(null, new core.preprocess.extraction.KrovetzStemmer(), false);
 		}
 		else {
-			ExtractReuters.printUsage();
+			ReutersExtractor.printUsage();
 		}
 	}
 }
