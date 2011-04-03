@@ -1,7 +1,6 @@
 package core.preprocess.selection;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.Scanner;
 
 import core.preprocess.util.Constant;
@@ -10,7 +9,7 @@ import core.preprocess.util.Trie;
 public class Stopper {
 	private Trie trie = new Trie();
 
-	public Stopper() throws FileNotFoundException {
+	public Stopper() throws Exception {
 		Scanner in = new Scanner(new File("res/stopwords-lemur"));
 		while (in.hasNext()) {
 			trie.add(in.next());
