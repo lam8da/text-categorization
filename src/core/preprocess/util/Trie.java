@@ -75,6 +75,8 @@ public class Trie {
 
 		@Override
 		public boolean hasNext() {
+			if (this.hasNextCalled) return !ended;
+
 			this.hasNextCalled = true;
 			if (this.ended) return false;
 
@@ -102,7 +104,7 @@ public class Trie {
 	}
 
 	protected TrieNode root;
-	protected int differentWordCnt; //number of different strings which have been added to the trie
+	private int differentWordCnt; //number of different strings which have been added to the trie
 	private int wordCnt; /*
 						 * number of strings (concerning duplication) which have
 						 * been added to the trie (this value is equal to the
@@ -116,6 +118,7 @@ public class Trie {
 	public Trie() {
 		this.root = new TrieNode('\\', 0, null, null, null);
 		this.differentWordCnt = 0;
+		this.wordCnt = 0;
 		this.nodeMap = new TreeMap<Integer, TrieNode>();
 	}
 
@@ -152,8 +155,27 @@ public class Trie {
 	 * @param word
 	 *            the word to be added
 	 * @return return the id of the inserted word in the trie
+	 * @throws Exception
 	 */
-	public int add(String word) {
+	public int add(String word) throws Exception {
+		return add(word, 1);
+	}
+
+	/**
+	 * add word to the trie with number of occurrence as "times"
+	 * 
+	 * @param word
+	 *            the word to be added
+	 * @param times
+	 *            number of occurrence we want to add to "word"
+	 * @return return the id of the inserted word in the trie
+	 * @throws Exception
+	 */
+	protected int add(String word, int times) throws Exception {
+		if (times <= 0) {
+			throw new Exception("invalid parameter: times should be greater than 0!");
+		}
+
 		TrieNode tmp = root;
 		for (int i = 0; i != word.length(); i++) {
 			if (tmp.child == null) {
@@ -201,8 +223,8 @@ public class Trie {
 			this.nodeMap.put(tmp.id, tmp);
 			differentWordCnt++;
 		}
-		tmp.occurrence++;
-		this.wordCnt++;
+		tmp.occurrence += times;
+		this.wordCnt += times;
 		return tmp.id;
 	}
 
@@ -313,15 +335,76 @@ public class Trie {
 	/**
 	 * if a word occurs both in this and "other", subtract its occurrence in the
 	 * current trie by the occurrence in "other". Otherwise nothing will be
-	 * done.
+	 * done. Note that the id in the result trie is not the same as current
+	 * trie!
 	 * 
 	 * @param other
 	 *            the trie whose words we want to subtract from the current trie
 	 * @return return a new trie as a result, no changes will be made to the
 	 *         current trie
+	 * @throws Exception
 	 */
-	public Trie pseudoSubtract(Trie other) {
+	public Trie pseudoSubtract(Trie other) throws Exception {
 		Trie res = new Trie();
+
+		Iterator<String> it = iterator();
+		if (!it.hasNext()) return res;
+
+		Iterator<String> otherIt = other.iterator();
+		String itNext = it.next();
+		String otherItNext = "\0"; //need to be tested
+
+		while (true) {
+			boolean bk = false;
+
+			while (otherItNext.compareTo(itNext) < 0) {
+				if (otherIt.hasNext()) {
+					otherItNext = otherIt.next();
+				}
+				else {
+					//System.out.println("adding " + itNext + ": " + getOccurrence(itNext));
+					res.add(itNext, getOccurrence(itNext));
+					while (it.hasNext()) {
+						itNext = it.next();
+						//System.out.println("adding " + itNext + ": " + getOccurrence(itNext));
+						res.add(itNext, getOccurrence(itNext));
+					}
+					bk = true;
+					break;
+				}
+			}
+			if (bk) break;
+
+			if (otherItNext.equals(itNext)) {
+				int occurrence = getOccurrence(itNext) - other.getOccurrence(itNext);
+				if (occurrence > 0) {
+					//System.out.println("adding " + itNext + ": " + getOccurrence(itNext));
+					res.add(itNext, occurrence);
+				}
+			}
+			else {
+				//System.out.println("adding " + itNext + ": " + getOccurrence(itNext));
+				res.add(itNext, getOccurrence(itNext));
+			}
+
+			if (it.hasNext()) {
+				itNext = it.next();
+			}
+			else break;
+
+			while (itNext.compareTo(otherItNext) < 0) {
+				System.out.println("adding " + itNext + ": " + getOccurrence(itNext));
+				res.add(itNext, getOccurrence(itNext));
+				if (it.hasNext()) {
+					itNext = it.next();
+				}
+				else {
+					bk = true;
+					break;
+				}
+			}
+			if (bk) break;
+		}
 		return res;
 	}
 }
