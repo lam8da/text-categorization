@@ -101,10 +101,11 @@ public class Preprocessor {
 	 */
 	public boolean preprocess() throws Exception {
 		if (this.corpusId == Constant.REUTERS) {
-			this.extractor = new ReutersExtractor(inputDir, this.xmlDir, this.splitting);
+			this.extractor = new ReutersExtractor(this.inputDir, this.xmlDir, this.splitting);
 		}
 		else {
 			//not implemented yet
+			throw new Exception("invalid corpus id!");
 		}
 
 		extractor.extract(this.stopper, this.stemmer, this.toLower);
