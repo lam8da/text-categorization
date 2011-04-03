@@ -17,12 +17,16 @@ public class TrieTest {
 		trie.traverse();
 
 		for (int i = 0; i < words.length; i++) {
-			System.out.print(trie.findId(words[i]) + ",");
+			System.out.print(trie.getId(words[i]) + ",");
 		}
+		System.out.println();
 		System.out.println();
 
 		for (Iterator<String> it = trie.iterator(); it.hasNext();) {
 			System.out.println(it.next());
 		}
+		System.out.println();
+		
+		System.out.println(trie.getWord(5));
 	}
 }

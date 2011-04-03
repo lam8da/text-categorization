@@ -4,36 +4,31 @@ import java.util.Iterator;
 import java.util.Vector;
 import java.io.File;
 import java.util.NoSuchElementException;
+import java.util.TreeMap;
 
 public class Trie {
-	private class TrieNode {
-		private int id; //the globally unique identifier for words, start from 0
-		private char val;
-		private int occurrence;
-		private TrieNode child;
-		private TrieNode brother;
-
-		//		public TrieNode() {
-		//			this.id = -1;
-		//			this.val = 0;
-		//			this.occurrence = 0;
-		//			this.Child = null;
-		//			this.Brother = null;
-		//		}
+	protected class TrieNode {
+		protected int id; //the globally unique identifier for words, start from 0
+		protected char val;
+		protected int occurrence;
+		protected TrieNode child;
+		protected TrieNode brother;
+		protected TrieNode parent;
 
 		/**
-		 * 
+		 * constructor
 		 */
-		public TrieNode(char val, int occurrence, TrieNode Child, TrieNode Brother) {
+		public TrieNode(char val, int occurrence, TrieNode child, TrieNode brother, TrieNode parent) {
 			this.id = -1;
 			this.val = val;
 			this.occurrence = occurrence;
-			this.child = Child;
-			this.brother = Brother;
+			this.child = child;
+			this.brother = brother;
+			this.parent = parent;
 		}
 	}
 
-	public class TrieIterator implements Iterator<String> {
+	private class TrieIterator implements Iterator<String> {
 		private Vector<TrieNode> currentPath;
 		private StringBuffer sb;
 		private int len; //the length of the string from root to the current node(i.e. currentPath[len])
@@ -106,16 +101,40 @@ public class Trie {
 
 	}
 
-	private TrieNode root;
-	private int strCnt; //number of unduplicated strings which have been added to the trie
+	protected TrieNode root;
+	protected int differentWordCnt; //number of different strings which have been added to the trie
+	private int wordCnt; /*
+						 * number of strings (concerning duplication) which have
+						 * been added to the trie (this value is equal to the
+						 * number of calling of function "add")
+						 */
+	private TreeMap<Integer, TrieNode> nodeMap;
 
+	/**
+	 * constructor
+	 */
 	public Trie() {
-		this.root = new TrieNode('\\', 0, null, null);
-		this.strCnt = 0;
+		this.root = new TrieNode('\\', 0, null, null, null);
+		this.differentWordCnt = 0;
+		this.nodeMap = new TreeMap<Integer, TrieNode>();
 	}
 
+	/**
+	 * get the size (i.e. number of different words) of current trie
+	 * 
+	 * @return the size
+	 */
 	public int size() {
-		return strCnt;
+		return this.differentWordCnt;
+	}
+
+	/**
+	 * get the number of words (concerning duplication) in the trie
+	 * 
+	 * @return the number of words concerning duplication
+	 */
+	public int getCounting() {
+		return this.wordCnt;
 	}
 
 	/**
@@ -132,18 +151,18 @@ public class Trie {
 	 * 
 	 * @param word
 	 *            the word to be added
-	 * @return return the ID of the inserted word
+	 * @return return the id of the inserted word in the trie
 	 */
 	public int add(String word) {
 		TrieNode tmp = root;
 		for (int i = 0; i != word.length(); i++) {
 			if (tmp.child == null) {
-				tmp.child = new TrieNode(word.charAt(i), 0, null, null);
+				tmp.child = new TrieNode(word.charAt(i), 0, null, null, tmp);
 				tmp = tmp.child;
 			}
 			else {
 				if (tmp.child.val > word.charAt(i)) { // Add To The Head Of The List
-					TrieNode t = new TrieNode(word.charAt(i), 0, null, tmp.child);
+					TrieNode t = new TrieNode(word.charAt(i), 0, null, tmp.child, tmp);
 					tmp.child = t;
 					tmp = t;
 				}
@@ -151,6 +170,7 @@ public class Trie {
 					tmp = tmp.child;
 				}
 				else {
+					TrieNode p = tmp;
 					tmp = tmp.child;
 					boolean flag = true;
 					while (tmp.brother != null) {
@@ -160,7 +180,7 @@ public class Trie {
 							break;
 						}
 						else if (word.charAt(i) < tmp.brother.val) {
-							TrieNode t = new TrieNode(word.charAt(i), 0, null, tmp.brother);
+							TrieNode t = new TrieNode(word.charAt(i), 0, null, tmp.brother, p);
 							tmp.brother = t;
 							tmp = t;
 							flag = false;
@@ -169,7 +189,7 @@ public class Trie {
 						tmp = tmp.brother;
 					}
 					if (flag) {
-						TrieNode t = new TrieNode(word.charAt(i), 0, null, null);
+						TrieNode t = new TrieNode(word.charAt(i), 0, null, null, p);
 						tmp.brother = t;
 						tmp = t;
 					}
@@ -177,11 +197,13 @@ public class Trie {
 			}
 		}
 		if (tmp.occurrence == 0) {
-			tmp.id = strCnt;
-			strCnt++;
+			tmp.id = differentWordCnt;
+			this.nodeMap.put(tmp.id, tmp);
+			differentWordCnt++;
 		}
 		tmp.occurrence++;
-		return tmp.occurrence;
+		this.wordCnt++;
+		return tmp.id;
 	}
 
 	/**
@@ -192,7 +214,7 @@ public class Trie {
 	 * @return true if the trie contains the word, false otherwise
 	 */
 	public boolean contains(String word) {
-		return findId(word) != -1;
+		return getId(word) != -1;
 	}
 
 	/**
@@ -202,7 +224,7 @@ public class Trie {
 	 *            the given word whose node we want to find
 	 * @return the corresponding node
 	 */
-	private TrieNode findNode(String word) {
+	private TrieNode getNode(String word) {
 		TrieNode tmp = root;
 		for (int i = 0; i < word.length(); i++) {
 			TrieNode nc = null;
@@ -224,8 +246,8 @@ public class Trie {
 	 * @return if the word is not in trie, returns -1, otherwise return the id
 	 *         of the word
 	 */
-	public int findId(String word) {
-		TrieNode tmp = findNode(word);
+	public int getId(String word) {
+		TrieNode tmp = getNode(word);
 		if (tmp == null) return -1;
 		return tmp.id;
 	}
@@ -237,10 +259,25 @@ public class Trie {
 	 *            the given word
 	 * @return the occurrence of word
 	 */
-	public int findOccurrence(String word) {
-		TrieNode tmp = findNode(word);
+	public int getOccurrence(String word) {
+		TrieNode tmp = getNode(word);
 		if (tmp == null) return 0;
 		return tmp.occurrence;
+	}
+
+	/**
+	 * find the corresponding word according to the given id
+	 * 
+	 * @param id
+	 *            the id of the word we want to find
+	 * @return return the word if it exist, or null
+	 */
+	public String getWord(int id) {
+		StringBuffer sb = new StringBuffer(32);
+		for (TrieNode cur = nodeMap.get(id); cur.parent != null; cur = cur.parent) {
+			sb.append(cur.val);
+		}
+		return sb.reverse().toString();
 	}
 
 	/**
@@ -267,8 +304,8 @@ public class Trie {
 	private void dfs(TrieNode node, StringBuffer sb) {
 		for (TrieNode nc = node.child; nc != null; nc = nc.brother) {
 			sb.append(nc.val);
-			dfs(nc, sb);
 			if (nc.occurrence != 0) System.out.println(nc.occurrence + ": " + sb);
+			dfs(nc, sb);
 			sb.setLength(sb.length() - 1);
 		}
 	}
