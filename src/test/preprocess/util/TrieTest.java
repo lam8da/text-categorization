@@ -16,26 +16,28 @@ public class TrieTest {
 		trie.traverse();
 		System.out.println();
 
-		//		for (int i = 0; i < words.length; i++) {
-		//			System.out.print(trie.getId(words[i]) + ",");
-		//		}
-		//		System.out.println();
-		//		System.out.println();
+		for (int i = 0; i < words.length; i++) {
+			System.out.print(trie.getId(words[i]) + ",");
+		}
+		System.out.println();
+		System.out.println();
 
-		//		for (Iterator<String> it = trie.iterator(); it.hasNext();) {
-		//			it.hasNext();
-		//			System.out.println(it.next());
-		//		}
-		//		System.out.println();
-		//		System.out.println("trie.getWord(5) = " + trie.getWord(5));
-		//		System.out.println();
+		for (Iterator<String> it = trie.iterator(); it.hasNext();) {
+			it.hasNext();
+			System.out.println(it.next());
+		}
+		System.out.println();
+		System.out.println("trie.getWord(5) = " + trie.getWord(5));
+		System.out.println();
 
 		String[] wordsNew = { "the", "they", "cocoa", "alleviating", "drought", "since", "and", "imporving" };
 		Trie trieNew = new Trie();
 		for (int i = 0; i != wordsNew.length; i++) {
 			trieNew.add(wordsNew[i]);
 		}
-		Trie res = trie.pseudoSubtract(trieNew);
-		res.traverse();
+		//		Trie res = trie.subtract(trieNew);
+		//		res.traverse();
+
+		System.out.println(trie.difference(trieNew));
 	}
 }

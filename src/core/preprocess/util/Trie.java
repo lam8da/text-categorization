@@ -344,12 +344,54 @@ public class Trie {
 	 *         current trie
 	 * @throws Exception
 	 */
-	public Trie pseudoSubtract(Trie other) throws Exception {
-		Trie res = new Trie();
+	/*
+	 * public Trie subtract(Trie other) throws Exception { Trie res = new
+	 * Trie();
+	 * 
+	 * Iterator<String> it = iterator(); if (!it.hasNext()) return res;
+	 * 
+	 * Iterator<String> otherIt = other.iterator(); String itNext = it.next();
+	 * String otherItNext = "\0"; //need to be tested
+	 * 
+	 * while (true) { boolean bk = false;
+	 * 
+	 * while (otherItNext.compareTo(itNext) < 0) { if (otherIt.hasNext()) {
+	 * otherItNext = otherIt.next(); } else { //System.out.println("adding " +
+	 * itNext + ": " + getOccurrence(itNext)); res.add(itNext,
+	 * getOccurrence(itNext)); while (it.hasNext()) { itNext = it.next();
+	 * //System.out.println("adding " + itNext + ": " + getOccurrence(itNext));
+	 * res.add(itNext, getOccurrence(itNext)); } bk = true; break; } } if (bk)
+	 * break;
+	 * 
+	 * if (otherItNext.equals(itNext)) { int occurrence = getOccurrence(itNext)
+	 * - other.getOccurrence(itNext); if (occurrence > 0) {
+	 * //System.out.println("adding " + itNext + ": " + getOccurrence(itNext));
+	 * res.add(itNext, occurrence); } } else { //System.out.println("adding " +
+	 * itNext + ": " + getOccurrence(itNext)); res.add(itNext,
+	 * getOccurrence(itNext)); }
+	 * 
+	 * if (it.hasNext()) { itNext = it.next(); } else break;
+	 * 
+	 * while (itNext.compareTo(otherItNext) < 0) { System.out.println("adding "
+	 * + itNext + ": " + getOccurrence(itNext)); res.add(itNext,
+	 * getOccurrence(itNext)); if (it.hasNext()) { itNext = it.next(); } else {
+	 * bk = true; break; } } if (bk) break; } return res; }
+	 */
 
+	/**
+	 * find the number of words which is contained in current trie but not in
+	 * "other", or contained in both but the occurrence in current trie is
+	 * greater than in "other"
+	 * 
+	 * @param other
+	 *            the trie we want to compare to
+	 * @return the difference defined as above
+	 */
+	public int difference(Trie other) {
 		Iterator<String> it = iterator();
-		if (!it.hasNext()) return res;
+		if (!it.hasNext()) return 0;
 
+		int diff = 0;
 		Iterator<String> otherIt = other.iterator();
 		String itNext = it.next();
 		String otherItNext = "\0"; //need to be tested
@@ -358,16 +400,12 @@ public class Trie {
 			boolean bk = false;
 
 			while (otherItNext.compareTo(itNext) < 0) {
-				if (otherIt.hasNext()) {
-					otherItNext = otherIt.next();
-				}
+				if (otherIt.hasNext()) otherItNext = otherIt.next();
 				else {
-					//System.out.println("adding " + itNext + ": " + getOccurrence(itNext));
-					res.add(itNext, getOccurrence(itNext));
+					diff++;
 					while (it.hasNext()) {
 						itNext = it.next();
-						//System.out.println("adding " + itNext + ": " + getOccurrence(itNext));
-						res.add(itNext, getOccurrence(itNext));
+						diff++;
 					}
 					bk = true;
 					break;
@@ -377,15 +415,9 @@ public class Trie {
 
 			if (otherItNext.equals(itNext)) {
 				int occurrence = getOccurrence(itNext) - other.getOccurrence(itNext);
-				if (occurrence > 0) {
-					//System.out.println("adding " + itNext + ": " + getOccurrence(itNext));
-					res.add(itNext, occurrence);
-				}
+				if (occurrence > 0) diff++;
 			}
-			else {
-				//System.out.println("adding " + itNext + ": " + getOccurrence(itNext));
-				res.add(itNext, getOccurrence(itNext));
-			}
+			else diff++;
 
 			if (it.hasNext()) {
 				itNext = it.next();
@@ -393,11 +425,8 @@ public class Trie {
 			else break;
 
 			while (itNext.compareTo(otherItNext) < 0) {
-				System.out.println("adding " + itNext + ": " + getOccurrence(itNext));
-				res.add(itNext, getOccurrence(itNext));
-				if (it.hasNext()) {
-					itNext = it.next();
-				}
+				diff++;
+				if (it.hasNext()) itNext = it.next();
 				else {
 					bk = true;
 					break;
@@ -405,6 +434,6 @@ public class Trie {
 			}
 			if (bk) break;
 		}
-		return res;
+		return diff;
 	}
 }

@@ -1,16 +1,14 @@
 package core.preprocess.util;
 
 import java.io.File;
-import java.io.BufferedReader;
-import java.io.FileFilter;
-import java.io.FileReader;
+//import java.io.BufferedReader;
+//import java.io.FileReader;
 import java.io.FileWriter;
-import java.io.IOException;
+//import java.io.IOException;
 import java.util.Vector;
-import java.util.TreeMap;
 import java.util.TreeSet;
 
-import core.preprocess.util.Constant;
+//import core.preprocess.util.Constant;
 import core.preprocess.util.Trie;
 
 /**
@@ -21,16 +19,22 @@ import core.preprocess.util.Trie;
  * 
  */
 public class DataAnalyzer {
-	private File trainingFolder;
-	private int gramSize; //the gram size of the feature. Note that stopping should not be used when gramSize>1
+	//private File trainingFolder;
+	//private int gramSize; //the gram size of the feature. Note that stopping should not be used when gramSize>1
 	private int docCnt; //equal to documentTries.size()
 	private boolean finished;
+	private Vector<String[]> docLabels;
 	private Trie featureTrie; //one feature will be added as much times as its occurrence in each document
-	private Trie featureTriePerDoc; //one feature will only be added once for each document containing that feature
+	private Trie featureTrieAddedPerDoc; //one feature will only be added once for each document containing that feature
 	private Vector<Trie> documentTries;
 	private Trie labelNameTrie;
-	private Vector<Trie> labelTries; //added as much times as its occurrence in all document whose label is the given class
-	private Vector<Trie> labelTriesPerDoc; //only added once for each document containing that feature
+	private Vector<Trie> labelFeatureTries; //added as much times as its occurrence in all document whose label is the given class
+	private Vector<Trie> labelFeatureTriesAddedPerDoc; //only added once for each document containing that feature
+
+	//statistical data
+	private Vector<Integer> V_not_ci;
+	private Vector<Integer> V_not_dj;
+	private Vector<Integer> M_tk;
 
 	/**
 	 * each time we call function "add", only words that hadn't been added to
@@ -66,55 +70,61 @@ public class DataAnalyzer {
 	 * tmp.occurrence; } }
 	 */
 
-	public DataAnalyzer(File trainingFolder, int gramSize) throws Exception {
-		this.trainingFolder = trainingFolder;
+	public DataAnalyzer(/*File trainingFolder, int gramSize*/) /*throws Exception*/ {
+		//this.trainingFolder = trainingFolder;
+		//this.gramSize = gramSize;
 		this.docCnt = 0;
-		this.gramSize = gramSize;
 		this.finished = false;
 
-		File metaFile = new File(this.trainingFolder, Constant.EXTRACTION_METADATA_FILENAME);
-		if (!metaFile.exists()) {
-			throw new IOException("metadata file not exist!");
-		}
+//		File metaFile = new File(this.trainingFolder, Constant.EXTRACTION_METADATA_FILENAME);
+//		if (!metaFile.exists()) {
+//			throw new IOException("metadata file not exist!");
+//		}
+//
+//		BufferedReader reader = new BufferedReader(new FileReader(metaFile));
+//		String line = reader.readLine();
+//		if (line.split(" ")[1].equals(Constant.YES) && this.gramSize > 1) {
+//			throw new Exception("gram size cannot be greater than 1 when stopper is used!");
+//		}
 
-		BufferedReader reader = new BufferedReader(new FileReader(metaFile));
-		String line = reader.readLine();
-		if (line.split(" ")[1].equals(Constant.YES) && this.gramSize > 1) {
-			throw new Exception("gram size cannot be greater than 1 when stopper is used!");
-		}
-
+		this.docLabels = new Vector<String[]>();
 		this.featureTrie = new Trie();
-		this.featureTriePerDoc = new Trie();
-		this.labelTriesPerDoc = new Vector<Trie>(256);
+		this.featureTrieAddedPerDoc = new Trie();
+		this.labelFeatureTriesAddedPerDoc = new Vector<Trie>(256);
 		this.labelNameTrie = new Trie();
 		this.documentTries = new Vector<Trie>(8192);
-		this.labelTries = new Vector<Trie>(256);
+		this.labelFeatureTries = new Vector<Trie>(256);
+
+		this.V_not_ci = new Vector<Integer>();
+		this.V_not_dj = new Vector<Integer>();
+		this.M_tk = new Vector<Integer>();
 	}
 
-	public void addDocument(String[] labels, String title, String content) throws Exception {
+	public void addDocument(String[] labels, String[] titleFeatures, String[] contentFeatures) throws Exception {
 		// we ignore the specialness of the title and treat it as normal document content at present
 		if (this.finished) {
 			throw new Exception("cannot add document after the statistical data be created!");
 		}
 
 		this.docCnt++;
-		String[] titleFeature = title.split(Constant.WORD_SEPARATING_PATTERN);
-		String[] contentFeature = content.split(Constant.WORD_SEPARATING_PATTERN);
-		String[] ptr = titleFeature;
+		this.docLabels.add(labels);
+		String[] ptr = titleFeatures;
 		int[] labelIds = new int[labels.length];
 
+		int labelNameTrieSize = this.labelNameTrie.size();
 		for (int i = 0; i < labels.length; i++) {
 			int labelId = this.labelNameTrie.add(labels[i]); //label id starts from 0
 			labelIds[i] = labelId;
 
-			if (labelId == this.labelNameTrie.size() - 1) { //a new label
-				this.labelTriesPerDoc.add(new Trie());
-				this.labelTries.add(new Trie());
+			if (labelNameTrieSize == this.labelNameTrie.size() - 1) { //a new label
+				labelNameTrieSize++;
+				this.labelFeatureTriesAddedPerDoc.add(new Trie());
+				this.labelFeatureTries.add(new Trie());
 
-				if (this.labelTriesPerDoc.size() != this.labelNameTrie.size()) {
+				if (this.labelFeatureTriesAddedPerDoc.size() != this.labelNameTrie.size()) {
 					throw new Exception("fatal error occurs in program logic!");
 				}
-				if (this.labelTries.size() == this.labelNameTrie.size()) {
+				if (this.labelFeatureTries.size() != this.labelNameTrie.size()) {
 					throw new Exception("fatal error occurs in program logic!");
 				}
 			}
@@ -130,33 +140,78 @@ public class DataAnalyzer {
 		for (int i = 0; i < ptr.length; i++) {
 			if (ptr[i].length() > 0) {
 				String fea = ptr[i];
-				System.out.println(fea);
+				//System.out.println(fea);
 
 				this.featureTrie.add(fea);
 				docTrie.add(fea);
 				for (int j = 0; j < labels.length; j++) {
-					this.labelTries.get(labelIds[j]).add(fea);
+					this.labelFeatureTries.get(labelIds[j]).add(fea);
 				}
 
 				if (!wordMap.contains(fea)) {
 					wordMap.add(fea);
-					this.featureTriePerDoc.add(fea);
+					this.featureTrieAddedPerDoc.add(fea);
 					for (int j = 0; j < labels.length; j++) {
-						this.labelTriesPerDoc.get(labelIds[j]).add(fea);
+						this.labelFeatureTriesAddedPerDoc.get(labelIds[j]).add(fea);
 					}
 				}
 			}
 
 			if (!swap && i + 1 == ptr.length) {
-				ptr = contentFeature;
+				ptr = contentFeatures;
 				i = -1;
 				swap = true;
 			}
 		}
 	}
 
-	public void createStatisticalData() {
+	public void finish() {
+		int labelSize = this.labelNameTrie.size();
+		for (int i = 0; i < labelSize; i++) {
+			this.V_not_ci.add(this.featureTrie.difference(this.labelFeatureTries.get(i)));
+		}
+
+		for (int i = 0; i < docCnt; i++) {
+			this.V_not_dj.add(this.featureTrie.difference(this.documentTries.get(i)));
+		}
+
+		int featureSize = this.featureTrie.size();
+		for (int i = 0; i < featureSize; i++) {
+			String feature = this.featureTrie.getWord(i);
+			int cnt = 0;
+			for (int j = 0; j < labelSize; j++) {
+				if (this.labelFeatureTries.get(j).contains(feature)) cnt++;
+			}
+			this.M_tk.add(cnt);
+		}
+
 		this.finished = true;
+	}
+
+	private void validate() throws Exception {
+		if (!this.finished) throw new Exception("the value could only be obtained after finishing adding documents!");
+	}
+
+	/************************************ meta data ************************************/
+
+	public String[] getDocLabels(int docId) {
+		return this.docLabels.get(docId);
+	}
+
+	public int getFeatureId(String feature) {
+		return this.featureTrie.getId(feature);
+	}
+
+	public String getFeature(int featureId) {
+		return this.featureTrie.getWord(featureId);
+	}
+
+	public int getLabelId(String label) {
+		return this.labelNameTrie.getId(label);
+	}
+
+	public String getLabel(int labelId) {
+		return this.labelNameTrie.getWord(labelId);
 	}
 
 	/******************************** document counting ********************************/
@@ -188,7 +243,7 @@ public class DataAnalyzer {
 	}
 
 	public int getN_tk(String feature) {
-		return this.featureTriePerDoc.getOccurrence(feature);
+		return this.featureTrieAddedPerDoc.getOccurrence(feature);
 	}
 
 	public int getN_exclude_tk(int featureId) {
@@ -200,14 +255,14 @@ public class DataAnalyzer {
 	}
 
 	public int getN_ci_tk(int labelId, int featureId) {
-		Trie labelTrie = this.labelTriesPerDoc.get(labelId);
+		Trie labelTrie = this.labelFeatureTriesAddedPerDoc.get(labelId);
 		String feature = this.featureTrie.getWord(featureId);
 		return labelTrie.getOccurrence(feature);
 	}
 
 	public int getN_ci_tk(String label, String feature) {
 		int labelId = this.labelNameTrie.getId(label);
-		Trie labelTrie = this.labelTriesPerDoc.get(labelId);
+		Trie labelTrie = this.labelFeatureTriesAddedPerDoc.get(labelId);
 		return labelTrie.getOccurrence(feature);
 	}
 
@@ -230,7 +285,7 @@ public class DataAnalyzer {
 	}
 
 	public int getW_ci(int labelId) {
-		return this.labelTries.get(labelId).getCounting();
+		return this.labelFeatureTries.get(labelId).getCounting();
 	}
 
 	public int getW_ci(String label) {
@@ -267,13 +322,13 @@ public class DataAnalyzer {
 	}
 
 	public int getW_ci_tk(int labelId, int featureId) {
-		Trie labelTrie = this.labelTries.get(labelId);
+		Trie labelTrie = this.labelFeatureTries.get(labelId);
 		String feature = this.featureTrie.getWord(featureId);
 		return labelTrie.getOccurrence(feature);
 	}
 
 	public int getW_ci_tk(String label, String feature) {
-		Trie labelTrie = this.labelTries.get(this.labelNameTrie.getId(label));
+		Trie labelTrie = this.labelFeatureTries.get(this.labelNameTrie.getId(label));
 		return labelTrie.getOccurrence(feature);
 	}
 
@@ -310,7 +365,7 @@ public class DataAnalyzer {
 	}
 
 	public int getV_ci(int labelId) {
-		return this.labelTries.get(labelId).size();
+		return this.labelFeatureTries.get(labelId).size();
 	}
 
 	public int getV_ci(String label) {
@@ -326,12 +381,12 @@ public class DataAnalyzer {
 		return getV() - getV_ci(label);
 	}
 
-	//--------------------------------------------------
-	public int getV_not_ci(int labelId) {
-		return -999999999;
+	public int getV_not_ci(int labelId) throws Exception {
+		validate();
+		return this.V_not_ci.get(labelId);
 	}
 
-	public int getV_not_ci(String label) {
+	public int getV_not_ci(String label) throws Exception {
 		int labelId = this.labelNameTrie.getId(label);
 		return getV_not_ci(labelId);
 	}
@@ -353,12 +408,12 @@ public class DataAnalyzer {
 		return getV() - getV_dj(docId);
 	}
 
-	//--------------------------------------------------
-	public int getV_not_dj(int docId) {
-		return -999999999;
+	public int getV_not_dj(int docId) throws Exception {
+		validate();
+		return this.V_not_dj.get(docId);
 	}
 
-	public int getV_not_dj_exclude(int docId) {
+	public int getV_not_dj_exclude(int docId) throws Exception {
 		return getV() - getV_not_dj(docId);
 	}
 
@@ -368,21 +423,21 @@ public class DataAnalyzer {
 		return this.labelNameTrie.size();
 	}
 
-	//--------------------------------------------------
-	public int getM_tk(int featureId) {
-		return -999999999;
+	public int getM_tk(int featureId) throws Exception {
+		validate();
+		return this.M_tk.get(featureId);
 	}
 
-	//--------------------------------------------------
-	public int getM_tk(String feature) {
-		return -999999999;
+	public int getM_tk(String feature) throws Exception {
+		int featureId = this.featureTrie.getId(feature);
+		return getM_tk(featureId);
 	}
 
-	public int getM_exclude_tk(int featureId) {
+	public int getM_exclude_tk(int featureId) throws Exception {
 		return getM() - getM_tk(featureId);
 	}
 
-	public int getM_exclude_tk(String feature) {
+	public int getM_exclude_tk(String feature) throws Exception {
 		return getM() - getM_tk(feature);
 	}
 
