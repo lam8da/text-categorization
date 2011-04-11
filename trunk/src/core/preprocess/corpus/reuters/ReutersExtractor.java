@@ -52,7 +52,7 @@ public class ReutersExtractor extends Extractor {
 	private static String[] BAD_CHAR_PATTERN = {
 		"\\p{Punct}\\p{Punct}+",							//consecutive punctuations -> " "
 		"[?]|[#=]|[*+:&_^$@!\\[\\]\\s\\(\\)\\{\\}\"<>,;/-]",//single punctuation (not all) -> " "
-		"(?<=\\d)[.](?=\\d)",								//single dot between digits -> ""(empty string)
+		"(?<=\\d)[.,](?=\\d)",								//single dot between digits -> ""(empty string)
 		"' ",												//ending quotes of single word -> " "
 		"[.] ",												//ending dot of single word -> " "
 		"'[sS] ",											//ending 's or 'S of single word (may be name) -> " "
