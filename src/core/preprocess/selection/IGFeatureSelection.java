@@ -94,5 +94,11 @@ public class IGFeatureSelection extends FeatureSelection {
 		return (String[])result.toArray();
 	}
 
+	@Override
+	public double determineThreshold(double[] data) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
 
 }
