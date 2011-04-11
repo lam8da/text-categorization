@@ -67,4 +67,10 @@ public  class CHIFeatrueSelection extends FeatureSelection{
 		}
 		return max;
 	}
+
+	@Override
+	public double determineThreshold(double[] data) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
 }
