@@ -6,28 +6,28 @@ import java.util.ArrayList;
 public  class CHIFeatrueSelection extends FeatureSelection{
 
 	@Override
-	public String[] maxFeatureSelection(DataAnalyzer data, String[] featureSet, double thresh) {
+	public String[] maxFeatureSelection(DataAnalyzer data, double thresh) {
 		// TODO Auto-generated method stub
 		double max;
 		ArrayList<String> result = new ArrayList<String>();
-		for(int i = 0; i != featureSet.length; i++){
-			max = this.getMaxSelectionWeighting(data, data.getFeatureId(featureSet[i]));
+		for(int i = 0; i != data.getV(); i++){
+			max = this.getMaxSelectionWeighting(data, i);
 			if(max > thresh){
-				result.add(featureSet[i]);
+				result.add(data.getFeature(i));
 			}
 		}
 		return (String[])result.toArray();
 	}
 	
 	@Override
-	public String[] avgFeatureSelection(DataAnalyzer data, String[] featureSet, double thresh) {
+	public String[] avgFeatureSelection(DataAnalyzer data, double thresh) {
 		// TODO Auto-generated method stub
 		double avg;
 		ArrayList<String> result = new ArrayList<String>();
-		for(int i = 0; i != featureSet.length; i++){
-			avg = this.getAvgSelectionWeighting(data, data.getFeatureId(featureSet[i]));
+		for(int i = 0; i != data.getV(); i++){
+			avg = this.getAvgSelectionWeighting(data, i);
 			if(avg > thresh){
-				result.add(featureSet[i]);
+				result.add(data.getFeature(i));
 			}
 		}
 		return (String[])result.toArray();
