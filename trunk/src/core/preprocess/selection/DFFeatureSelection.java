@@ -6,15 +6,15 @@ import java.util.ArrayList;
 public class DFFeatureSelection extends FeatureSelection{
 
 	@Override
-	public String[] avgFeatureSelection(DataAnalyzer data, String[] featureSet, double thresh) {
+	public String[] avgFeatureSelection(DataAnalyzer data, double thresh) {
 		// TODO Auto-generated method stub
 		ArrayList<String> result = new ArrayList<String>();
 		double tmp;
-		for(int i = 0; i != featureSet.length; i++){
+		for(int i = 0; i != data.getV(); i++){
 			try {
-				tmp = data.getM_tk(featureSet[i]);
+				tmp = data.getM_tk(i);
 				if(tmp > thresh){
-					result.add(featureSet[i]);
+					result.add(data.getFeature(i));
 				}
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
@@ -25,15 +25,15 @@ public class DFFeatureSelection extends FeatureSelection{
 	}
 
 	@Override
-	public String[] maxFeatureSelection(DataAnalyzer data, String[] featureSet, double thresh) {
+	public String[] maxFeatureSelection(DataAnalyzer data, double thresh) {
 		// TODO Auto-generated method stub
 		ArrayList<String> result = new ArrayList<String>();
 		double tmp;
-		for(int i = 0; i != featureSet.length; i++){
+		for(int i = 0; i != data.getV(); i++){
 			try {
-				tmp = data.getM_tk(featureSet[i]);
+				tmp = data.getM_tk(i);
 				if(tmp > thresh){
-					result.add(featureSet[i]);
+					result.add(data.getFeature(i));
 				}
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
