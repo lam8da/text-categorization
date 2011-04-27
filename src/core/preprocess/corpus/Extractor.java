@@ -3,10 +3,13 @@ package core.preprocess.corpus;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.Vector;
 
 import core.preprocess.extraction.Stemmer;
 import core.preprocess.selection.Stopper;
 import core.preprocess.util.Constant;
+import core.preprocess.corpus.BadWordHandler;
 
 public abstract class Extractor {
 	protected int splitting;
@@ -17,6 +20,7 @@ public abstract class Extractor {
 	protected Stemmer stemmer;
 	protected Stopper stopper;
 	protected boolean toLower;
+	protected BadWordHandler wordHandler;
 
 	public Extractor(File inputDir, File outputDir, int splitting) {
 		this.splitting = splitting;
@@ -35,6 +39,7 @@ public abstract class Extractor {
 		this.testDir.mkdirs();
 		this.stemmer = null;
 		this.stopper = null;
+		this.wordHandler = new BadWordHandler();
 	}
 
 	public void writeMetadata() throws IOException {
@@ -89,5 +94,29 @@ public abstract class Extractor {
 		writeMetadata();
 	}
 
-	protected abstract void extractFiles() throws Exception;
+	protected String processWords(String str) {
+		String[] words = str.split(Constant.WORD_SEPARATING_PATTERN);
+		Vector<String> vs = new Vector<String>(512);
+		for (int i = 0; i < words.length; i++) {
+			this.wordHandler.process(words[i], vs);
+		}
+
+		StringBuffer sb = new StringBuffer(2048);
+		for (Iterator<String> it = vs.iterator(); it.hasNext();) {
+			String word = it.next();
+			if (this.stopper != null) {
+				if (this.stopper.stop(word)) continue;
+			}
+			if (this.stemmer != null) {
+				word = this.stemmer.stem(word, this.toLower);
+			}
+			else if (this.toLower) {
+				word = word.toLowerCase();
+			}
+			sb.append(word).append(Constant.WORD_SEPARATOR);
+		}
+		return sb.toString();
+	}
+
+	protected abstract void extractFiles() throws Exception; //should invoke function "processWords"
 }

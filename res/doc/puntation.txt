@@ -1,4 +1,5 @@
 关于标点的处理
+
 1、需要特别处理的标点
 （1）逗号, 在英文的数字表达中会出现逗号，如：1,230。若事先将逗号去掉，将多出一个数字
 （2）句点. 数字表达中会出现句点，如1.23。若事先将句点去掉将会多出现一个数字。在缩写当中会出现句点，如Mr. L.O.B e.g. Ph.D.
@@ -7,6 +8,7 @@
 某些公司或者专有名词中可能会出现连接符号如Hewlett-Packard。可以考虑将连接符号直接去掉。
 （5）撇号' 缩写当中会出现，如can't，I'll等。所有格当中使用，如Mandy's。还有一种情况是人名当中使用了O'Neil
 （6）冒号: 在表示时间的时候出现如 14:30
+
 2、标点处理与否的异同
 （1）需要处理
  ①在学术性的文档中，句点和连接号出现机会较多。
@@ -15,21 +17,22 @@
  ①标点对于文档特征化无明显作用。
  ②包含标点的词大都属于接近stop words。如e.g. Mr. Mrs. Ms.
  ③去掉标点后，分出来的词可作为合法词。
+ 
 3、缩写列表
 （1）常见系动词，情态动词，be动词的否定缩写形式
-is not—isn’t                                
+is not—isn’t
 are not—aren’t
 was not—wasn’t                         
 were not—weren’t
-has not—hasn’t                           
+has not—hasn’t
 have not—haven’t
-will not—won’t                           
+will not—won’t
 would not—wouldn’t
-shall not—shan’t                         
+shall not—shan’t
 should not—shouldn’t
-do not—don’t                              
+do not—don’t
 did not—didn’t
-ought not—oughtn’t                     
+ought not—oughtn’t
 dare not—daren’t
 used not to—usedn’t / didn’t use to
 （2）情态动词的否定形式
@@ -45,6 +48,7 @@ would not ---- wouldn't
 will----'ll
 would----'d
 should---'d
+
 4、个人理解的处理顺序
 ①连续标点替换为空格
 ②数字的处理，去掉数字中间的逗号，点号，均替换为空 如1.93->193 1,930->1930
