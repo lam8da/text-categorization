@@ -14,7 +14,9 @@ public final class Constant {
 	public static final String WORD_SEPARATING_PATTERN = "\\s+";
 	public static final String YES = "yes";
 	public static final String NO = "no";
-	public static final String EMPTY_LABEL = "EMPTY_LABEL-1e3df054";
+	public static final String EMPTY_LABEL = "\\empty-1e3df054";
+	public static final String NUMBER_FEATURE = "\\num-4y0xk482";
+	public static final String TIME_FEATURE = "\\time-7p1uc189";
 
 	//training, test and other folder name
 	public static final String TRAINING_FOLDER = "training";
