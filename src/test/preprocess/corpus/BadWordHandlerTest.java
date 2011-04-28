@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Scanner;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.Vector;
 import java.io.FileWriter;
 import java.lang.Character;
@@ -27,16 +27,19 @@ public class BadWordHandlerTest {
 		//Scanner reader = new Scanner(new File("res/test/manualbadword.txt"));
 		Vector<String> vs = new Vector<String>(32768);
 
+		//handler.process("lambd'a,,h(ello,%,sh-ut,*", vs);
 		while (reader.hasNext()) {
 			handler.process(reader.next(), vs);
 		}
 
-		HashSet<String> badwset = new HashSet<String>(32768);
+		HashMap<String, Integer> badwset = new HashMap<String, Integer>(32768);
 		for (Iterator<String> it = vs.iterator(); it.hasNext();) {
 			String word = it.next();
 			for (int i = 0; i < word.length(); i++) {
 				if (!Character.isLetterOrDigit(word.charAt(i))) {
-					badwset.add(word);
+					int value = 0;
+					if (badwset.containsKey(word)) value = badwset.get(word);
+					badwset.put(word, value + 1);
 					break;
 				}
 			}
@@ -44,8 +47,10 @@ public class BadWordHandlerTest {
 
 		File outFile = new File(args[0]);
 		FileWriter writer = new FileWriter(outFile);
-		for (Iterator<String> it = badwset.iterator(); it.hasNext(); writer.write(it.next() + "\r\n"))
-			;
+		for (Iterator<String> it = badwset.keySet().iterator(); it.hasNext();) {
+			String key = it.next();
+			writer.write(badwset.get(key) + ": " + key + "\r\n");
+		}
 		writer.close();
 	}
 }
