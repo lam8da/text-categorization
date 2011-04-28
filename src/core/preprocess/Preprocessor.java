@@ -29,6 +29,8 @@ public class Preprocessor {
 	private Stopper stopper;
 	private Stemmer stemmer;
 	private boolean toLower;
+	private boolean timeToConst;
+	private boolean numToConst;
 	private Extractor extractor;
 
 	/**
@@ -43,10 +45,21 @@ public class Preprocessor {
 	 * @param stemmerId
 	 * @param toLower
 	 *            whether all words in the text should be turned to lower case
+	 * @param timeToConst
+	 * @param numToConst
 	 * @throws Exception
 	 */
-	public Preprocessor(String inputPath, String outputPath, int corpusId, int splitting, int stopperId, int stemmerId, boolean toLower)
-			throws Exception {
+	public Preprocessor(
+			String inputPath,
+			String outputPath,
+			int corpusId,
+			int splitting,
+			int stopperId,
+			int stemmerId,
+			boolean toLower,
+			boolean timeToConst,
+			boolean numToConst
+		) throws Exception {
 		this.corpusId = corpusId;
 		this.splitting = splitting;
 		
@@ -108,7 +121,7 @@ public class Preprocessor {
 			throw new Exception("invalid corpus id!");
 		}
 
-		extractor.extract(this.stopper, this.stemmer, this.toLower);
+		extractor.extract(this.stopper, this.stemmer, this.toLower, this.timeToConst, this.numToConst);
 		return true;
 	}
 

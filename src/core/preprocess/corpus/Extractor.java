@@ -39,7 +39,6 @@ public abstract class Extractor {
 		this.testDir.mkdirs();
 		this.stemmer = null;
 		this.stopper = null;
-		this.wordHandler = new BadWordHandler();
 	}
 
 	public void writeMetadata() throws IOException {
@@ -85,10 +84,11 @@ public abstract class Extractor {
 	 * @throws Exception
 	 *             such as FileNotFoundException
 	 */
-	public void extract(Stopper stopper, Stemmer stemmer, boolean toLower) throws Exception {
+	public void extract(Stopper stopper, Stemmer stemmer, boolean toLower, boolean timeToConst, boolean numToConst) throws Exception {
 		this.stemmer = stemmer;
 		this.stopper = stopper;
 		this.toLower = toLower;
+		this.wordHandler = new BadWordHandler(timeToConst, numToConst);
 
 		extractFiles();
 		writeMetadata();

@@ -19,7 +19,7 @@ public class ExtractReutersTest {
 			File outputDir = new File(args[1]);
 			outputDir.mkdirs();
 			Extractor extractor = new ReutersExtractor(reutersDir, outputDir, Constant.MOD_LEWIS);
-			extractor.extract(null, new core.preprocess.extraction.KrovetzStemmer(), false);
+			extractor.extract(null, new core.preprocess.extraction.KrovetzStemmer(), false, true, true);
 		}
 		else {
 			ReutersExtractor.printUsage();

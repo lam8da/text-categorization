@@ -6,7 +6,7 @@ import core.preprocess.util.Constant;
 public class PreprocessorTest {
 	/**
 	 * @param args
-	 * @throws Exception 
+	 * @throws Exception
 	 */
 	public static void main(String[] args) throws Exception {
 		if (args.length != 2) {
@@ -15,7 +15,7 @@ public class PreprocessorTest {
 		}
 
 		Preprocessor p = new Preprocessor(args[0], args[1], Constant.REUTERS, Constant.MOD_LEWIS, Constant.USE_STOPPER, Constant.KROVETZ_STEMMER,
-				true);
+				true, true, true);
 		p.preprocess();
 	}
 }

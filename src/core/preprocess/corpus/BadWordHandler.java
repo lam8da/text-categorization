@@ -4,6 +4,8 @@ import java.util.Arrays;
 import java.util.Vector;
 import java.util.HashMap;
 
+import core.preprocess.util.Constant;
+
 public class BadWordHandler {
 	private static final String[] VERB_ABBR = {	//verb abbreviations
 		"isn't",	//1
@@ -49,15 +51,30 @@ public class BadWordHandler {
 	};
 	private static final char[] marks = { '!', '"', '#', '$', '%', '&', '\'', '(', ')', '*', '+', ',', '-', '.', '/', ':', ';', '<', '=', '>', '?',
 			'@', '[', '\\', ']', '^', '_', '`', '{', '|', '}', '~' };
+	private static final char[] badMarks = { '!', '"', '#', '$', '%', '(', ')', '*', '+', ',', '/', ';', '<', '=', '>', '?', '[', '\\', ']', '^', '`', '{', '|', '}', '~' };
 
+	private boolean timeToConst;
+	private boolean numToConst;
 	private boolean[] isMark;
+	private boolean[] isBadMark;
 	private HashMap<String,String[]> verbAbbrMap;
 
-	public BadWordHandler() {		
+	/**
+	 * 
+	 * @param timeToConst whether turn all time format to Constant.TIME_FEATURE
+	 * @param numToConst whether turn all number format to Constant.NUM_FEATURE
+	 */
+	public BadWordHandler(boolean timeToConst, boolean numToConst) {		
 		this.isMark = new boolean[256];
 		Arrays.fill(isMark, false);
 		for (int i = 0; i < marks.length; i++) {
 			isMark[marks[i]] = true;
+		}
+		
+		this.isBadMark = new boolean[256];
+		Arrays.fill(isBadMark, false);
+		for (int i = 0; i < badMarks.length; i++) {
+			isBadMark[badMarks[i]] = true;
 		}
 		
 		this.verbAbbrMap = new HashMap<String,String[]>(32);
@@ -65,6 +82,9 @@ public class BadWordHandler {
 			String[] value = VERB_ABBR_UNFOLDING[i].split(" ");
 			this.verbAbbrMap.put(VERB_ABBR[i], value);
 		}
+		
+		this.timeToConst = timeToConst;
+		this.numToConst = numToConst;
 	}
 
 	/**
@@ -131,38 +151,81 @@ public class BadWordHandler {
 			len -= 3;
 		}
 		
-		//eliminate connective "-" according to special case
+		//eliminate connective "-" according when: at least one side contains 3(default) or more letters or digits
 		int letterOrDigitRequired = 3;
-		id = l + letterOrDigitRequired;
-//		boolean printed = false;
+		id = l + 1;
 		while (true) {
 			for (; id < r && str[id] != '-'; id++);
 			if (id >= r) break;
 
-			boolean isLetter = true;
-			for (int i = id - 1; i >= id - letterOrDigitRequired; i--) {//3 or more consecutive letter on left side
+			int isLetter = 2;
+			for (int i = id - 1; i >= id - letterOrDigitRequired; i--) {//3 or more consecutive letters or digits on left side
 				if (i < l || !Character.isLetterOrDigit(str[i])) {
-					isLetter = false;
+					isLetter--;
 					break;
 				}
 			}
-			for (int i = id + 1; i <= id + letterOrDigitRequired; i++) {//3 or more consecutive letter on right side
+			for (int i = id + 1; i <= id + letterOrDigitRequired; i++) {//3 or more consecutive letters or digits on right side
 				if (i > r || !Character.isLetterOrDigit(str[i])) {
-					isLetter = false;
+					isLetter--;
 					break;
 				}
 			}
-			if (isLetter) {
-//				if (!printed) {
-//					System.out.println(String.copyValueOf(str, l, r - l + 1));
-//					printed = true;
-//				}
+			if (isLetter > 0) {
 				process(String.copyValueOf(str, l, id - l), vs);
 				l = id + 1;
 			}
-			id += letterOrDigitRequired + 1;
+			id += 1;
 		}
 		
+		//remove words whose length is 3 with at least one bad marks (in the middle),
+		//or whose length is less than 5 with 2 or more bad marks
+//		if (r - l + 1 == 3 && this.isBadMark[str[l + 1]]) {
+//			//this may eliminate abbr such as: I/O, I'm, etc.
+//			System.out.println("---------get it----------" + str[l] + str[l + 1] + str[l + 2]);
+//		}
+//		if (r - l + 1 <= 5) {
+//			int badMarkCnt = 0;
+//			for (int i = l; i <= r; i++) {
+//				if (this.isBadMark[str[i]]) badMarkCnt++;
+//			}
+//			if (badMarkCnt >= 2) System.out.println("---------get it----------");
+//		}
+		
+		//extract the simplest time format: HH:mm
+		if (this.timeToConst) {
+			if (r - l + 1 == 5) {
+				if (str[l + 2] == ':' && Character.isDigit(str[l]) && Character.isDigit(str[l + 1]) && Character.isDigit(str[l + 3])
+						&& Character.isDigit(str[l + 4])) {
+					boolean valid = true;
+					if (str[l] > '2') valid = false;
+					if (str[l] == '2' && str[l + 1] > '4') valid = false;
+					if (str[l + 3] > '5') valid = false;
+					if (valid) {
+						vs.add(Constant.TIME_FEATURE);
+						return;
+					}
+				}
+			}
+		}
+		
+		//eliminate bad marks
+		//floating point numbers such as 12/35 may be separated in to two parts,
+		//but this may not be so crucial.
+		while (true) {
+			for (id = l; id <= r && !this.isBadMark[str[id]]; id++);
+			if (id > r) break;
+			process(String.copyValueOf(str, l, id - l), vs);
+			l = id + 1;
+		}
+		
+		if (this.numToConst) {
+			for (id = l; id <= r && Character.isDigit(str[id]); id++);
+			if (id > r) {
+				vs.add(Constant.NUMBER_FEATURE);
+				return;
+			}
+		}
 		vs.add(String.copyValueOf(str, l, r - l + 1));
 	}
 }
