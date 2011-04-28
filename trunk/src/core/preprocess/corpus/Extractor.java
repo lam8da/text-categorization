@@ -98,6 +98,7 @@ public abstract class Extractor {
 		String[] words = str.split(Constant.WORD_SEPARATING_PATTERN);
 		Vector<String> vs = new Vector<String>(512);
 		for (int i = 0; i < words.length; i++) {
+			//we may use a hash table to reduce the times of invoking "process"
 			this.wordHandler.process(words[i], vs);
 		}
 
