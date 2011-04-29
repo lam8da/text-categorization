@@ -27,7 +27,10 @@ public class BadWordHandlerTest {
 		//Scanner reader = new Scanner(new File("res/test/manualbadword.txt"));
 		Vector<String> vs = new Vector<String>(32768);
 
-		//handler.process("lambd'a,,h(ello,%,sh-ut,*", vs);
+//		handler.process("lambda2fei@qq.com", vs);
+//		handler.process("sysu_10csa@163com", vs);
+//		handler.process("www.baidu.com", vs);
+//		handler.process("http://t.sina.com.cn/login.php?url=http://t.sina.com.cn/myprofile.php%3Fuid%3D1651913702%26old_page%3D1%26page%3D2%26endmid%3DeyWcEedbRlH%26retcode%3D0%26retcode%3D0%26retcode%3D0%26retcode%3D0", vs);
 		while (reader.hasNext()) {
 			handler.process(reader.next(), vs);
 		}
@@ -35,6 +38,7 @@ public class BadWordHandlerTest {
 		HashSet<String> badwset = new HashSet<String>(32768);
 		for (Iterator<String> it = vs.iterator(); it.hasNext();) {
 			String word = it.next();
+//			System.out.println(word);
 			for (int i = 0; i < word.length(); i++) {
 				if (!Character.isLetterOrDigit(word.charAt(i))) {
 					badwset.add(word);

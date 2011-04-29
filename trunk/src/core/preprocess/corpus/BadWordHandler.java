@@ -49,58 +49,67 @@ public class BadWordHandler {
 		"might not",	//18
 		"must not",		//19
 	};
+	
 	private static final char[] marks = { '!', '"', '#', '$', '%', '&', '\'', '(', ')', '*', '+', ',', '-', '.', '/', ':', ';', '<', '=', '>', '?',
 			'@', '[', '\\', ']', '^', '_', '`', '{', '|', '}', '~' };
-	private static final char[] badMarks = { '!', '"', '#', '$', '%', '(', ')', '*', '+', ',', '/', ';', '<', '=', '>', '?', '[', '\\', ']', '^', '`', '{', '|', '}', '~' };
+	
+	//excluding &'-.:@_ from "marks"
+	private static final char[] badMarks = { '!', '"', '#', '$', '%', '(', ')', '*', '+', ',', '/', ';', '<', '=', '>', '?', '[', '\\', ']', '^',
+			'`', '{', '|', '}', '~' };
 
 	private boolean timeToConst;
 	private boolean numToConst;
 	private boolean[] isMark;
 	private boolean[] isBadMark;
-	private HashMap<String,String[]> verbAbbrMap;
+	private HashMap<String, String[]> verbAbbrMap;
 
 	/**
 	 * 
-	 * @param timeToConst whether turn all time format to Constant.TIME_FEATURE
-	 * @param numToConst whether turn all number format to Constant.NUM_FEATURE
+	 * @param timeToConst
+	 *            whether turn all time format to Constant.TIME_FEATURE
+	 * @param numToConst
+	 *            whether turn all number format to Constant.NUM_FEATURE
 	 */
-	public BadWordHandler(boolean timeToConst, boolean numToConst) {		
+	public BadWordHandler(boolean timeToConst, boolean numToConst) {
 		this.isMark = new boolean[256];
 		Arrays.fill(isMark, false);
 		for (int i = 0; i < marks.length; i++) {
 			isMark[marks[i]] = true;
 		}
-		
+
 		this.isBadMark = new boolean[256];
 		Arrays.fill(isBadMark, false);
 		for (int i = 0; i < badMarks.length; i++) {
 			isBadMark[badMarks[i]] = true;
 		}
-		
-		this.verbAbbrMap = new HashMap<String,String[]>(32);
-		for(int i = 0; i < VERB_ABBR.length; i++) {
+
+		this.verbAbbrMap = new HashMap<String, String[]>(32);
+		for (int i = 0; i < VERB_ABBR.length; i++) {
 			String[] value = VERB_ABBR_UNFOLDING[i].split(" ");
 			this.verbAbbrMap.put(VERB_ABBR[i], value);
 		}
-		
+
 		this.timeToConst = timeToConst;
 		this.numToConst = numToConst;
 	}
 
 	/**
-	 * given a bad word, process it according to some syntax rule, and add the result to a vector
-	 * @param word the given word
-	 * @param vs the result vector
+	 * invoked by "process" to process the word in "str" recursively.
+	 * after the processing, email-address-like string will be reserved,
+	 * while urls will be separated into multiple parts according to '\'
+	 * and other punctuation.
+	 * time-like format extraction is still a problem.
+	 * 
+	 * @param str
+	 *            the char sequence containing the word to be processed
+	 * @param l
+	 *            the start index of the word in "str"
+	 * @param r
+	 *            the end index (inclusive) of the word in "str"
+	 * @param vs
+	 *            the result vector to which the result should be added
 	 */
-	public void process(String word, Vector<String> vs) {
-		char[] str = word.toCharArray();
-		int l, r, len = str.length;
-
-		//trim punctuation on both sides
-		for (l = 0; l < len && isMark[str[l]]; l++);
-		for (r = len - 1; r >= 0 && isMark[str[r]]; r--);
-		if (l > r) return;//all character are punctuation
-
+	private void dfsProcess(char[] str, int l, int r, Vector<String> vs) {
 		//check verb abbreviation
 		String[] value = this.verbAbbrMap.get(String.copyValueOf(str, l, r - l + 1).toLowerCase());
 		if (value != null) {
@@ -123,7 +132,7 @@ public class BadWordHandler {
 				continue;
 			}
 			//str[id + 1] is punctuation, and id!=r because ending punctuation have been eliminated before
-			process(String.copyValueOf(str, l, id - l), vs);
+			dfsProcess(str, l, id - 1, vs);
 			while (isMark[str[id]])
 				id++;
 			l = id;//the next first non-punctuation character
@@ -139,9 +148,9 @@ public class BadWordHandler {
 				r--;
 			}
 		}
-		len = r - l + 1;
-		
+
 		//eliminate abbreviation suffix such as 's
+		int len = r - l + 1;
 		while (len > 2 && (str[r - 1] == '\'' || str[r - 1] == '"') && (str[r] == 's' || str[r] == 'S' || str[r] == 't' || str[r] == 'd')) {
 			r -= 2;
 			len -= 2;
@@ -150,8 +159,8 @@ public class BadWordHandler {
 			r -= 3;
 			len -= 3;
 		}
-		
-		//eliminate connective "-" according when: at least one side contains 3(default) or more letters or digits
+
+		//eliminate connective "-" when: at least one side contains 3(default) or more letters or digits
 		int letterOrDigitRequired = 3;
 		id = l + 1;
 		while (true) {
@@ -172,26 +181,39 @@ public class BadWordHandler {
 				}
 			}
 			if (isLetter > 0) {
-				process(String.copyValueOf(str, l, id - l), vs);
+				dfsProcess(str, l, id - 1, vs);
 				l = id + 1;
 			}
 			id += 1;
 		}
-		
-		//remove words whose length is 3 with at least one bad marks (in the middle),
-		//or whose length is less than 5 with 2 or more bad marks
-//		if (r - l + 1 == 3 && this.isBadMark[str[l + 1]]) {
-//			//this may eliminate abbr such as: I/O, I'm, etc.
-//			System.out.println("---------get it----------" + str[l] + str[l + 1] + str[l + 2]);
-//		}
-//		if (r - l + 1 <= 5) {
-//			int badMarkCnt = 0;
-//			for (int i = l; i <= r; i++) {
-//				if (this.isBadMark[str[i]]) badMarkCnt++;
-//			}
-//			if (badMarkCnt >= 2) System.out.println("---------get it----------");
-//		}
-		
+
+		//eliminate connective ".:'" when: both sides contain 3(default) or more letters or digits
+		letterOrDigitRequired = 3;
+		id = l + 1;
+		while (true) {
+			for (; id < r && str[id] != '.' && str[id] != ':' && str[id] != '\''; id++);
+			if (id >= r) break;
+
+			boolean isLetter = true;
+			for (int i = id - 1; i >= id - letterOrDigitRequired; i--) {//3 or more consecutive letters or digits on left side
+				if (i < l || !Character.isLetterOrDigit(str[i])) {
+					isLetter = false;
+					break;
+				}
+			}
+			for (int i = id + 1; i <= id + letterOrDigitRequired; i++) {//3 or more consecutive letters or digits on right side
+				if (i > r || !Character.isLetterOrDigit(str[i])) {
+					isLetter = false;
+					break;
+				}
+			}
+			if (isLetter) {
+				dfsProcess(str, l, id - 1, vs);
+				l = id + 1;
+			}
+			id += 1;
+		}
+
 		//extract the simplest time format: HH:mm
 		if (this.timeToConst) {
 			if (r - l + 1 == 5) {
@@ -208,24 +230,56 @@ public class BadWordHandler {
 				}
 			}
 		}
-		
-		//eliminate bad marks
-		//floating point numbers such as 12/35 may be separated in to two parts,
+
+		//eliminate bad marks. floating point numbers such as 12/35 may be separated into two parts,
 		//but this may not be so crucial.
+		len = r - l + 1;
+		id = l;
 		while (true) {
-			for (id = l; id <= r && !this.isBadMark[str[id]]; id++);
+			for (; id <= r && !this.isBadMark[str[id]]; id++);
 			if (id > r) break;
-			process(String.copyValueOf(str, l, id - l), vs);
-			l = id + 1;
+			//the following "if" considers some meaningful abbreviation
+			//such as I/O and short divition such as 1/2
+			if (str[id] == '/' && len <= 4) {
+				id++;
+				continue;
+			}
+			dfsProcess(str, l, id - 1, vs);
+			id = l = id + 1;
+			len = r - l + 1;
 		}
-		
+
+		//whether turn all number format to Constant.NUMBER_FEATURE
 		if (this.numToConst) {
-			for (id = l; id <= r && Character.isDigit(str[id]); id++);
+			for (id = l; id <= r; id++) {
+				if (!Character.isDigit(str[id]) && !this.isMark[str[id]]) break;
+			}
 			if (id > r) {
 				vs.add(Constant.NUMBER_FEATURE);
 				return;
 			}
 		}
 		vs.add(String.copyValueOf(str, l, r - l + 1));
+	}
+
+	/**
+	 * given a word (may be a bad word), process it according to some syntax
+	 * rule, and add the result to a vector
+	 * 
+	 * @param word
+	 *            the given word
+	 * @param vs
+	 *            the result vector
+	 */
+	public void process(String word, Vector<String> vs) {
+		char[] str = word.toCharArray();
+		int l, r, len = str.length;
+
+		//trim punctuation on both sides
+		for (l = 0; l < len && isMark[str[l]]; l++);
+		for (r = len - 1; r >= 0 && isMark[str[r]]; r--);
+		if (l > r) return;//all character are punctuation
+
+		dfsProcess(str, l, r, vs);
 	}
 }
