@@ -10,7 +10,7 @@ public class BadWordHandler {
 	private static final String[] VERB_ABBR = {	//verb abbreviations
 		"isn't",	//1
 		"aren't",	//2
-		"asn't",	//3
+		"wasn't",	//3此处原为asn't
 		"weren't",	//4
 		"hasn't",	//5
 		"haven't",	//6
