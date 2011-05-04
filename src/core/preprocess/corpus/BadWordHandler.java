@@ -10,7 +10,7 @@ public class BadWordHandler {
 	private static final String[] VERB_ABBR = {	//verb abbreviations
 		"isn't",	//1
 		"aren't",	//2
-		"wasn't",	//3�˴�ԭΪasn't
+		"wasn't",	//3此处原为asn't
 		"weren't",	//4
 		"hasn't",	//5
 		"haven't",	//6
@@ -44,7 +44,7 @@ public class BadWordHandler {
 		"ought not",	//13
 		"dare not",		//14
 		"used not to",	//15
-		"cannot",		//16
+		"can not",		//16此处原为cannot
 		"could not",	//17
 		"might not",	//18
 		"must not",		//19
@@ -113,9 +113,10 @@ public class BadWordHandler {
 		//check verb abbreviation
 		String[] value = this.verbAbbrMap.get(String.copyValueOf(str, l, r - l + 1).toLowerCase());
 		if (value != null) {
-			for (int i = 0; i < value.length; i++) {
+			/*个人感觉还是在这里去掉，因为下面的't's'd都是直接去掉的*/
+			/*for (int i = 0; i < value.length; i++) {
 				if (value[i].length() > 0) vs.add(value[i]);
-			}
+			}*/
 			return;
 		}
 
@@ -162,6 +163,7 @@ public class BadWordHandler {
 
 		//eliminate connective "-" when: at least one side contains 3(default) or more letters or digits
 		int letterOrDigitRequired = 3;
+		/*数字和字母分开处理吧，因为020-23535这类电话号码是带有商业信息的。对于13453253535这类电话号码的判别可能就复杂了些*/
 		id = l + 1;
 		while (true) {
 			for (; id < r && str[id] != '-'; id++);
@@ -169,24 +171,54 @@ public class BadWordHandler {
 
 			int isLetter = 2;
 			for (int i = id - 1; i >= id - letterOrDigitRequired; i--) {//3 or more consecutive letters or digits on left side
-				if (i < l || !Character.isLetterOrDigit(str[i])) {
+				if (i < l || !Character.isLetter(str[i])) {
 					isLetter--;
 					break;
 				}
 			}
 			for (int i = id + 1; i <= id + letterOrDigitRequired; i++) {//3 or more consecutive letters or digits on right side
-				if (i > r || !Character.isLetterOrDigit(str[i])) {
+				if (i > r || !Character.isLetter(str[i])) {
 					isLetter--;
 					break;
 				}
 			}
 			if (isLetter > 0) {
 				dfsProcess(str, l, id - 1, vs);
-				l = id + 1;
+				l = id + 1;/*切割sub-division类别单词*/
 			}
 			id += 1;
 		}
 
+		id = l + 1;
+		while (true) {/*只处理一趟*/
+			for (; id < r && str[id] != '-'; id++);
+			if (id >= r) break;
+
+			int i;
+			for(i = l; i != id; i++){
+				if(!Character.isDigit(str[i]))
+					break;
+			}
+			if(i!=id){
+				break;
+			}
+			for(i = id+1; i <= r; i++){
+				if(!Character.isDigit(str[i]))
+					break;
+			}
+			if(i == id+1){
+				break;
+			}
+			else{
+				vs.add("\\tel-2e0d29j");/*这个常数是我自己加的*/
+				l = i;
+				if(l > r){
+					return ;
+				}
+				break;
+			}
+		}
+		
 		//eliminate connective ".:'" when: both sides contain 3(default) or more letters or digits
 		letterOrDigitRequired = 3;
 		id = l + 1;
