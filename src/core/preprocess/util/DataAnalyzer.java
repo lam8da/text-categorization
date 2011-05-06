@@ -19,8 +19,6 @@ import core.preprocess.util.Trie;
  * 
  */
 public class DataAnalyzer {
-	//private File trainingFolder;
-	//private int gramSize; //the gram size of the feature. Note that stopping should not be used when gramSize>1
 	private int docCnt; //equal to documentTries.size()
 	private boolean finished;
 	private Vector<String[]> docLabels;
@@ -36,56 +34,9 @@ public class DataAnalyzer {
 	private Vector<Integer> V_not_dj;
 	private Vector<Integer> M_tk;
 
-	/**
-	 * each time we call function "add", only words that hadn't been added to
-	 * the trie in current section will be added. Different section is separated
-	 * by calling "startNewSection". The TrieNode member "id" is no longer its
-	 * original meaning. Here it equals the section id, i.e. sectionCnt.
-	 * 
-	 * @author lambda
-	 * 
-	 */
-	/*
-	 * private class LimitedTrie extends Trie { private int sectionCnt;
-	 * 
-	 * public LimitedTrie() { super(); this.sectionCnt = 0; }
-	 * 
-	 * public void startNewSection() { this.sectionCnt++; }
-	 * 
-	 * @Override public int add(String word) { TrieNode tmp = root; for (int i =
-	 * 0; i != word.length(); i++) { if (tmp.child == null) { tmp.child = new
-	 * TrieNode(word.charAt(i), 0, null, null, tmp); tmp = tmp.child; } else {
-	 * if (tmp.child.val > word.charAt(i)) { // Add To The Head Of The List
-	 * TrieNode t = new TrieNode(word.charAt(i), 0, null, tmp.child, tmp);
-	 * tmp.child = t; tmp = t; } else if (word.charAt(i) == tmp.child.val) { tmp
-	 * = tmp.child; } else { TrieNode p = tmp; tmp = tmp.child; boolean flag =
-	 * true; while (tmp.brother != null) { if (word.charAt(i) ==
-	 * tmp.brother.val) { tmp = tmp.brother; flag = false; break; } else if
-	 * (word.charAt(i) < tmp.brother.val) { TrieNode t = new
-	 * TrieNode(word.charAt(i), 0, null, tmp.brother, p); tmp.brother = t; tmp =
-	 * t; flag = false; break; } tmp = tmp.brother; } if (flag) { TrieNode t =
-	 * new TrieNode(word.charAt(i), 0, null, null, p); tmp.brother = t; tmp = t;
-	 * } } } } if (tmp.id != this.sectionCnt) { tmp.id = this.sectionCnt; if
-	 * (tmp.occurrence == 0) strCnt++; tmp.occurrence++; } return
-	 * tmp.occurrence; } }
-	 */
-
-	public DataAnalyzer(/*File trainingFolder, int gramSize*/) /*throws Exception*/ {
-		//this.trainingFolder = trainingFolder;
-		//this.gramSize = gramSize;
+	public DataAnalyzer() {
 		this.docCnt = 0;
 		this.finished = false;
-
-//		File metaFile = new File(this.trainingFolder, Constant.EXTRACTION_METADATA_FILENAME);
-//		if (!metaFile.exists()) {
-//			throw new IOException("metadata file not exist!");
-//		}
-//
-//		BufferedReader reader = new BufferedReader(new FileReader(metaFile));
-//		String line = reader.readLine();
-//		if (line.split(" ")[1].equals(Constant.YES) && this.gramSize > 1) {
-//			throw new Exception("gram size cannot be greater than 1 when stopper is used!");
-//		}
 
 		this.docLabels = new Vector<String[]>();
 		this.featureTrie = new Trie();
@@ -101,15 +52,19 @@ public class DataAnalyzer {
 	}
 
 	public void addDocument(String[] labels, String[] titleFeatures, String[] contentFeatures) throws Exception {
-		// we ignore the specialness of the title and treat it as normal document content at present
 		if (this.finished) {
-			throw new Exception("cannot add document after the statistical data be created!");
+			throw new Exception("cannot add document after the statistical data was created!");
 		}
 
 		this.docCnt++;
 		this.docLabels.add(labels);
-		String[] ptr = titleFeatures;
 		int[] labelIds = new int[labels.length];
+
+		// we ignore the specialness of the title and treat it as normal document content at present
+		String[] ptr = new String[titleFeatures.length + contentFeatures.length];
+		int copyIdx;
+		for (copyIdx = 0; copyIdx < titleFeatures.length; ptr[copyIdx] = titleFeatures[copyIdx], copyIdx++);
+		for (; copyIdx < titleFeatures.length + contentFeatures.length; ptr[copyIdx] = contentFeatures[copyIdx - titleFeatures.length], copyIdx++);
 
 		int labelNameTrieSize = this.labelNameTrie.size();
 		for (int i = 0; i < labels.length; i++) {
@@ -132,11 +87,9 @@ public class DataAnalyzer {
 
 		Trie docTrie = new Trie();
 		this.documentTries.add(docTrie);
-		//		this.featureTriePerDoc.startNewSection();
 
 		TreeSet<String> wordMap = new TreeSet<String>();
 
-		boolean swap = false;
 		for (int i = 0; i < ptr.length; i++) {
 			if (ptr[i].length() > 0) {
 				String fea = ptr[i];
@@ -155,12 +108,6 @@ public class DataAnalyzer {
 						this.labelFeatureTriesAddedPerDoc.get(labelIds[j]).add(fea);
 					}
 				}
-			}
-
-			if (!swap && i + 1 == ptr.length) {
-				ptr = contentFeatures;
-				i = -1;
-				swap = true;
 			}
 		}
 	}
@@ -270,12 +217,24 @@ public class DataAnalyzer {
 		return getN_tk(featureId) - getN_ci_tk(labelId, featureId);
 	}
 
+	public int getN_not_ci_tk(String label, String feature) {
+		return getN_tk(feature) - getN_ci_tk(label, feature);
+	}
+
 	public int getN_ci_exclude_tk(int labelId, int featureId) {
 		return getN_ci(labelId) - getN_ci_tk(labelId, featureId);
 	}
 
+	public int getN_ci_exclude_tk(String label, String feature) {
+		return getN_ci(label) - getN_ci_tk(label, feature);
+	}
+
 	public int getN_not_ci_exclude_tk(int labelId, int featureId) {
 		return getN_exclude_tk(featureId) - getN_ci_exclude_tk(labelId, featureId);
+	}
+
+	public int getN_not_ci_exclude_tk(String label, String feature) {
+		return getN_not_ci(label) - getN_not_ci_tk(label, feature);
 	}
 
 	/********************************** word counting **********************************/
@@ -391,11 +350,11 @@ public class DataAnalyzer {
 		return getV_not_ci(labelId);
 	}
 
-	public int getV_not_ci_exclude(int labelId) {
-		return getV() - getV_ci_exclude(labelId);
+	public int getV_not_ci_exclude(int labelId) throws Exception {
+		return getV() - getV_not_ci(labelId);
 	}
 
-	public int getV_not_ci_exclude(String label) {
+	public int getV_not_ci_exclude(String label) throws Exception {
 		int labelId = this.labelNameTrie.getId(label);
 		return getV_not_ci_exclude(labelId);
 	}

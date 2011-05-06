@@ -6,8 +6,9 @@ import core.preprocess.util.XmlDocument;
 
 /**
  * this class provide a test for the class XmlDocument
+ * 
  * @author lambda
- *
+ * 
  */
 public class XmlDocumentTest {
 	/**
@@ -26,7 +27,7 @@ public class XmlDocumentTest {
 				"Basketball is famous in China and America, but do you know where it was born?");
 
 		XmlDocument t = new XmlDocument();
-		t.parseDocument(dir, "test.xml");
+		t.parseDocument(new File(dir, "test.xml"));
 
 		String[] labels = t.getLabels();
 		for (int i = 0; i < labels.length; i++) {
