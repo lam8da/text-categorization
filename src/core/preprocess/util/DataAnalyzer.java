@@ -1,14 +1,13 @@
 package core.preprocess.util;
 
 import java.io.File;
-//import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.BufferedWriter;
-//import java.io.IOException;
 import java.util.Vector;
 import java.util.TreeSet;
+import java.io.FileWriter;
+import java.io.BufferedWriter;
+import java.io.IOException;
 
-//import core.preprocess.util.Constant;
+import core.preprocess.util.Constant;
 import core.preprocess.util.Trie;
 
 /**
@@ -19,8 +18,8 @@ import core.preprocess.util.Trie;
  * 
  */
 public class DataAnalyzer {
+	private boolean finished; //whether function "finish" has been invoked before
 	private int docCnt; //equal to documentTries.size()
-	private boolean finished;
 	private Vector<String[]> docLabels;
 	private Trie featureTrie; //features
 	private Trie featureTrieAddedPerDoc; //one feature will only be added once for each document containing that feature
@@ -177,22 +176,39 @@ public class DataAnalyzer {
 	 */
 	public void reduce(String feature) throws Exception {
 		if (this.finished) throw new Exception("feature selection should be done before invoking \"finish\"!");
-		
+
 		this.featureTrie.delete(feature);
 		this.featureTrieAddedPerDoc.delete(feature);
-		
-		for(int i=0;i<this.documentTries.size();i++){
+
+		for (int i = 0; i < this.documentTries.size(); i++) {
 			this.documentTries.get(i).delete(feature);
 		}
-		
-		for(int i=0;i<this.labelFeatureTries.size();i++){
+
+		for (int i = 0; i < this.labelFeatureTries.size(); i++) {
 			this.labelFeatureTries.get(i).delete(feature);
 		}
-		
-		for(int i=0;i<this.labelFeatureTriesAddedPerDoc.size();i++){
+
+		for (int i = 0; i < this.labelFeatureTriesAddedPerDoc.size(); i++) {
 			this.labelFeatureTriesAddedPerDoc.get(i).delete(feature);
 		}
 	}
+
+	/**
+	 * get the value of finished
+	 * 
+	 * @return the value of finished
+	 */
+	public boolean getFinished() {
+		return this.finished;
+	}
+
+	/********************************* output routines *********************************/
+
+	//the following variables are just for convenience
+	private int featureCnt;
+	private int labelCnt;
+	private String[] features;
+	private String[] labels;
 
 	/**
 	 * output the result of analysis
@@ -200,11 +216,107 @@ public class DataAnalyzer {
 	 * @param outputDir
 	 *            the directory where the output files should be placed
 	 * @throws Exception
-	 *             if this function is invoked before "finish" invoked, an
-	 *             exception will occur
+	 *             if this function is invoked before "finish", an exception
+	 *             will occur
 	 */
 	public void writeToFile(File outputDir) throws Exception {
 		validate();
+		featureCnt = getV();
+		labelCnt = getM();
+		features = new String[featureCnt];
+		labels = new String[labelCnt];
+
+		for (int i = 0; i < featureCnt; i++) {
+			features[i] = getFeature(i);
+		}
+		for (int i = 0; i < labelCnt; i++) {
+			labels[i] = getLabel(i);
+		}
+
+		outputDir.mkdirs();
+
+		writeMetaData(outputDir);
+		writeDocumentCounting(outputDir);
+		writeWordCounting(outputDir);
+		writeSingleFeatureWordCounting(outputDir);
+		writeFeatureCounting(outputDir);
+		writeLabelCounting(outputDir);
+	}
+
+	private void writeMetaData(File outputDir) throws IOException {
+		File currentDir = new File(outputDir, Constant.META_DATA_FOLDER);
+		currentDir.mkdirs();
+
+		FileWriter fw;
+		BufferedWriter bw;
+
+		File featureFile = new File(currentDir, Constant.FEATURE_FILE);
+		fw = new FileWriter(featureFile);
+		bw = new BufferedWriter(fw);
+		bw.write(featureCnt);
+		bw.newLine();
+		for (int i = 0; i < featureCnt; i++) {
+			bw.write(i + " " + features[i]); //format: featureId feature
+			bw.newLine();
+		}
+		bw.flush();
+		bw.close();
+		fw.close();
+
+		File labelFile = new File(currentDir, Constant.LABEL_FILE);
+		fw = new FileWriter(labelFile);
+		bw = new BufferedWriter(fw);
+		bw.write(labelCnt);
+		bw.newLine();
+		for (int i = 0; i < labelCnt; i++) {
+			bw.write(i + " " + labels[i]); //format: labelId label
+			bw.newLine();
+		}
+		bw.flush();
+		bw.close();
+		fw.close();
+
+		File docLabelFile = new File(currentDir, Constant.DOC_LABEL_FILE);
+		fw = new FileWriter(docLabelFile);
+		bw = new BufferedWriter(fw);
+		bw.write(docCnt);
+		bw.newLine();
+		for (int i = 0; i < docCnt; i++) {
+			String[] l = getDocLabels(i);
+			bw.write(l.length + " ");
+			for (int j = 0; j < l.length; j++) {
+				bw.write(l[j] + " ");
+			}
+			bw.newLine();
+		}
+		bw.flush();
+		bw.close();
+		fw.close();
+	}
+
+	private void writeDocumentCounting(File outputDir) {
+		File currentDir = new File(outputDir, Constant.DOCUMENT_COUNTING_FOLDER);
+		currentDir.mkdirs();
+	}
+
+	private void writeWordCounting(File outputDir) {
+		File currentDir = new File(outputDir, Constant.WORD_COUNTING_FOLDER);
+		currentDir.mkdirs();
+	}
+
+	private void writeSingleFeatureWordCounting(File outputDir) {
+		File currentDir = new File(outputDir, Constant.SINGLE_FEATURE_WORD_COUNTING_FOLDER);
+		currentDir.mkdirs();
+	}
+
+	private void writeFeatureCounting(File outputDir) {
+		File currentDir = new File(outputDir, Constant.FEATURE_COUNTING_FOLDER);
+		currentDir.mkdirs();
+	}
+
+	private void writeLabelCounting(File outputDir) {
+		File currentDir = new File(outputDir, Constant.LABEL_COUNTING_FOLDER);
+		currentDir.mkdirs();
 	}
 
 	/************************************ meta data ************************************/

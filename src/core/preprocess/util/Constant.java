@@ -56,13 +56,13 @@ public final class Constant {
 
 	//filenames for DataAnalyzer to output result
 	/************************************ meta data ************************************/
-	public static final String DocLabels = "DocLabels.dat";
-	public static final String FeatureId = "FeatureId.dat";
-	public static final String Feature = "Feature.dat";
-	public static final String LabelId = "LabelId.dat";
-	public static final String Label = "Label.dat";
-	
+	public static final String META_DATA_FOLDER = "meta-data";
+	public static final String FEATURE_FILE = "Feature.dat";
+	public static final String LABEL_FILE = "Label.dat";
+	public static final String DOC_LABEL_FILE = "DocLabels.dat";
+
 	/******************************** document counting ********************************/
+	public static final String DOCUMENT_COUNTING_FOLDER = "document-counting";
 	public static final String N = "N.dat";
 	public static final String N_ci = "N_ci.dat";
 	public static final String N_not_ci = "N_not_ci.dat";
@@ -72,22 +72,25 @@ public final class Constant {
 	public static final String N_not_ci_tk = "N_not_ci_tk.dat";
 	public static final String N_ci_exclude_tk = "N_ci_exclude_tk.dat";
 	public static final String N_not_ci_exclude_tk = "N_not_ci_exclude_tk.dat";
-	
+
 	/********************************** word counting **********************************/
+	public static final String WORD_COUNTING_FOLDER = "word-counting";
 	public static final String W = "W.dat";
 	public static final String W_ci = "W_ci.dat";
 	public static final String W_not_ci = "W_not_ci.dat";
 	public static final String W_dj = "W_dj.dat";
 	public static final String W_not_dj = "W_not_dj.dat";
-	
+
 	/*************************** single feature word counting ***************************/
+	public static final String SINGLE_FEATURE_WORD_COUNTING_FOLDER = "single-feature-word-counting";
 	public static final String W_tk = "W_tk.dat";
 	public static final String W_ci_tk = "W_ci_tk.dat";
 	public static final String W_not_ci_tk = "W_not_ci_tk.dat";
-	public static final String W_dj_tk = "W_dj_tk.dat";
+	public static final String W_dj_tk = "W_dj_tk.dat"; //the most important matrix (so called document-term matrix)
 	public static final String W_not_dj_tk = "W_not_dj_tk.dat";
-	
+
 	/********************************* feature counting *********************************/
+	public static final String FEATURE_COUNTING_FOLDER = "feature-counting";
 	public static final String V = "V.dat";
 	public static final String V_ci = "V_ci.dat";
 	public static final String V_ci_exclude = "V_ci_exclude.dat";
@@ -97,8 +100,9 @@ public final class Constant {
 	public static final String V_dj_exclude = "V_dj_exclude.dat";
 	public static final String V_not_dj = "V_not_dj.dat";
 	public static final String V_not_dj_exclude = "V_not_dj_exclude.dat";
-	
+
 	/********************************** label counting **********************************/
+	public static final String LABEL_COUNTING_FOLDER = "label-counting";
 	public static final String M = "M.dat";
 	public static final String M_tk = "M_tk.dat";
 	public static final String M_exclude_tk = "M_exclude_tk.dat";
