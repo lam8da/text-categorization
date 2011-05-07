@@ -6,6 +6,12 @@ import core.preprocess.util.Trie;
 
 public class TrieTest {
 	public static void main(String[] args) throws Exception {
+		TrieTest test = new TrieTest();
+		//test.commonTest();
+		test.deletionTest();
+	}
+
+	public void commonTest() throws Exception {
 		String[] words = { "the", "they", "bahia", "cocoa", "zone", "alleviating", "the", "drought", "since", "early", "January", "and", "imporving",
 				"prospects" };
 		Trie trie = new Trie();
@@ -35,9 +41,29 @@ public class TrieTest {
 		for (int i = 0; i != wordsNew.length; i++) {
 			trieNew.add(wordsNew[i]);
 		}
-		//		Trie res = trie.subtract(trieNew);
-		//		res.traverse();
 
 		System.out.println(trie.difference(trieNew));
+	}
+
+	public void deletionTest() throws Exception {
+		String[] words = { "the", "they", "th", "t", "abc", "o", "the", "theee", "th", "opt", "theeo" };
+		Trie trie = new Trie();
+
+		for (int i = 0; i != words.length; i++) {
+			trie.add(words[i]);
+		}
+		trie.traverse();
+		System.out.println();
+
+		for (int i = 0; i < words.length; i++) {
+			System.out.print("deleting " + words[i] + ": ");
+			if (trie.delete(words[i])) {
+				System.out.print("succeed!");
+			}
+			else System.out.print("failed!!!!");
+			System.out.println();
+			trie.traverse();
+			System.out.println();
+		}
 	}
 }

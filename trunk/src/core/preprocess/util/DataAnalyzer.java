@@ -1,9 +1,9 @@
 package core.preprocess.util;
 
 import java.io.File;
-//import java.io.BufferedReader;
 //import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.BufferedWriter;
 //import java.io.IOException;
 import java.util.Vector;
 import java.util.TreeSet;
@@ -22,18 +22,21 @@ public class DataAnalyzer {
 	private int docCnt; //equal to documentTries.size()
 	private boolean finished;
 	private Vector<String[]> docLabels;
-	private Trie featureTrie; //one feature will be added as much times as its occurrence in each document
+	private Trie featureTrie; //features
 	private Trie featureTrieAddedPerDoc; //one feature will only be added once for each document containing that feature
-	private Vector<Trie> documentTries;
-	private Trie labelNameTrie;
-	private Vector<Trie> labelFeatureTries; //added as much times as its occurrence in all document whose label is the given class
-	private Vector<Trie> labelFeatureTriesAddedPerDoc; //only added once for each document containing that feature
+	private Vector<Trie> documentTries; //features per document
+	private Trie labelNameTrie; //labels
+	private Vector<Trie> labelFeatureTries; //features (duplicated) per label
+	private Vector<Trie> labelFeatureTriesAddedPerDoc; //features (unduplicated per document) per label
 
 	//statistical data
 	private Vector<Integer> V_not_ci;
 	private Vector<Integer> V_not_dj;
 	private Vector<Integer> M_tk;
 
+	/**
+	 * constructor
+	 */
 	public DataAnalyzer() {
 		this.docCnt = 0;
 		this.finished = false;
@@ -51,6 +54,20 @@ public class DataAnalyzer {
 		this.M_tk = new Vector<Integer>();
 	}
 
+	/**
+	 * add a document to the analyzer who will do some calculation to record the
+	 * information of the document
+	 * 
+	 * @param labels
+	 *            document labels
+	 * @param titleFeatures
+	 *            features in document title
+	 * @param contentFeatures
+	 *            features in document body
+	 * @throws Exception
+	 *             if we have invoked finish() before, no more documents can be
+	 *             added, or there will be an exception
+	 */
 	public void addDocument(String[] labels, String[] titleFeatures, String[] contentFeatures) throws Exception {
 		if (this.finished) {
 			throw new Exception("cannot add document after the statistical data was created!");
@@ -112,6 +129,9 @@ public class DataAnalyzer {
 		}
 	}
 
+	/**
+	 * do some last-stage work after all documents have been added
+	 */
 	public void finish() {
 		int labelSize = this.labelNameTrie.size();
 		for (int i = 0; i < labelSize; i++) {
@@ -135,8 +155,56 @@ public class DataAnalyzer {
 		this.finished = true;
 	}
 
+	/**
+	 * validate the accomplishment of the procedure of adding documents
+	 * 
+	 * @throws Exception
+	 *             if the procedure is not finished, throw exception
+	 */
 	private void validate() throws Exception {
-		if (!this.finished) throw new Exception("the value could only be obtained after finishing adding documents!");
+		if (!this.finished) throw new Exception("the process of adding documents is not finished!");
+	}
+
+	/**
+	 * eliminate a feature given by "feature", mainly invoked in feature
+	 * selection phase
+	 * 
+	 * @param feature
+	 *            the feature to be eliminated
+	 * @throws Exception
+	 *             if this function is invoked after "finish", an exception will
+	 *             occur
+	 */
+	public void reduce(String feature) throws Exception {
+		if (this.finished) throw new Exception("feature selection should be done before invoking \"finish\"!");
+		
+		this.featureTrie.delete(feature);
+		this.featureTrieAddedPerDoc.delete(feature);
+		
+		for(int i=0;i<this.documentTries.size();i++){
+			this.documentTries.get(i).delete(feature);
+		}
+		
+		for(int i=0;i<this.labelFeatureTries.size();i++){
+			this.labelFeatureTries.get(i).delete(feature);
+		}
+		
+		for(int i=0;i<this.labelFeatureTriesAddedPerDoc.size();i++){
+			this.labelFeatureTriesAddedPerDoc.get(i).delete(feature);
+		}
+	}
+
+	/**
+	 * output the result of analysis
+	 * 
+	 * @param outputDir
+	 *            the directory where the output files should be placed
+	 * @throws Exception
+	 *             if this function is invoked before "finish" invoked, an
+	 *             exception will occur
+	 */
+	public void writeToFile(File outputDir) throws Exception {
+		validate();
 	}
 
 	/************************************ meta data ************************************/
@@ -401,8 +469,4 @@ public class DataAnalyzer {
 	}
 
 	/************************************************************************************/
-
-	public void writeToFile(File outputDir) throws Exception {
-
-	}
 }
