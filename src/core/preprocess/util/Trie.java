@@ -2,7 +2,6 @@ package core.preprocess.util;
 
 import java.util.Iterator;
 import java.util.Vector;
-import java.io.File;
 import java.util.NoSuchElementException;
 import java.util.TreeMap;
 
@@ -167,7 +166,8 @@ public class Trie {
 	 * @param word
 	 *            the word to be added
 	 * @param times
-	 *            number of occurrence we want to add to "word"
+	 *            number of occurrence we want to add to "word", should be
+	 *            positive
 	 * @return return the id of the inserted word in the trie
 	 * @throws Exception
 	 */
@@ -236,7 +236,7 @@ public class Trie {
 	 * @return true if the trie contains the word, false otherwise
 	 */
 	public boolean contains(String word) {
-		return getId(word) != -1;
+		return getId(word) != -1; //should not use getNode(word)!=null !!
 	}
 
 	/**
@@ -303,17 +303,15 @@ public class Trie {
 	}
 
 	/**
-	 * 
-	 * @return
-	 */
-	public int serialize(File outputFile) {
-		return 0;
-	}
-
-	/**
-	 * 
+	 * traverse the trie in lexicographic order
 	 */
 	public void traverse() {
+		System.out.println("differentWordCnt = " + this.differentWordCnt);
+		System.out.println("wordCnt = " + this.wordCnt);
+		for (int i = 0; i < this.differentWordCnt; i++) {
+			System.out.println(i + ": " + this.getWord(i));
+		}
+		
 		StringBuffer sb = new StringBuffer(32);
 		dfs(root, sb);
 	}
@@ -326,57 +324,12 @@ public class Trie {
 	private void dfs(TrieNode node, StringBuffer sb) {
 		for (TrieNode nc = node.child; nc != null; nc = nc.brother) {
 			sb.append(nc.val);
-			if (nc.occurrence != 0) System.out.println(nc.occurrence + ": " + sb);
+			//if (nc.occurrence != 0) System.out.println("id: " + nc.id + ", cnt: " + nc.occurrence + " - " + sb);
+			System.out.println("id: " + (nc.id == -1 ? "" : " ") + nc.id + ", cnt: " + nc.occurrence + " - " + sb);
 			dfs(nc, sb);
 			sb.setLength(sb.length() - 1);
 		}
 	}
-
-	/**
-	 * if a word occurs both in this and "other", subtract its occurrence in the
-	 * current trie by the occurrence in "other". Otherwise nothing will be
-	 * done. Note that the id in the result trie is not the same as current
-	 * trie!
-	 * 
-	 * @param other
-	 *            the trie whose words we want to subtract from the current trie
-	 * @return return a new trie as a result, no changes will be made to the
-	 *         current trie
-	 * @throws Exception
-	 */
-	/*
-	 * public Trie subtract(Trie other) throws Exception { Trie res = new
-	 * Trie();
-	 * 
-	 * Iterator<String> it = iterator(); if (!it.hasNext()) return res;
-	 * 
-	 * Iterator<String> otherIt = other.iterator(); String itNext = it.next();
-	 * String otherItNext = "\0"; //need to be tested
-	 * 
-	 * while (true) { boolean bk = false;
-	 * 
-	 * while (otherItNext.compareTo(itNext) < 0) { if (otherIt.hasNext()) {
-	 * otherItNext = otherIt.next(); } else { //System.out.println("adding " +
-	 * itNext + ": " + getOccurrence(itNext)); res.add(itNext,
-	 * getOccurrence(itNext)); while (it.hasNext()) { itNext = it.next();
-	 * //System.out.println("adding " + itNext + ": " + getOccurrence(itNext));
-	 * res.add(itNext, getOccurrence(itNext)); } bk = true; break; } } if (bk)
-	 * break;
-	 * 
-	 * if (otherItNext.equals(itNext)) { int occurrence = getOccurrence(itNext)
-	 * - other.getOccurrence(itNext); if (occurrence > 0) {
-	 * //System.out.println("adding " + itNext + ": " + getOccurrence(itNext));
-	 * res.add(itNext, occurrence); } } else { //System.out.println("adding " +
-	 * itNext + ": " + getOccurrence(itNext)); res.add(itNext,
-	 * getOccurrence(itNext)); }
-	 * 
-	 * if (it.hasNext()) { itNext = it.next(); } else break;
-	 * 
-	 * while (itNext.compareTo(otherItNext) < 0) { System.out.println("adding "
-	 * + itNext + ": " + getOccurrence(itNext)); res.add(itNext,
-	 * getOccurrence(itNext)); if (it.hasNext()) { itNext = it.next(); } else {
-	 * bk = true; break; } } if (bk) break; } return res; }
-	 */
 
 	/**
 	 * find the number of words which is contained in current trie but not in
@@ -435,5 +388,66 @@ public class Trie {
 			if (bk) break;
 		}
 		return diff;
+	}
+
+	/**
+	 * delete a word from current trie
+	 * 
+	 * @param word
+	 *            the word to be deleted
+	 * @return true if the word is in the trie (i.e. deleted successfully),
+	 *         false otherwise
+	 */
+	public boolean delete(String word) {
+		Vector<TrieNode> preBrother = new Vector<TrieNode>(16);
+		TrieNode nc = root;
+		for (int i = 0; i < word.length(); i++) {
+			TrieNode np = null, pre = null;
+			for (np = nc.child; np != null; np = np.brother) {
+				if (np.val >= word.charAt(i)) break;
+				pre = np;
+			}
+			if (np == null || np.val > word.charAt(i)) {
+				nc = null;
+				break;
+			}
+			nc = np;
+			preBrother.add(pre);
+		}
+		if (nc == null || nc.id == -1) return false;
+
+		TrieNode nLast = this.nodeMap.get(this.differentWordCnt - 1);
+		this.nodeMap.remove(this.differentWordCnt - 1);
+		if (nc != nLast) {//not the same node
+			nLast.id = nc.id;
+			this.nodeMap.put(nc.id, nLast);//modify the map relationship 
+		}
+
+		this.differentWordCnt--;
+		this.wordCnt -= nc.occurrence;
+		nc.id = -1;
+		nc.occurrence = 0;
+
+		for (int i = preBrother.size() - 1; i >= 0; i--) {
+			if (nc.id == -1 && nc.child == null) {
+				TrieNode pre = preBrother.get(i);
+				if (pre == null) {
+					if (nc.brother == null) {
+						nc = nc.parent;
+						nc.child = null;
+					}
+					else {
+						nc.parent.child = nc.brother;
+						break;
+					}
+				}
+				else {//nc's parent has at least one child, break.
+					pre.brother = nc.brother;
+					break;
+				}
+			}
+			else break;
+		}
+		return true;
 	}
 }
