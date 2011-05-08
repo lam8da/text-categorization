@@ -69,25 +69,4 @@ public class IGFeatureSelection extends FeatureSelection {
 		res = tmp2+tmp3-tmp1;
 		return res;
 	}
-	@Override
-	public void FeatureSelection(DataAnalyzer data, int type) throws Exception {
-		// TODO Auto-generated method stub
-		double max;
-		if(type == this.AVGSELECTION){
-			for(int i = 0; i != data.getV(); i++){
-				max = this.getAvgSelectionWeighting(data, i);
-				if(max <= thresh){
-					data.reduce(data.getFeature(i));
-				}
-			}
-		}
-		else{
-			for(int i = 0; i != data.getV(); i++){
-				max = this.getMaxSelectionWeighting(data, i);
-				if(max <= thresh){
-					data.reduce(data.getFeature(i));
-				}
-			}			
-		}
-	}
 }
