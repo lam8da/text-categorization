@@ -4,6 +4,12 @@ import java.util.Iterator;
 import java.util.Vector;
 import java.util.NoSuchElementException;
 import java.util.TreeMap;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.BufferedWriter;
+import java.io.IOException;
 
 public class Trie {
 	protected class TrieNode {
@@ -102,18 +108,6 @@ public class Trie {
 
 	}
 
-	public class NodeData {
-		public String str;
-		public int id;
-		public int occurrence;
-
-		public NodeData(String str, int id, int occurrence) {
-			this.str = str;
-			this.id = id;
-			this.occurrence = occurrence;
-		}
-	}
-
 	protected TrieNode root;
 	private int differentWordCnt; //number of different strings which have been added to the trie
 	private int wordCnt; // number of strings (concerning duplication) in trie
@@ -165,10 +159,11 @@ public class Trie {
 	 * @throws Exception
 	 */
 	public int add(String word) throws Exception {
-		return add(word, 1);
+		return add(word, 1, false, -2);
 	}
 
 	/**
+	 * 
 	 * add word to the trie with number of occurrence as "times"
 	 * 
 	 * @param word
@@ -176,10 +171,14 @@ public class Trie {
 	 * @param times
 	 *            number of occurrence we want to add to "word", should be
 	 *            positive
-	 * @return return the id of the inserted word in the trie
+	 * @param resetId
+	 *            this parameter is used in function deserialize
+	 * @param newId
+	 *            the new id to be set
+	 * @return the id of the inserted word in the trie
 	 * @throws Exception
 	 */
-	protected int add(String word, int times) throws Exception {
+	protected int add(String word, int times, boolean resetId, int newId) throws Exception {
 		if (times <= 0) {
 			throw new Exception("invalid parameter: times should be greater than 0!");
 		}
@@ -227,7 +226,10 @@ public class Trie {
 			}
 		}
 		if (tmp.occurrence == 0) {
-			tmp.id = differentWordCnt;
+			if (resetId) {
+				tmp.id = newId;
+			}
+			else tmp.id = differentWordCnt;
 			this.nodeMap.put(tmp.id, tmp);
 			differentWordCnt++;
 		}
@@ -460,19 +462,49 @@ public class Trie {
 		return true;
 	}
 
-	public NodeData[] serialize() {
+	public void serialize(File outFile) throws IOException {
 		StringBuffer sb = new StringBuffer(32);
-		NodeData[] data = new NodeData[this.differentWordCnt];
-		serializeDfs(root, sb, data);
-		return data;
+		FileWriter fw = new FileWriter(outFile);
+		BufferedWriter bw = new BufferedWriter(fw);
+		bw.write(String.valueOf(this.differentWordCnt));
+		bw.newLine();
+		serializeDfs(root, sb, bw);
+		bw.flush();
+		bw.close();
+		fw.close();
 	}
 
-	private void serializeDfs(TrieNode node, StringBuffer sb, NodeData[] data) {
+	private void serializeDfs(TrieNode node, StringBuffer sb, BufferedWriter bw) throws IOException {
 		for (TrieNode nc = node.child; nc != null; nc = nc.brother) {
 			sb.append(nc.val);
-			if (nc.occurrence != 0) data[nc.id] = new NodeData(sb.toString(), nc.id, nc.occurrence);
-			dfs(nc, sb);
+			if (nc.occurrence != 0) {
+				bw.write(sb.toString());
+				bw.newLine();
+				bw.write(String.valueOf(nc.id));
+				bw.newLine();
+				bw.write(String.valueOf(nc.occurrence));
+				bw.newLine();
+			}
+			serializeDfs(nc, sb, bw);
 			sb.setLength(sb.length() - 1);
 		}
+	}
+
+	public static Trie deserialize(File inFile) throws Exception {
+		Trie t = new Trie();
+		FileReader fr = new FileReader(inFile);
+		BufferedReader br = new BufferedReader(fr);
+
+		int n = Integer.parseInt(br.readLine());
+		for (int i = 0; i < n; i++) {
+			String str = br.readLine();
+			int id = Integer.parseInt(br.readLine());
+			int occurrence = Integer.parseInt(br.readLine());
+			t.add(str, occurrence, true, id);
+		}
+
+		br.close();
+		fr.close();
+		return t;
 	}
 }
