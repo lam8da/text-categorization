@@ -5,32 +5,31 @@ import java.util.ArrayList;
 
 public  class CHIFeatrueSelection extends FeatureSelection{
 
+	public CHIFeatrueSelection(DataAnalyzer data, int type) {
+		super(data, type);
+		// TODO Auto-generated constructor stub
+	}
+
 	@Override
-	public String[] maxFeatureSelection(DataAnalyzer data, double thresh) {
+	public void FeatureSelection(DataAnalyzer data, int type) throws Exception {
 		// TODO Auto-generated method stub
 		double max;
-		ArrayList<String> result = new ArrayList<String>();
-		for(int i = 0; i != data.getV(); i++){
-			max = this.getMaxSelectionWeighting(data, i);
-			if(max > thresh){
-				result.add(data.getFeature(i));
+		if(type == this.AVGSELECTION){
+			for(int i = 0; i != data.getV(); i++){
+				max = this.getAvgSelectionWeighting(data, i);
+				if(max <= thresh){
+					data.reduce(data.getFeature(i));
+				}
 			}
 		}
-		return (String[])result.toArray();
-	}
-	
-	@Override
-	public String[] avgFeatureSelection(DataAnalyzer data, double thresh) {
-		// TODO Auto-generated method stub
-		double avg;
-		ArrayList<String> result = new ArrayList<String>();
-		for(int i = 0; i != data.getV(); i++){
-			avg = this.getAvgSelectionWeighting(data, i);
-			if(avg > thresh){
-				result.add(data.getFeature(i));
-			}
+		else{
+			for(int i = 0; i != data.getV(); i++){
+				max = this.getMaxSelectionWeighting(data, i);
+				if(max <= thresh){
+					data.reduce(data.getFeature(i));
+				}
+			}			
 		}
-		return (String[])result.toArray();
 	}
 
 	@Override
@@ -68,9 +67,4 @@ public  class CHIFeatrueSelection extends FeatureSelection{
 		return max;
 	}
 
-	@Override
-	public double determineThreshold(double[] data) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
 }

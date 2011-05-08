@@ -5,44 +5,12 @@ import java.util.ArrayList;
 
 public class DFFeatureSelection extends FeatureSelection{
 
-	@Override
-	public String[] avgFeatureSelection(DataAnalyzer data, double thresh) {
-		// TODO Auto-generated method stub
-		ArrayList<String> result = new ArrayList<String>();
-		double tmp;
-		for(int i = 0; i != data.getV(); i++){
-			try {
-				tmp = data.getM_tk(i);
-				if(tmp > thresh){
-					result.add(data.getFeature(i));
-				}
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		return (String[]) result.toArray();
+	
+	public DFFeatureSelection(DataAnalyzer data, int type) {
+		super(data, type);
+		// TODO Auto-generated constructor stub
 	}
 
-	@Override
-	public String[] maxFeatureSelection(DataAnalyzer data, double thresh) {
-		// TODO Auto-generated method stub
-		ArrayList<String> result = new ArrayList<String>();
-		double tmp;
-		for(int i = 0; i != data.getV(); i++){
-			try {
-				tmp = data.getM_tk(i);
-				if(tmp > thresh){
-					result.add(data.getFeature(i));
-				}
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		return (String[]) result.toArray();
-	}
-	
 	@Override
 	public double getAvgSelectionWeighting(DataAnalyzer data, int featureId) {
 		// TODO Auto-generated method stub
@@ -67,9 +35,26 @@ public class DFFeatureSelection extends FeatureSelection{
 		}
 	}
 
+
 	@Override
-	public double determineThreshold(double[] data) {
+	public void FeatureSelection(DataAnalyzer data, int type) throws Exception {
 		// TODO Auto-generated method stub
-		return 0;
+		double max;
+		if(type == this.AVGSELECTION){
+			for(int i = 0; i != data.getV(); i++){
+				max = this.getAvgSelectionWeighting(data, i);
+				if(max <= thresh){
+					data.reduce(data.getFeature(i));
+				}
+			}
+		}
+		else{
+			for(int i = 0; i != data.getV(); i++){
+				max = this.getMaxSelectionWeighting(data, i);
+				if(max <= thresh){
+					data.reduce(data.getFeature(i));
+				}
+			}			
+		}
 	}
 }

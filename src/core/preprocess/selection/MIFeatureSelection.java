@@ -5,18 +5,10 @@ import java.lang.Math;
 import java.util.ArrayList;
 public class MIFeatureSelection extends FeatureSelection{
 
-	@Override
-	public String[] avgFeatureSelection(DataAnalyzer data,double thresh) {
-		// TODO Auto-generated method stub
-		double tmp;
-		ArrayList<String> result = new ArrayList<String>();
-		for(int i = 0; i != data.getV(); i++){
-			tmp = this.getAvgSelectionWeighting(data, i);
-			if(tmp > thresh){
-				result.add(data.getFeature(i));
-			}
-		}
-		return (String[])result.toArray();
+
+	public MIFeatureSelection(DataAnalyzer data, int type) {
+		super(data, type);
+		// TODO Auto-generated constructor stub
 	}
 
 	@Override
@@ -54,23 +46,25 @@ public class MIFeatureSelection extends FeatureSelection{
 	}
 
 	@Override
-	public String[] maxFeatureSelection(DataAnalyzer data, double thresh) {
+	public void FeatureSelection(DataAnalyzer data, int type) throws Exception {
 		// TODO Auto-generated method stub
-		double tmp;
-		ArrayList<String> result = new ArrayList<String>();
-		for(int i = 0; i != data.getV(); i++){
-			tmp = this.getMaxSelectionWeighting(data, i);
-			if(tmp > thresh){
-				result.add(data.getFeature(i));
+		double max;
+		if(type == this.AVGSELECTION){
+			for(int i = 0; i != data.getV(); i++){
+				max = this.getAvgSelectionWeighting(data, i);
+				if(max <= thresh){
+					data.reduce(data.getFeature(i));
+				}
 			}
 		}
-		return (String[])result.toArray();
-	}
-
-	@Override
-	public double determineThreshold(double[] data) {
-		// TODO Auto-generated method stub
-		return 0;
+		else{
+			for(int i = 0; i != data.getV(); i++){
+				max = this.getMaxSelectionWeighting(data, i);
+				if(max <= thresh){
+					data.reduce(data.getFeature(i));
+				}
+			}			
+		}
 	}
 
 

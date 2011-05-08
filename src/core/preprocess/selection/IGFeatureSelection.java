@@ -6,18 +6,10 @@ import java.util.ArrayList;
 
 public class IGFeatureSelection extends FeatureSelection {
 
-	@Override
-	public String[] avgFeatureSelection(DataAnalyzer data,double thresh) {
-		// TODO Auto-generated method stub
-		double tmp;
-		ArrayList<String> result = new ArrayList<String>();
-		for(int i = 0; i != data.getV(); i++){
-			tmp = this.getAvgSelectionWeighting(data, i);
-			if(tmp > thresh){
-				result.add(data.getFeature(i));
-			}
-		}
-		return (String[])result.toArray();
+
+	public IGFeatureSelection(DataAnalyzer data, int type) {
+		super(data, type);
+		// TODO Auto-generated constructor stub
 	}
 
 	@Override
@@ -77,26 +69,25 @@ public class IGFeatureSelection extends FeatureSelection {
 		res = tmp2+tmp3-tmp1;
 		return res;
 	}
-
 	@Override
-	public String[] maxFeatureSelection(DataAnalyzer data,double thresh) {
+	public void FeatureSelection(DataAnalyzer data, int type) throws Exception {
 		// TODO Auto-generated method stub
-		double tmp;
-		ArrayList<String> result = new ArrayList<String>();
-		for(int i = 0; i != data.getV(); i++){
-			tmp = this.getMaxSelectionWeighting(data, i);
-			if(tmp > thresh){
-				result.add(data.getFeature(i));
+		double max;
+		if(type == this.AVGSELECTION){
+			for(int i = 0; i != data.getV(); i++){
+				max = this.getAvgSelectionWeighting(data, i);
+				if(max <= thresh){
+					data.reduce(data.getFeature(i));
+				}
 			}
 		}
-		return (String[])result.toArray();
+		else{
+			for(int i = 0; i != data.getV(); i++){
+				max = this.getMaxSelectionWeighting(data, i);
+				if(max <= thresh){
+					data.reduce(data.getFeature(i));
+				}
+			}			
+		}
 	}
-
-	@Override
-	public double determineThreshold(double[] data) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-
 }
