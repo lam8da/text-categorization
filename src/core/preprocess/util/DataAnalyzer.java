@@ -1,6 +1,8 @@
 package core.preprocess.util;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Vector;
 import java.util.TreeSet;
 import java.io.FileWriter;
@@ -18,7 +20,8 @@ import core.preprocess.util.Trie;
  * 
  */
 public class DataAnalyzer {
-	private boolean finished; //whether function "finish" has been invoked before
+	private boolean addingOK; //whether function "accomplishAdding" has been invoked before
+	private boolean reducingOK; //whether function "accomplishReducing" has been invoked before
 	private int docCnt; //equal to documentTries.size()
 	private Vector<String[]> docLabels;
 	private Trie featureTrie; //features
@@ -28,17 +31,13 @@ public class DataAnalyzer {
 	private Vector<Trie> labelFeatureTries; //features (duplicated) per label
 	private Vector<Trie> labelFeatureTriesAddedPerDoc; //features (unduplicated per document) per label
 
-	//statistical data
-	private Vector<Integer> V_not_ci;
-	private Vector<Integer> V_not_dj;
-	private Vector<Integer> M_tk;
-
 	/**
 	 * constructor
 	 */
 	public DataAnalyzer() {
 		this.docCnt = 0;
-		this.finished = false;
+		this.addingOK = false;
+		this.reducingOK = false;
 
 		this.docLabels = new Vector<String[]>();
 		this.featureTrie = new Trie();
@@ -47,10 +46,6 @@ public class DataAnalyzer {
 		this.labelNameTrie = new Trie();
 		this.documentTries = new Vector<Trie>(8192);
 		this.labelFeatureTries = new Vector<Trie>(256);
-
-		this.V_not_ci = new Vector<Integer>();
-		this.V_not_dj = new Vector<Integer>();
-		this.M_tk = new Vector<Integer>();
 	}
 
 	/**
@@ -68,7 +63,7 @@ public class DataAnalyzer {
 	 *             added, or there will be an exception
 	 */
 	public void addDocument(String[] labels, String[] titleFeatures, String[] contentFeatures) throws Exception {
-		if (this.finished) {
+		if (this.addingOK) {
 			throw new Exception("cannot add document after the statistical data was created!");
 		}
 
@@ -128,40 +123,12 @@ public class DataAnalyzer {
 		}
 	}
 
-	/**
-	 * do some last-stage work after all documents have been added
-	 */
-	public void finish() {
-		int labelSize = this.labelNameTrie.size();
-		for (int i = 0; i < labelSize; i++) {
-			this.V_not_ci.add(this.featureTrie.difference(this.labelFeatureTries.get(i)));
-		}
-
-		for (int i = 0; i < docCnt; i++) {
-			this.V_not_dj.add(this.featureTrie.difference(this.documentTries.get(i)));
-		}
-
-		int featureSize = this.featureTrie.size();
-		for (int i = 0; i < featureSize; i++) {
-			String feature = this.featureTrie.getWord(i);
-			int cnt = 0;
-			for (int j = 0; j < labelSize; j++) {
-				if (this.labelFeatureTries.get(j).contains(feature)) cnt++;
-			}
-			this.M_tk.add(cnt);
-		}
-
-		this.finished = true;
+	public void accomplishAdding() {
+		this.addingOK = true;
 	}
 
-	/**
-	 * validate the accomplishment of the procedure of adding documents
-	 * 
-	 * @throws Exception
-	 *             if the procedure is not finished, throw exception
-	 */
-	private void validate() throws Exception {
-		if (!this.finished) throw new Exception("the process of adding documents is not finished!");
+	public void accomplishReducing() {
+		this.reducingOK = true;
 	}
 
 	/**
@@ -175,7 +142,8 @@ public class DataAnalyzer {
 	 *             occur
 	 */
 	public void reduce(String feature) throws Exception {
-		if (this.finished) throw new Exception("feature selection should be done before invoking \"finish\"!");
+		if (!this.addingOK) throw new Exception("feature selection is not allowed before the process of adding documents is finished!");
+		if (this.reducingOK) throw new Exception("feature selection is not allowed after \"accomplishReducing\" was invoked!");
 
 		this.featureTrie.delete(feature);
 		this.featureTrieAddedPerDoc.delete(feature);
@@ -191,15 +159,6 @@ public class DataAnalyzer {
 		for (int i = 0; i < this.labelFeatureTriesAddedPerDoc.size(); i++) {
 			this.labelFeatureTriesAddedPerDoc.get(i).delete(feature);
 		}
-	}
-
-	/**
-	 * get the value of finished
-	 * 
-	 * @return the value of finished
-	 */
-	public boolean getFinished() {
-		return this.finished;
 	}
 
 	/********************************* output routines *********************************/
@@ -220,7 +179,7 @@ public class DataAnalyzer {
 	 *             will occur
 	 */
 	public void writeToFile(File outputDir) throws Exception {
-		validate();
+		if (!this.reducingOK) throw new Exception("file writing is not allowed before the process of feature selection is finished!");
 		featureCnt = getV();
 		labelCnt = getM();
 		features = new String[featureCnt];
@@ -294,27 +253,121 @@ public class DataAnalyzer {
 		fw.close();
 	}
 
-	private void writeDocumentCounting(File outputDir) {
+	private void writeDocumentCounting(File outputDir) throws IOException {
 		File currentDir = new File(outputDir, Constant.DOCUMENT_COUNTING_FOLDER);
 		currentDir.mkdirs();
+
+		FileWriter fw;
+		BufferedWriter bw;
+
+		File fileN_ci = new File(currentDir, Constant.N_ci);
+		fw = new FileWriter(fileN_ci);
+		bw = new BufferedWriter(fw);
+		bw.write(labelCnt);
+		bw.newLine();
+		for (int i = 0; i < labelCnt; i++) {
+			bw.write(getN_ci(labels[i]) + " ");
+		}
+		bw.flush();
+		bw.close();
+		fw.close();
+
+		File fileN_not_ci = new File(currentDir, Constant.N_not_ci);
+		fw = new FileWriter(fileN_not_ci);
+		bw = new BufferedWriter(fw);
+		bw.write(labelCnt);
+		bw.newLine();
+		for (int i = 0; i < labelCnt; i++) {
+			bw.write(getN_not_ci(labels[i]) + " ");
+		}
+		bw.flush();
+		bw.close();
+		fw.close();
+
+		File fileN_tk = new File(currentDir, Constant.N_tk);
+		fw = new FileWriter(fileN_tk);
+		bw = new BufferedWriter(fw);
+		bw.write(featureCnt);
+		bw.newLine();
+		for (int i = 0; i < featureCnt; i++) {
+			bw.write(getN_tk(features[i]) + " ");
+		}
+		bw.flush();
+		bw.close();
+		fw.close();
+
+		File fileN_exclude_tk = new File(currentDir, Constant.N_exclude_tk);
+		fw = new FileWriter(fileN_exclude_tk);
+		bw = new BufferedWriter(fw);
+		bw.write(featureCnt);
+		bw.newLine();
+		for (int i = 0; i < featureCnt; i++) {
+			bw.write(getN_exclude_tk(features[i]) + " ");
+		}
+		bw.flush();
+		bw.close();
+		fw.close();
+
+		File fileN_ci_tk = new File(currentDir, Constant.N_ci_tk);
+		fw = new FileWriter(fileN_ci_tk);
+		bw = new BufferedWriter(fw);
+		bw.write(labelCnt);
+		bw.newLine();
+		for (int i = 0; i < labelCnt; i++) {
+			Trie labelTrie = this.labelFeatureTriesAddedPerDoc.get(i);
+			Trie.NodeData[] data = labelTrie.serialize();
+			for (int j = 0; j < data.length; j++) {
+				data[j].id = this.featureTrie.getId(data[j].str);
+			}
+			Arrays.sort(data, 0, data.length, new Comparator<Trie.NodeData>() {
+				public int compare(Trie.NodeData o1, Trie.NodeData o2) {
+					return o1.id - o2.id;
+				}
+			});
+			//backup the current procedure 
+		}
+		bw.flush();
+		bw.close();
+		fw.close();
+
+		File fileN_not_ci_tk = new File(currentDir, Constant.N_not_ci_tk);
+		fw = new FileWriter(fileN_not_ci_tk);
+		bw = new BufferedWriter(fw);
+		bw.flush();
+		bw.close();
+		fw.close();
+
+		File fileN_ci_exclude_tk = new File(currentDir, Constant.N_ci_exclude_tk);
+		fw = new FileWriter(fileN_ci_exclude_tk);
+		bw = new BufferedWriter(fw);
+		bw.flush();
+		bw.close();
+		fw.close();
+
+		File fileN_not_ci_exclude_tk = new File(currentDir, Constant.N_not_ci_exclude_tk);
+		fw = new FileWriter(fileN_not_ci_exclude_tk);
+		bw = new BufferedWriter(fw);
+		bw.flush();
+		bw.close();
+		fw.close();
 	}
 
-	private void writeWordCounting(File outputDir) {
+	private void writeWordCounting(File outputDir) throws IOException {
 		File currentDir = new File(outputDir, Constant.WORD_COUNTING_FOLDER);
 		currentDir.mkdirs();
 	}
 
-	private void writeSingleFeatureWordCounting(File outputDir) {
+	private void writeSingleFeatureWordCounting(File outputDir) throws IOException {
 		File currentDir = new File(outputDir, Constant.SINGLE_FEATURE_WORD_COUNTING_FOLDER);
 		currentDir.mkdirs();
 	}
 
-	private void writeFeatureCounting(File outputDir) {
+	private void writeFeatureCounting(File outputDir) throws IOException {
 		File currentDir = new File(outputDir, Constant.FEATURE_COUNTING_FOLDER);
 		currentDir.mkdirs();
 	}
 
-	private void writeLabelCounting(File outputDir) {
+	private void writeLabelCounting(File outputDir) throws IOException {
 		File currentDir = new File(outputDir, Constant.LABEL_COUNTING_FOLDER);
 		currentDir.mkdirs();
 	}
@@ -520,21 +573,20 @@ public class DataAnalyzer {
 		return getV() - getV_ci(label);
 	}
 
-	public int getV_not_ci(int labelId) throws Exception {
-		validate();
-		return this.V_not_ci.get(labelId);
+	public int getV_not_ci(int labelId) {
+		return this.featureTrie.difference(this.labelFeatureTries.get(labelId));
 	}
 
-	public int getV_not_ci(String label) throws Exception {
+	public int getV_not_ci(String label) {
 		int labelId = this.labelNameTrie.getId(label);
 		return getV_not_ci(labelId);
 	}
 
-	public int getV_not_ci_exclude(int labelId) throws Exception {
+	public int getV_not_ci_exclude(int labelId) {
 		return getV() - getV_not_ci(labelId);
 	}
 
-	public int getV_not_ci_exclude(String label) throws Exception {
+	public int getV_not_ci_exclude(String label) {
 		int labelId = this.labelNameTrie.getId(label);
 		return getV_not_ci_exclude(labelId);
 	}
@@ -547,12 +599,11 @@ public class DataAnalyzer {
 		return getV() - getV_dj(docId);
 	}
 
-	public int getV_not_dj(int docId) throws Exception {
-		validate();
-		return this.V_not_dj.get(docId);
+	public int getV_not_dj(int docId) {
+		return this.featureTrie.difference(this.documentTries.get(docId));
 	}
 
-	public int getV_not_dj_exclude(int docId) throws Exception {
+	public int getV_not_dj_exclude(int docId) {
 		return getV() - getV_not_dj(docId);
 	}
 
@@ -562,21 +613,25 @@ public class DataAnalyzer {
 		return this.labelNameTrie.size();
 	}
 
-	public int getM_tk(int featureId) throws Exception {
-		validate();
-		return this.M_tk.get(featureId);
+	public int getM_tk(int featureId) {
+		String feature = this.featureTrie.getWord(featureId);
+		int cnt = 0, labelSize = this.labelNameTrie.size();
+		for (int i = 0; i < labelSize; i++) {
+			if (this.labelFeatureTries.get(i).contains(feature)) cnt++;
+		}
+		return cnt;
 	}
 
-	public int getM_tk(String feature) throws Exception {
+	public int getM_tk(String feature) {
 		int featureId = this.featureTrie.getId(feature);
 		return getM_tk(featureId);
 	}
 
-	public int getM_exclude_tk(int featureId) throws Exception {
+	public int getM_exclude_tk(int featureId) {
 		return getM() - getM_tk(featureId);
 	}
 
-	public int getM_exclude_tk(String feature) throws Exception {
+	public int getM_exclude_tk(String feature) {
 		return getM() - getM_tk(feature);
 	}
 
