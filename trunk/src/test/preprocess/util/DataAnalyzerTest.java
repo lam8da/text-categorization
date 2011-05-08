@@ -48,7 +48,7 @@ public class DataAnalyzerTest {
 			xml.parseDocument(xmlFiles[i]);
 			analyzer.addDocument(xml.getLabels(), xml.getTitleFeatures(), xml.getContentFeatures());
 		}
-		this.analyzer.finish();
+		this.analyzer.accomplishAdding();
 
 		this.docCnt = xmlFiles.length;
 		this.featureCnt = 5;

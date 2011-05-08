@@ -102,13 +102,21 @@ public class Trie {
 
 	}
 
+	public class NodeData {
+		public String str;
+		public int id;
+		public int occurrence;
+
+		public NodeData(String str, int id, int occurrence) {
+			this.str = str;
+			this.id = id;
+			this.occurrence = occurrence;
+		}
+	}
+
 	protected TrieNode root;
 	private int differentWordCnt; //number of different strings which have been added to the trie
-	private int wordCnt; /*
-						 * number of strings (concerning duplication) which have
-						 * been added to the trie (this value is equal to the
-						 * number of calling of function "add")
-						 */
+	private int wordCnt; // number of strings (concerning duplication) in trie
 	private TreeMap<Integer, TrieNode> nodeMap;
 
 	/**
@@ -303,7 +311,8 @@ public class Trie {
 	}
 
 	/**
-	 * traverse the trie in lexicographic order
+	 * traverse the trie in lexicographic order. this routine is just for test
+	 * at present.
 	 */
 	public void traverse() {
 		System.out.println("differentWordCnt = " + this.differentWordCnt);
@@ -311,7 +320,7 @@ public class Trie {
 		for (int i = 0; i < this.differentWordCnt; i++) {
 			System.out.println(i + ": " + this.getWord(i));
 		}
-		
+
 		StringBuffer sb = new StringBuffer(32);
 		dfs(root, sb);
 	}
@@ -449,5 +458,21 @@ public class Trie {
 			else break;
 		}
 		return true;
+	}
+
+	public NodeData[] serialize() {
+		StringBuffer sb = new StringBuffer(32);
+		NodeData[] data = new NodeData[this.differentWordCnt];
+		serializeDfs(root, sb, data);
+		return data;
+	}
+
+	private void serializeDfs(TrieNode node, StringBuffer sb, NodeData[] data) {
+		for (TrieNode nc = node.child; nc != null; nc = nc.brother) {
+			sb.append(nc.val);
+			if (nc.occurrence != 0) data[nc.id] = new NodeData(sb.toString(), nc.id, nc.occurrence);
+			dfs(nc, sb);
+			sb.setLength(sb.length() - 1);
+		}
 	}
 }
