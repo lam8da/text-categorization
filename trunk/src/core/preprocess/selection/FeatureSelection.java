@@ -9,13 +9,20 @@ public abstract class FeatureSelection {
 	public static int AVGSELECTION = 2;
 	public static int INTERACTION = 2000;
 	public static int CLUSTER = 10;
-	public  double thresh;
+	private  double thresh;
+	private double weighting[][];
 	
 	public FeatureSelection(DataAnalyzer data, int type){
 		this.thresh = this.determineThreshold(data, type);
 	}
 	
-	public abstract void FeatureSelection(DataAnalyzer data, int type)throws Exception;
+	public void FeatureReduction(DataAnalyzer data)throws Exception{
+		for(int i = 0; i != weighting.length; i++){
+			if(weighting[i][0] <= thresh){
+				data.reduce(data.getFeature(i));
+			}
+		}
+	}
 
 	public abstract double getAvgSelectionWeighting(DataAnalyzer data, int featureId);
 
@@ -23,19 +30,19 @@ public abstract class FeatureSelection {
 
 	public  double determineThreshold(DataAnalyzer data, int type){
 		int size = data.getV();
-		double[][] tmp = new double[size][1];
+		weighting = new double[size][1];
 		if(type == this.MAXSELECTION){
 			for(int i = 0; i != size; i++){
-				tmp[i][0] = this.getMaxSelectionWeighting(data, i);
+				weighting[i][0] = this.getMaxSelectionWeighting(data, i);
 			}
 		}
 		else if(type == this.AVGSELECTION){
 			for(int i = 0; i != size; i++){
-				tmp[i][0] = this.getAvgSelectionWeighting(data, i);
+				weighting[i][0] = this.getAvgSelectionWeighting(data, i);
 			}			
 		}
 		Kmpp k = new Kmpp();
-		k.cluster(tmp, 1, this.CLUSTER, this.INTERACTION);
+		k.cluster(weighting, 1, this.CLUSTER, this.INTERACTION);
 		this.thresh = k.getThresh();
 		return this.thresh;
 	}
