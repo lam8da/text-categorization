@@ -1,6 +1,7 @@
 package test.preprocess.util;
 
 import java.util.Iterator;
+import java.io.File;
 
 import core.preprocess.util.Trie;
 
@@ -8,7 +9,12 @@ public class TrieTest {
 	public static void main(String[] args) throws Exception {
 		TrieTest test = new TrieTest();
 		//test.commonTest();
-		test.deletionTest();
+		//test.deletionTest();
+		
+		if (args.length != 1) {
+			System.out.println("invalid parameters!");
+		}
+		test.serializeTest(new File(args[0]));
 	}
 
 	public void commonTest() throws Exception {
@@ -65,5 +71,20 @@ public class TrieTest {
 			trie.traverse();
 			System.out.println();
 		}
+	}
+
+	public void serializeTest(File outputDir) throws Exception {
+		String[] words = { "the", "they", "bahia", "cocoa", "zone", "alleviating", "the", "drought", "since", "early", "January", "and", "imporving",
+				"prospects" };
+		Trie trie = new Trie();
+		for (int i = 0; i != words.length; i++) {
+			trie.add(words[i]);
+		}
+		trie.traverse();
+		System.out.println();
+
+		trie.serialize(new File(outputDir, "trie.txt"));
+		Trie newTrie = Trie.deserialize(new File(outputDir, "trie.txt"));
+		newTrie.traverse();
 	}
 }
