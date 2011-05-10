@@ -1,6 +1,9 @@
 package core.preprocess.util;
 
-import java.util.Vector;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.HashSet;
 
 import core.preprocess.util.Trie;
@@ -19,16 +22,8 @@ public class DataAnalyzer extends DataHolder {
 	 * constructor
 	 */
 	public DataAnalyzer() {
-		this.docCnt = 0;
+		super();
 		this.addingOK = false;
-
-		this.docLabels = new Vector<String[]>();
-		this.featureTrie = new Trie();
-		this.featureTrieAddedPerDoc = new Trie();
-		this.labelFeatureTriesAddedPerDoc = new Vector<Trie>(256);
-		this.labelNameTrie = new Trie();
-		this.documentTries = new Vector<Trie>(8192);
-		this.labelFeatureTries = new Vector<Trie>(256);
 	}
 
 	/**
@@ -136,6 +131,48 @@ public class DataAnalyzer extends DataHolder {
 
 		for (int i = 0; i < this.labelFeatureTriesAddedPerDoc.size(); i++) {
 			this.labelFeatureTriesAddedPerDoc.get(i).delete(feature);
+		}
+	}
+
+	public void serialize(File outputDir) throws IOException {
+		outputDir.mkdirs();
+
+		File docLabelFile = new File(outputDir, Constant.DOC_LABELS_FILE);
+		FileWriter fw = new FileWriter(docLabelFile);
+		BufferedWriter bw = new BufferedWriter(fw);
+		bw.write(String.valueOf(docCnt));
+		bw.newLine();
+		for (int i = 0; i < docCnt; i++) {
+			String[] l = this.docLabels.get(i);
+			bw.write(String.valueOf(l.length));
+			bw.newLine();
+			for (int j = 0; j < l.length; j++) {
+				bw.write(l[j]);
+				bw.newLine();
+			}
+		}
+		bw.flush();
+		bw.close();
+		fw.close();
+
+		this.featureTrie.serialize(new File(outputDir, Constant.FEATURE_TRIE_FILE));
+		this.featureTrieAddedPerDoc.serialize(new File(outputDir, Constant.FEATURE_TRIE_ADDED_PER_DOC_FILE));
+
+		File documentTriesFolder = new File(outputDir, Constant.DOCUMENT_TRIES_FOLDER);
+		for (int i = 0; i < this.documentTries.size(); i++) {
+			this.documentTries.get(i).serialize(new File(documentTriesFolder, String.valueOf(i)));
+		}
+
+		this.labelNameTrie.serialize(new File(outputDir, Constant.LABEL_NAME_TRIE_FILE));
+
+		File labelFeatureTriesFolder = new File(outputDir, Constant.LABEL_FEATURE_TRIES_FOLDER);
+		for (int i = 0; i < this.labelFeatureTries.size(); i++) {
+			this.labelFeatureTries.get(i).serialize(new File(labelFeatureTriesFolder, String.valueOf(i)));
+		}
+
+		File labelFeatureTriesAddedPerDocFolder = new File(outputDir, Constant.LABEL_FEATURE_TRIES_ADDED_PER_DOC_FOLDER);
+		for (int i = 0; i < this.labelFeatureTriesAddedPerDoc.size(); i++) {
+			this.labelFeatureTriesAddedPerDoc.get(i).serialize(new File(labelFeatureTriesAddedPerDocFolder, String.valueOf(i)));
 		}
 	}
 }
