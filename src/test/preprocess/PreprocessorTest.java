@@ -14,8 +14,19 @@ public class PreprocessorTest {
 			return;
 		}
 
-		Preprocessor p = new Preprocessor(args[0], args[1], Constant.REUTERS, Constant.MOD_LEWIS, Constant.USE_STOPPER, Constant.KROVETZ_STEMMER,
-				true, true, true);
+		Preprocessor p = new Preprocessor(//
+				args[0], //inputPath
+				args[1], //outputPath
+				Constant.REUTERS, //corpusId
+				Constant.MOD_LEWIS, //splitting
+				Constant.USE_STOPPER, //stopperId
+				Constant.KROVETZ_STEMMER, //stemmerId
+				true, //toLower
+				true, //timeToConst
+				true, //numToConst
+				Constant.DF_SELECTOR, //selectorId
+				Constant.FEATURE_SELECTION_MAXSELECTION //selectMethodId
+		);
 		p.preprocess();
 	}
 }
