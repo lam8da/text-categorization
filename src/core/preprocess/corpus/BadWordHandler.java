@@ -50,12 +50,14 @@ public class BadWordHandler {
 		"must not",		//19
 	};
 	
+	/*
 	private static final char[] marks = { '!', '"', '#', '$', '%', '&', '\'', '(', ')', '*', '+', ',', '-', '.', '/', ':', ';', '<', '=', '>', '?',
 			'@', '[', '\\', ']', '^', '_', '`', '{', '|', '}', '~' };
 	
 	//excluding &'-.:@_ from "marks"
 	private static final char[] badMarks = { '!', '"', '#', '$', '%', '(', ')', '*', '+', ',', '/', ';', '<', '=', '>', '?', '[', '\\', ']', '^',
 			'`', '{', '|', '}', '~' };
+	*/
 
 	private boolean timeToConst;
 	private boolean numToConst;
@@ -72,16 +74,25 @@ public class BadWordHandler {
 	 */
 	public BadWordHandler(boolean timeToConst, boolean numToConst) {
 		this.isMark = new boolean[256];
-		Arrays.fill(isMark, false);
-		for (int i = 0; i < marks.length; i++) {
-			isMark[marks[i]] = true;
+		Arrays.fill(isMark, true);
+		for (int i = '0'; i <= '9'; i++) {
+			isMark[i] = false;
+		}
+		for (int i = 'a'; i <= 'z'; i++) {
+			isMark[i] = false;
+		}
+		for (int i = 'A'; i <= 'Z'; i++) {
+			isMark[i] = false;
 		}
 
-		this.isBadMark = new boolean[256];
-		Arrays.fill(isBadMark, false);
-		for (int i = 0; i < badMarks.length; i++) {
-			isBadMark[badMarks[i]] = true;
-		}
+		this.isBadMark = Arrays.copyOf(isMark, 256);
+		isBadMark['&'] = false;
+		isBadMark['\''] = false;
+		isBadMark['-'] = false;
+		isBadMark['.'] = false;
+		isBadMark[':'] = false;
+		isBadMark['@'] = false;
+		isBadMark['_'] = false;
 
 		this.verbAbbrMap = new HashMap<String, String[]>(32);
 		for (int i = 0; i < VERB_ABBR.length; i++) {
