@@ -285,6 +285,9 @@ public class BadWordHandler {
 	public void process(String word, Vector<String> vs) {
 		char[] str = word.toCharArray();
 		int l, r, len = str.length;
+		for (int i = 0; i < len; i++){
+			if ((byte)(str[i]) < (byte)0) str[i] = '?';
+		}
 
 		//trim punctuation on both sides
 		for (l = 0; l < len && isMark[str[l]]; l++);

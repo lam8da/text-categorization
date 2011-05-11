@@ -81,18 +81,19 @@ public class Preprocessor {
 		this.inputDir = new File(inputPath);
 		this.outputDir = new File(outputPath);
 		this.outputDir.mkdirs();
-		this.trainingDir = new File(this.outputDir, Constant.TRAINING_FOLDER);
-		this.trainingDir.mkdirs();
-		this.xmlDir = new File(this.outputDir, Constant.XML_DATA_PATH);
-		this.xmlDir.mkdirs();
-		this.statisticalDir = new File(this.outputDir, Constant.STATISTICAL_DATA_PATH);
-		this.statisticalDir.mkdirs();
 
 		System.out.println("Deleting all files in " + outputDir);
 		File[] files = outputDir.listFiles();
 		for (int i = 0; i < files.length; i++) {
 			files[i].delete();
 		}
+		
+		this.xmlDir = new File(this.outputDir, Constant.XML_DATA_PATH);
+		this.xmlDir.mkdirs();
+		this.trainingDir = new File(this.xmlDir, Constant.TRAINING_FOLDER);
+		this.trainingDir.mkdirs();
+		this.statisticalDir = new File(this.outputDir, Constant.STATISTICAL_DATA_PATH);
+		this.statisticalDir.mkdirs();
 
 		this.corpusId = corpusId;
 		this.splitting = splitting;
@@ -175,6 +176,7 @@ public class Preprocessor {
 		//	//not implemented yet
 		//}
 		extractor.extract(this.stopper, this.stemmer, this.toLower, this.timeToConst, this.numToConst);
+		System.out.println("extraction done!");
 
 		//----------------------------- start analyzing -----------------------------
 		File[] xmlFiles = this.trainingDir.listFiles(new FileFilter() {
@@ -192,6 +194,7 @@ public class Preprocessor {
 			this.analyzer.addDocument(xml.getLabels(), xml.getTitleFeatures(), xml.getContentFeatures());
 		}
 		this.analyzer.accomplishAdding();
+		System.out.println("analyzing done!");
 
 		//------------------------- start feature selecting -------------------------		
 		switch (selectorId) {
@@ -209,9 +212,11 @@ public class Preprocessor {
 			break;
 		}
 		this.selector.featureReduction();
+		System.out.println("feature selecting done!");
 
 		//-------------------------- serialize the result  --------------------------
 		this.analyzer.serialize(statisticalDir);
+		System.out.println("serialization done!");
 	}
 
 	public void printUsage() {
