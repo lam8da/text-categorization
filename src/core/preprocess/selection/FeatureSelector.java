@@ -1,5 +1,7 @@
 package core.preprocess.selection;
 
+import java.util.Vector;
+
 import core.preprocess.util.DataAnalyzer;
 import core.preprocess.util.Kmpp;
 import core.preprocess.util.Constant;
@@ -18,13 +20,18 @@ public abstract class FeatureSelector {
 		this.type = type;
 	}
 
-	public void featureReduction() throws Exception {
+	public void featureReduction()  throws Exception {
 		this.thresh = determineThreshold();
+		Vector<String> reduceList = new Vector<String>(1024);
 
 		for (int i = 0; i != weighting.length; i++) {
 			if (weighting[i][0] <= thresh) {
-				analyzer.reduce(analyzer.getFeature(i));
+				reduceList.add(analyzer.getFeature(i));
 			}
+		}
+		
+		for(int i=0;i<reduceList.size();i++){
+			analyzer.reduce(reduceList.get(i));
 		}
 	}
 
@@ -34,6 +41,7 @@ public abstract class FeatureSelector {
 
 	private double determineThreshold() {
 		int size = analyzer.getV();
+		System.out.println("size = "+size);
 		weighting = new double[size][1];
 		if (type == Constant.FEATURE_SELECTION_MAXSELECTION) {
 			for (int i = 0; i != size; i++) {
@@ -47,7 +55,9 @@ public abstract class FeatureSelector {
 		}
 
 		Kmpp k = new Kmpp();
-		k.cluster(weighting, 1, FeatureSelector.CLUSTER, FeatureSelector.INTERACTION);
-		return k.getThresh();
+		//k.cluster(weighting, 1, FeatureSelector.CLUSTER, FeatureSelector.INTERACTION);
+		//return  k.getThresh();
+		return 5;
 	}
+	
 }

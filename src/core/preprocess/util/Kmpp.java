@@ -29,6 +29,9 @@ public class Kmpp {
 		Collection<DoublePoint> col = new ArrayList<DoublePoint>();
 		this.dimension = d;
 		for(int i = 0; i != points.length; i++){
+			if(points[i].length != d){
+				return null;
+			}
 			col.add(new DoublePoint(points[i]));
 		}
 		list = new ArrayList<Cluster<DoublePoint>>();
@@ -42,6 +45,9 @@ public class Kmpp {
 	 * */
 	public void outputClusters(){
 		int ind = 1;
+		if(list == null){
+			return ;
+		}
 		Iterator<Cluster<DoublePoint>> it = list.iterator();
 		while(it.hasNext()){
 			Cluster<DoublePoint> cl = it.next();

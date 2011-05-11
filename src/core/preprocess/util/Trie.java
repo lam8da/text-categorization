@@ -306,6 +306,7 @@ public class Trie {
 	 */
 	public String getWord(int id) {
 		StringBuffer sb = new StringBuffer(32);
+		//exception may occur here when cur==null due to the missing string for given id!!!!!!
 		for (TrieNode cur = nodeMap.get(id); cur.parent != null; cur = cur.parent) {
 			sb.append(cur.val);
 		}

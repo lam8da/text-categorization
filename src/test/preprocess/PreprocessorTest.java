@@ -9,14 +9,14 @@ public class PreprocessorTest {
 	 * @throws Exception
 	 */
 	public static void main(String[] args) throws Exception {
-		if (args.length != 2) {
+		/*if (args.length != 2) {
 			System.out.println("Invalid arguments.");
 			return;
-		}
+		}*/
 
 		Preprocessor p = new Preprocessor(//
-				args[0], //inputPath
-				args[1], //outputPath
+				"C:\\Documents and Settings\\Administrator\\workspace\\TextClassification\\test",//args[0], //inputPath
+				"C:\\Documents and Settings\\Administrator\\workspace\\TextClassification\\test\\output",//args[1], //outputPath
 				Constant.REUTERS, //corpusId
 				Constant.MOD_LEWIS, //splitting
 				Constant.USE_STOPPER, //stopperId

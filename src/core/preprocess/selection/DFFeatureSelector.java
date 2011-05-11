@@ -10,11 +10,11 @@ public class DFFeatureSelector extends FeatureSelector {
 
 	@Override
 	public double getAvgSelectionWeighting(int featureId) {
-		return analyzer.getM_tk(featureId);
+		return analyzer.getW_tk(featureId);
 	}
 
 	@Override
 	public double getMaxSelectionWeighting(int featureId) {
-		return analyzer.getM_tk(featureId);
+		return analyzer.getW_tk(featureId);
 	}
 }
