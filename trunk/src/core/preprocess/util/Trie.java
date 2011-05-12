@@ -9,7 +9,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.BufferedWriter;
-import java.io.IOException;
 
 public class Trie {
 	protected class TrieNode {
@@ -108,6 +107,7 @@ public class Trie {
 
 	}
 
+	private static final int DO_NOT_RESET = -618618618;
 	protected TrieNode root;
 	private int differentWordCnt; //number of different strings which have been added to the trie
 	private int wordCnt; // number of strings (concerning duplication) in trie
@@ -159,7 +159,7 @@ public class Trie {
 	 * @throws Exception
 	 */
 	public int add(String word) throws Exception {
-		return add(word, 1, false, -2);
+		return add(word, 1, DO_NOT_RESET);
 	}
 
 	/**
@@ -178,7 +178,7 @@ public class Trie {
 	 * @return the id of the inserted word in the trie
 	 * @throws Exception
 	 */
-	protected int add(String word, int times, boolean resetId, int newId) throws Exception {
+	protected int add(String word, int times, int newId) throws Exception {
 		if (times <= 0) {
 			throw new Exception("invalid parameter: times should be greater than 0!");
 		}
@@ -226,7 +226,7 @@ public class Trie {
 			}
 		}
 		if (tmp.occurrence == 0) {
-			if (resetId) {
+			if (newId != DO_NOT_RESET) {
 				tmp.id = newId;
 			}
 			else tmp.id = differentWordCnt;
@@ -463,35 +463,48 @@ public class Trie {
 		return true;
 	}
 
-	public void serialize(File outFile) throws IOException {
+	public void serialize(File outFile, boolean writeId, Trie mapStringToId) throws Exception {
 		StringBuffer sb = new StringBuffer(32);
 		FileWriter fw = new FileWriter(outFile);
 		BufferedWriter bw = new BufferedWriter(fw);
 		bw.write(String.valueOf(this.differentWordCnt));
 		bw.newLine();
-		serializeDfs(root, sb, bw);
+		serializeDfs(root, sb, bw, writeId, mapStringToId);
 		bw.flush();
 		bw.close();
 		fw.close();
 	}
 
-	private void serializeDfs(TrieNode node, StringBuffer sb, BufferedWriter bw) throws IOException {
+	private void serializeDfs(TrieNode node, StringBuffer sb, BufferedWriter bw, boolean writeId, Trie mapStringToId) throws Exception {
 		for (TrieNode nc = node.child; nc != null; nc = nc.brother) {
 			sb.append(nc.val);
 			if (nc.occurrence != 0) {
-				bw.write(sb.toString());
+				if (mapStringToId == null) {
+					bw.write(sb.toString());
+				}
+				else {
+					int id = mapStringToId.getId(sb.toString());
+					if (id == -1) {
+						throw new Exception("serializeDfs: invalid word or bad map!");
+					}
+					bw.write(String.valueOf(id));
+				}
 				bw.newLine();
-				bw.write(String.valueOf(nc.id));
-				bw.newLine();
+
+				if (writeId) {
+					bw.write(String.valueOf(nc.id));
+					bw.newLine();
+				}
+
 				bw.write(String.valueOf(nc.occurrence));
 				bw.newLine();
 			}
-			serializeDfs(nc, sb, bw);
+			serializeDfs(nc, sb, bw, writeId, mapStringToId);
 			sb.setLength(sb.length() - 1);
 		}
 	}
 
-	public static Trie deserialize(File inFile) throws Exception {
+	public static Trie deserialize(File inFile, boolean haveId, Trie mapIdToString) throws Exception {
 		Trie t = new Trie();
 		FileReader fr = new FileReader(inFile);
 		BufferedReader br = new BufferedReader(fr);
@@ -499,9 +512,16 @@ public class Trie {
 		int n = Integer.parseInt(br.readLine());
 		for (int i = 0; i < n; i++) {
 			String str = br.readLine();
-			int id = Integer.parseInt(br.readLine());
+			if (mapIdToString != null) {
+				int strId = Integer.parseInt(str);
+				str = mapIdToString.getWord(strId); //exception may occur if the trie has no string associate with strId
+			}
+
+			int id = DO_NOT_RESET;
+			if (haveId) id = Integer.parseInt(br.readLine());
+
 			int occurrence = Integer.parseInt(br.readLine());
-			t.add(str, occurrence, true, id);
+			t.add(str, occurrence, id);
 		}
 
 		br.close();

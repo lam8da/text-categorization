@@ -58,9 +58,7 @@ public class Preprocessor {
 	 * @param timeToConst
 	 * @param numToConst
 	 * @param selectorId
-	 *            TODO
 	 * @param selectMethodId
-	 *            TODO
 	 * @throws Exception
 	 */
 	public Preprocessor( //
@@ -87,7 +85,7 @@ public class Preprocessor {
 		for (int i = 0; i < files.length; i++) {
 			files[i].delete();
 		}
-		
+
 		this.xmlDir = new File(this.outputDir, Constant.XML_DATA_PATH);
 		this.xmlDir.mkdirs();
 		this.trainingDir = new File(this.xmlDir, Constant.TRAINING_FOLDER);
@@ -211,7 +209,7 @@ public class Preprocessor {
 			this.selector = new IGFeatureSelector(this.analyzer, this.selectMethodId);
 			break;
 		}
-		this.selector.featureReduction();
+		this.selector.getReductionList();
 		System.out.println("feature selecting done!");
 
 		//-------------------------- serialize the result  --------------------------

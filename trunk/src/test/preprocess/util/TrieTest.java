@@ -10,7 +10,7 @@ public class TrieTest {
 		TrieTest test = new TrieTest();
 		//test.commonTest();
 		//test.deletionTest();
-		
+
 		if (args.length != 1) {
 			System.out.println("invalid parameters!");
 		}
@@ -83,8 +83,8 @@ public class TrieTest {
 		trie.traverse();
 		System.out.println();
 
-		trie.serialize(new File(outputDir, "trie.txt"));
-		Trie newTrie = Trie.deserialize(new File(outputDir, "trie.txt"));
+		trie.serialize(new File(outputDir, "trie.txt"), true, null);
+		Trie newTrie = Trie.deserialize(new File(outputDir, "trie.txt"), true, null);
 		newTrie.traverse();
 	}
 }
