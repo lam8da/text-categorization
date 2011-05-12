@@ -1,8 +1,11 @@
 package core.preprocess.util;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.util.Vector;
 
-public abstract class DataHolder {
+public class DataHolder {
 	protected int docCnt; //equal to documentTries.size()
 	protected Vector<String[]> docLabels;
 	protected Trie featureTrie; //features
@@ -12,7 +15,7 @@ public abstract class DataHolder {
 	protected Vector<Trie> labelFeatureTries; //features (duplicated) per label
 	protected Vector<Trie> labelFeatureTriesAddedPerDoc; //features (unduplicated per document) per label
 
-	public DataHolder() {
+	protected DataHolder() {
 		this.docCnt = 0;
 
 		this.docLabels = new Vector<String[]>();
@@ -22,6 +25,53 @@ public abstract class DataHolder {
 		this.labelNameTrie = new Trie();
 		this.documentTries = new Vector<Trie>(8192);
 		this.labelFeatureTries = new Vector<Trie>(256);
+	}
+
+	private static void loadTrieVector(Vector<Trie> vec, File inputDir, String folderName, String metaFilename, Trie mapIdToString) throws Exception {
+		File triesFolder = new File(inputDir, folderName);
+		File sizeFile = new File(triesFolder, metaFilename);
+		FileReader fr = new FileReader(sizeFile);
+		BufferedReader br = new BufferedReader(fr);
+		int size = Integer.parseInt(br.readLine());
+		br.close();
+		fr.close();
+
+		for (int i = 0; i < size; i++) {
+			vec.add(Trie.deserialize(new File(triesFolder, String.valueOf(i)), false, mapIdToString));
+		}
+	}
+
+	public static DataHolder deserialize(File inputDir) throws Exception {
+		DataHolder res = new DataHolder();
+		deserialize(res, inputDir);
+		return res;
+	}
+
+	public static void deserialize(DataHolder res, File inputDir) throws Exception {
+		File docLabelFile = new File(inputDir, Constant.DOC_LABELS_FILE);
+		FileReader fr = new FileReader(docLabelFile);
+		BufferedReader br = new BufferedReader(fr);
+		res.docCnt = Integer.parseInt(br.readLine());
+		for (int i = 0; i < res.docCnt; i++) {
+			int lLength = Integer.parseInt(br.readLine());
+			String[] l = new String[lLength];
+			for (int j = 0; j < lLength; j++) {
+				l[j] = br.readLine();
+			}
+			res.docLabels.add(l);
+		}
+		br.close();
+		fr.close();
+
+		res.featureTrie = Trie.deserialize(new File(inputDir, Constant.FEATURE_TRIE_FILE), true, null);
+		res.featureTrieAddedPerDoc = Trie.deserialize(new File(inputDir, Constant.FEATURE_TRIE_ADDED_PER_DOC_FILE), false, res.featureTrie);
+		res.labelNameTrie = Trie.deserialize(new File(inputDir, Constant.LABEL_NAME_TRIE_FILE), true, null);
+
+		loadTrieVector(res.documentTries, inputDir, Constant.DOCUMENT_TRIES_FOLDER, Constant.DOCUMENT_TRIES_FOLDER_SIZE_FILE, res.featureTrie);
+		loadTrieVector(res.labelFeatureTries, inputDir, Constant.LABEL_FEATURE_TRIES_FOLDER, Constant.LABEL_FEATURE_TRIES_FOLDER_SIZE_FILE,
+				res.featureTrie);
+		loadTrieVector(res.labelFeatureTriesAddedPerDoc, inputDir, Constant.LABEL_FEATURE_TRIES_ADDED_PER_DOC_FOLDER,
+				Constant.LABEL_FEATURE_TRIES_ADDED_PER_DOC_FOLDER_SIZE_FILE, res.featureTrie);
 	}
 
 	/************************************ meta data ************************************/

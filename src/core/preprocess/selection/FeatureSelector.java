@@ -20,19 +20,20 @@ public abstract class FeatureSelector {
 		this.type = type;
 	}
 
-	public void featureReduction()  throws Exception {
+	public Vector<String> getReductionList() throws Exception {
 		this.thresh = determineThreshold();
-		Vector<String> reduceList = new Vector<String>(1024);
+		Vector<String> reductionList = new Vector<String>(1024);
 
 		for (int i = 0; i != weighting.length; i++) {
 			if (weighting[i][0] <= thresh) {
-				reduceList.add(analyzer.getFeature(i));
+				reductionList.add(analyzer.getFeature(i));
 			}
 		}
-		
-		for(int i=0;i<reduceList.size();i++){
-			analyzer.reduce(reduceList.get(i));
-		}
+
+//		for (int i = 0; i < reductionList.size(); i++) {
+//			analyzer.reduce(reductionList.get(i));
+//		}
+		return reductionList;
 	}
 
 	public abstract double getAvgSelectionWeighting(int featureId);
@@ -41,7 +42,7 @@ public abstract class FeatureSelector {
 
 	private double determineThreshold() {
 		int size = analyzer.getV();
-		System.out.println("size = "+size);
+		System.out.println("size = " + size);
 		weighting = new double[size][1];
 		if (type == Constant.FEATURE_SELECTION_MAXSELECTION) {
 			for (int i = 0; i != size; i++) {
@@ -59,5 +60,5 @@ public abstract class FeatureSelector {
 		//return  k.getThresh();
 		return 5;
 	}
-	
+
 }

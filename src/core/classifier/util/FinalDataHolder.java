@@ -1,59 +1,68 @@
 package core.classifier.util;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.util.Vector;
 
-import core.preprocess.util.Constant;
 import core.preprocess.util.DataHolder;
-import core.preprocess.util.Trie;
 
 public final class FinalDataHolder extends DataHolder {
 	private FinalDataHolder() {
 		super();
 	}
 
-	private static void loadTrieVector(Vector<Trie> vec, File inputDir, String folderName, String metaFilename) throws Exception {
-		File triesFolder = new File(inputDir, folderName);
-		File sizeFile = new File(triesFolder, metaFilename);
-		FileReader fr = new FileReader(sizeFile);
-		BufferedReader br = new BufferedReader(fr);
-		int size = Integer.parseInt(br.readLine());
-		br.close();
-		fr.close();
+	public static FinalDataHolder deserialize(File inputDir) throws Exception {
+		FinalDataHolder res = new FinalDataHolder();
+		deserialize(res, inputDir);
+		res.finalizeData();
+		return res;
+	}
 
-		for (int i = 0; i < size; i++) {
-			vec.add(Trie.deserialize(new File(triesFolder, String.valueOf(i))));
+	//statistical data
+	private Vector<Integer> V_not_ci;
+	private Vector<Integer> V_not_dj;
+	private Vector<Integer> M_tk;
+
+	private void finalizeData() {
+		int labelSize = this.labelNameTrie.size();
+		for (int i = 0; i < labelSize; i++) {
+			this.V_not_ci.add(this.featureTrie.difference(this.labelFeatureTries.get(i)));
+		}
+
+		for (int i = 0; i < docCnt; i++) {
+			this.V_not_dj.add(this.featureTrie.difference(this.documentTries.get(i)));
+		}
+
+		int featureSize = this.featureTrie.size();
+		for (int i = 0; i < featureSize; i++) {
+			String feature = this.featureTrie.getWord(i);
+			int cnt = 0;
+			for (int j = 0; j < labelSize; j++) {
+				if (this.labelFeatureTries.get(j).contains(feature)) cnt++;
+			}
+			this.M_tk.add(cnt);
 		}
 	}
 
-	public static FinalDataHolder deserialize(File inputDir) throws Exception {
-		FinalDataHolder res = new FinalDataHolder();
+	@Override
+	public int getV_not_ci(int labelId) {
+		return this.V_not_ci.get(labelId);
+	}
 
-		File docLabelFile = new File(inputDir, Constant.DOC_LABELS_FILE);
-		FileReader fr = new FileReader(docLabelFile);
-		BufferedReader br = new BufferedReader(fr);
-		res.docCnt = Integer.parseInt(br.readLine());
-		for (int i = 0; i < res.docCnt; i++) {
-			int lLength = Integer.parseInt(br.readLine());
-			String[] l = new String[lLength];
-			for (int j = 0; j < lLength; j++) {
-				l[j] = br.readLine();
-			}
-			res.docLabels.add(l);
-		}
-		br.close();
-		fr.close();
+	@Override
+	public int getV_not_dj(int docId) {
+		return this.V_not_dj.get(docId);
+	}
 
-		res.featureTrie = Trie.deserialize(new File(inputDir, Constant.FEATURE_TRIE_FILE));
-		res.featureTrieAddedPerDoc = Trie.deserialize(new File(inputDir, Constant.FEATURE_TRIE_ADDED_PER_DOC_FILE));
-		res.labelNameTrie = Trie.deserialize(new File(inputDir, Constant.LABEL_NAME_TRIE_FILE));
+	@Override
+	public int getM_tk(int featureId) {
+		return this.M_tk.get(featureId);
+	}
 
-		loadTrieVector(res.documentTries, inputDir, Constant.DOCUMENT_TRIES_FOLDER, Constant.DOCUMENT_TRIES_FOLDER_SIZE_FILE);
-		loadTrieVector(res.labelFeatureTries, inputDir, Constant.LABEL_FEATURE_TRIES_FOLDER, Constant.LABEL_FEATURE_TRIES_FOLDER_SIZE_FILE);
-		loadTrieVector(res.labelFeatureTriesAddedPerDoc, inputDir, Constant.LABEL_FEATURE_TRIES_ADDED_PER_DOC_FOLDER, Constant.LABEL_FEATURE_TRIES_ADDED_PER_DOC_FOLDER_SIZE_FILE);
+	public int getFeatureCnt() {
+		return getV();
+	}
 
-		return res;
+	public int getLabelCnt() {
+		return getM();
 	}
 }
