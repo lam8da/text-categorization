@@ -28,16 +28,16 @@ public class CHIFeatrueSelector extends FeatureSelector {
 	@Override
 	public double getMaxSelectionWeighting(int featureId) {
 		// TODO Auto-generated method stub
-		double A, B, C, D, L;
+		double A, B, C, D, N;
 		double max = 0;
 		double tmp;
+		N = analyzer.getN();
 		for (int i = 0; i != analyzer.getM(); i++) {
 			A = analyzer.getN_ci_tk(i, featureId);
 			B = analyzer.getN_not_ci_tk(i, featureId);
 			C = analyzer.getN_ci_exclude_tk(i, featureId);
 			D = analyzer.getN_not_ci_exclude_tk(i, featureId);
-			L = analyzer.getN_ci(i);
-			tmp = L * (A * D - C * B) * (A * D - C * B) / ((A + C) * (B + D) * (A + B) * (C + D));
+			tmp = N*(A * D - C * B) * (A * D - C * B) / ((A + C) * (B + D) * (A + B) * (C + D));
 			if (tmp > max) {
 				max = tmp;
 			}
