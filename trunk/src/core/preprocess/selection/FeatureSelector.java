@@ -5,6 +5,7 @@ import java.util.Vector;
 import core.preprocess.util.DataAnalyzer;
 import core.preprocess.util.Kmpp;
 import core.preprocess.util.Constant;
+import core.preprocess.util.KmppOneDimension;
 
 public abstract class FeatureSelector {
 	public static final int INTERACTION = 2000;
@@ -13,27 +14,26 @@ public abstract class FeatureSelector {
 	protected DataAnalyzer analyzer;
 	private int type;
 	private double thresh;
-	private double[][] weighting;
+	private double[] weighting;
 
 	public FeatureSelector(DataAnalyzer data, int type) {
 		this.analyzer = data;
 		this.type = type;
 	}
 
-	public Vector<String> getReductionList() throws Exception {
+	public void featureReduction()  throws Exception {
 		this.thresh = determineThreshold();
-		Vector<String> reductionList = new Vector<String>(1024);
+		Vector<String> reduceList = new Vector<String>(1024);
 
 		for (int i = 0; i != weighting.length; i++) {
-			if (weighting[i][0] <= thresh) {
-				reductionList.add(analyzer.getFeature(i));
+			if (weighting[i] <= thresh) {
+				reduceList.add(analyzer.getFeature(i));
 			}
 		}
-
-//		for (int i = 0; i < reductionList.size(); i++) {
-//			analyzer.reduce(reductionList.get(i));
-//		}
-		return reductionList;
+		
+		for(int i=0;i<reduceList.size();i++){
+			analyzer.reduce(reduceList.get(i));
+		}
 	}
 
 	public abstract double getAvgSelectionWeighting(int featureId);
@@ -42,23 +42,22 @@ public abstract class FeatureSelector {
 
 	private double determineThreshold() {
 		int size = analyzer.getV();
-		System.out.println("size = " + size);
-		weighting = new double[size][1];
+		System.out.println("size = "+size);
+		weighting = new double[size];
 		if (type == Constant.FEATURE_SELECTION_MAXSELECTION) {
 			for (int i = 0; i != size; i++) {
-				weighting[i][0] = this.getMaxSelectionWeighting(i);
+				weighting[i] = this.getMaxSelectionWeighting(i);
 			}
 		}
 		else if (type == Constant.FEATURE_SELECTION_AVGSELECTION) {
 			for (int i = 0; i != size; i++) {
-				weighting[i][0] = this.getAvgSelectionWeighting(i);
+				weighting[i] = this.getAvgSelectionWeighting(i);
 			}
 		}
 
-		Kmpp k = new Kmpp();
-		//k.cluster(weighting, 1, FeatureSelector.CLUSTER, FeatureSelector.INTERACTION);
-		//return  k.getThresh();
-		return 5;
+		KmppOneDimension k = new KmppOneDimension(weighting,FeatureSelector.CLUSTER,FeatureSelector.INTERACTION);
+		k.Cluster();
+		return  k.GetThresh();
 	}
-
+	
 }
