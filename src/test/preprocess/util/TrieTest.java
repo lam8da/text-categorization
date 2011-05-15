@@ -10,6 +10,7 @@ public class TrieTest {
 		TrieTest test = new TrieTest();
 		//test.commonTest();
 		//test.deletionTest();
+		//test.rearrangeIdTest();
 
 		if (args.length != 1) {
 			System.out.println("invalid parameters!");
@@ -84,7 +85,23 @@ public class TrieTest {
 		System.out.println();
 
 		trie.serialize(new File(outputDir, "trie.txt"), true, null);
-		Trie newTrie = Trie.deserialize(new File(outputDir, "trie.txt"), true, null, null);
+		
+		Trie newTrie = Trie.deserialize(new File(outputDir, "trie.txt"), null, new int[] { 3 });
+		newTrie.rearrangeId();
 		newTrie.traverse();
+	}
+
+	public void rearrangeIdTest() throws Exception {
+		String[] words = { "the", "they", "bahia", "cocoa", "zone", "alleviating", "the", "drought", "since", "early", "January", "and", "imporving",
+				"prospects" };
+		Trie trie = new Trie();
+		for (int i = 0; i != words.length; i++) {
+			trie.add(words[i]);
+		}
+		trie.traverse();
+		System.out.println();
+
+		trie.rearrangeId();
+		trie.traverse();
 	}
 }

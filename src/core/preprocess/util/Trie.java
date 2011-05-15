@@ -488,18 +488,20 @@ public class Trie {
 		BufferedWriter bw = new BufferedWriter(fw);
 		bw.write(String.valueOf(this.differentWordCnt));
 		bw.newLine();
-		serializeDfs(root, sb, bw, writeId, mapStringToId);
+		serializeDfs(root, sb, bw, mapStringToId);
 		bw.flush();
 		bw.close();
 		fw.close();
 	}
 
-	private void serializeDfs(TrieNode node, StringBuffer sb, BufferedWriter bw, boolean writeId, Trie mapStringToId) throws Exception {
+	private void serializeDfs(TrieNode node, StringBuffer sb, BufferedWriter bw, Trie mapStringToId) throws Exception {
 		for (TrieNode nc = node.child; nc != null; nc = nc.brother) {
 			sb.append(nc.val);
 			if (nc.occurrence != 0) {
 				if (mapStringToId == null) {
 					bw.write(sb.toString());
+					bw.newLine();
+					bw.write(String.valueOf(nc.id));
 				}
 				else {
 					int id = mapStringToId.getId(sb.toString());
@@ -509,16 +511,10 @@ public class Trie {
 					bw.write(String.valueOf(id));
 				}
 				bw.newLine();
-
-				if (writeId) {
-					bw.write(String.valueOf(nc.id));
-					bw.newLine();
-				}
-
 				bw.write(String.valueOf(nc.occurrence));
 				bw.newLine();
 			}
-			serializeDfs(nc, sb, bw, writeId, mapStringToId);
+			serializeDfs(nc, sb, bw, mapStringToId);
 			sb.setLength(sb.length() - 1);
 		}
 	}
@@ -528,24 +524,21 @@ public class Trie {
 	 * 
 	 * @param inFile
 	 *            the file to be deserialized
-	 * @param haveId
-	 *            whether the file contains ids for each string
 	 * @param mapIdToString
 	 *            mapIdToString is null means that the file contains each string
-	 *            itself, otherwise the file contains the id of each string and
+	 *            itself and must contain an id for each string, otherwise the
+	 *            file contains the id of each string without its id written and
 	 *            we should provide a map
 	 * @param eliminatedId
 	 *            eliminatedId is null means that we should read all strings in
 	 *            the file and add them to the trie, otherwise we should
-	 *            eliminate those whose id is in eliminatedId
+	 *            eliminate those whose id (i.e., the id in 'id' field when
+	 *            haveId is true, and the id in 'string' field otherwise) is in
+	 *            eliminatedId
 	 * @return the new trie
 	 * @throws Exception
 	 */
-	public static Trie deserialize(File inFile, boolean haveId, Trie mapIdToString, int[] eliminatedId) throws Exception {
-		if (eliminatedId != null && mapIdToString == null) {
-			throw new Exception("the mapper should not be null when eliminatedId is not null!");
-		}
-
+	public static Trie deserialize(File inFile, Trie mapIdToString, int[] eliminatedId) throws Exception {
 		Trie t = new Trie();
 		FileReader fr = new FileReader(inFile);
 		BufferedReader br = new BufferedReader(fr);
@@ -556,19 +549,24 @@ public class Trie {
 
 		int n = Integer.parseInt(br.readLine());
 		for (int i = 0; i < n; i++) {
-			String str = br.readLine();
+			String str = br.readLine(); //'string' field
+			int id = DO_NOT_RESET; //'id' field
+
 			if (mapIdToString != null) {
-				int strId = Integer.parseInt(str);
-				if (eliminatedId != null && Arrays.binarySearch(eliminatedId, strId) < 0) {
-					if (haveId) br.readLine();//read the id in inFile for each string
+				int givenId = Integer.parseInt(str); //'string' field
+				if (eliminatedId != null && Arrays.binarySearch(eliminatedId, givenId) >= 0) {
 					br.readLine();//read occurrence
 					continue;
 				}
-				str = mapIdToString.getWord(strId); //exception may occur if the trie has no string associate with strId
+				str = mapIdToString.getWord(givenId); //exception may occur if the trie has no string associate with strId
 			}
-
-			int id = DO_NOT_RESET;
-			if (haveId) id = Integer.parseInt(br.readLine());
+			else {
+				id = Integer.parseInt(br.readLine());
+				if (eliminatedId != null && Arrays.binarySearch(eliminatedId, id) >= 0) {
+					br.readLine();//read occurrence
+					continue;
+				}
+			}
 
 			int occurrence = Integer.parseInt(br.readLine());
 			t.add(str, occurrence, id);
@@ -583,7 +581,9 @@ public class Trie {
 		this.nodeMap.clear();
 		TrieIterator it = new TrieIterator(this.root);
 		for (int i = 0; it.hasNext(); i++) {
+			it.hasNextCalled = false;
 			TrieNode nc = it.currentPath.get(it.len);
+			nc.id = i;
 			this.nodeMap.put(i, nc);
 		}
 		//wordCnt and differentWordCnt will not changed
