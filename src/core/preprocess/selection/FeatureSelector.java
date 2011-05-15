@@ -3,7 +3,6 @@ package core.preprocess.selection;
 import java.util.Vector;
 
 import core.preprocess.util.DataAnalyzer;
-import core.preprocess.util.Kmpp;
 import core.preprocess.util.Constant;
 import core.preprocess.util.KmppOneDimension;
 
@@ -21,19 +20,16 @@ public abstract class FeatureSelector {
 		this.type = type;
 	}
 
-	public void featureReduction()  throws Exception {
+	public String[] getReductionList() throws Exception {
 		this.thresh = determineThreshold();
-		Vector<String> reduceList = new Vector<String>(1024);
+		Vector<String> reductionList = new Vector<String>(1024);
 
 		for (int i = 0; i != weighting.length; i++) {
 			if (weighting[i] <= thresh) {
-				reduceList.add(analyzer.getFeature(i));
+				reductionList.add(analyzer.getFeature(i));
 			}
 		}
-		
-		for(int i=0;i<reduceList.size();i++){
-			analyzer.reduce(reduceList.get(i));
-		}
+		return reductionList.toArray(new String[0]);
 	}
 
 	public abstract double getAvgSelectionWeighting(int featureId);
@@ -42,7 +38,7 @@ public abstract class FeatureSelector {
 
 	private double determineThreshold() {
 		int size = analyzer.getV();
-		System.out.println("size = "+size);
+		System.out.println("size = " + size);
 		weighting = new double[size];
 		if (type == Constant.FEATURE_SELECTION_MAXSELECTION) {
 			for (int i = 0; i != size; i++) {
@@ -55,9 +51,9 @@ public abstract class FeatureSelector {
 			}
 		}
 
-		KmppOneDimension k = new KmppOneDimension(weighting,FeatureSelector.CLUSTER,FeatureSelector.INTERACTION);
-		k.Cluster();
-		return  k.GetThresh();
+		KmppOneDimension k = new KmppOneDimension(weighting, FeatureSelector.CLUSTER, FeatureSelector.INTERACTION);
+		k.cluster();
+		return k.getThresh();
 	}
-	
+
 }

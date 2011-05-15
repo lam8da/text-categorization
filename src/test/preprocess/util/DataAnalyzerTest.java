@@ -40,7 +40,6 @@ public class DataAnalyzerTest extends DataHolderTest{
 			xml.parseDocument(xmlFiles[i]);
 			((DataAnalyzer) holder).addDocument(xml.getLabels(), xml.getTitleFeatures(), xml.getContentFeatures());
 		}
-		((DataAnalyzer) this.holder).accomplishAdding();
 
 		this.docCnt = xmlFiles.length;
 		this.featureCnt = 5;

@@ -1,5 +1,6 @@
 package core.preprocess.util;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Vector;
 import java.util.NoSuchElementException;
@@ -35,7 +36,7 @@ public class Trie {
 	private class TrieIterator implements Iterator<String> {
 		private Vector<TrieNode> currentPath;
 		private StringBuffer sb;
-		private int len; //the length of the string from root to the current node(i.e. currentPath[len])
+		private int len; //the length of the string from root to the current node (i.e. currentPath[len])
 		private boolean ended;
 		private boolean hasNextCalled;
 
@@ -407,10 +408,13 @@ public class Trie {
 	 * 
 	 * @param word
 	 *            the word to be deleted
+	 * @param rearrangeId
+	 *            whether change the id of the last node to the one of the
+	 *            deleted end node
 	 * @return true if the word is in the trie (i.e. deleted successfully),
 	 *         false otherwise
 	 */
-	public boolean delete(String word) {
+	public boolean delete(String word, boolean rearrangeId) {
 		Vector<TrieNode> preBrother = new Vector<TrieNode>(16);
 		TrieNode nc = root;
 		for (int i = 0; i < word.length(); i++) {
@@ -428,12 +432,15 @@ public class Trie {
 		}
 		if (nc == null || nc.id == -1) return false;
 
-		TrieNode nLast = this.nodeMap.get(this.differentWordCnt - 1);
-		this.nodeMap.remove(this.differentWordCnt - 1);
-		if (nc != nLast) {//not the same node
-			nLast.id = nc.id;
-			this.nodeMap.put(nc.id, nLast);//modify the map relationship 
+		if (rearrangeId) {
+			TrieNode nLast = this.nodeMap.get(this.differentWordCnt - 1);
+			this.nodeMap.remove(this.differentWordCnt - 1);
+			if (nc != nLast) {//not the same node
+				nLast.id = nc.id;
+				this.nodeMap.put(nc.id, nLast);//modify the map relationship 
+			}
 		}
+		else this.nodeMap.remove(nc.id);
 
 		this.differentWordCnt--;
 		this.wordCnt -= nc.occurrence;
@@ -463,6 +470,18 @@ public class Trie {
 		return true;
 	}
 
+	/**
+	 * serialize the current trie to a file
+	 * 
+	 * @param outFile
+	 *            the file where the serialization data should be written
+	 * @param writeId
+	 *            whether write id of each string to outFile
+	 * @param mapStringToId
+	 *            mapStringToId is null means each string itself will be written
+	 *            to outFile, otherwise the id of each string will be written
+	 * @throws Exception
+	 */
 	public void serialize(File outFile, boolean writeId, Trie mapStringToId) throws Exception {
 		StringBuffer sb = new StringBuffer(32);
 		FileWriter fw = new FileWriter(outFile);
@@ -504,16 +523,47 @@ public class Trie {
 		}
 	}
 
-	public static Trie deserialize(File inFile, boolean haveId, Trie mapIdToString) throws Exception {
+	/**
+	 * deserialize the input file to obtain a new trie
+	 * 
+	 * @param inFile
+	 *            the file to be deserialized
+	 * @param haveId
+	 *            whether the file contains ids for each string
+	 * @param mapIdToString
+	 *            mapIdToString is null means that the file contains each string
+	 *            itself, otherwise the file contains the id of each string and
+	 *            we should provide a map
+	 * @param eliminatedId
+	 *            eliminatedId is null means that we should read all strings in
+	 *            the file and add them to the trie, otherwise we should
+	 *            eliminate those whose id is in eliminatedId
+	 * @return the new trie
+	 * @throws Exception
+	 */
+	public static Trie deserialize(File inFile, boolean haveId, Trie mapIdToString, int[] eliminatedId) throws Exception {
+		if (eliminatedId != null && mapIdToString == null) {
+			throw new Exception("the mapper should not be null when eliminatedId is not null!");
+		}
+
 		Trie t = new Trie();
 		FileReader fr = new FileReader(inFile);
 		BufferedReader br = new BufferedReader(fr);
+
+		if (eliminatedId != null) {
+			Arrays.sort(eliminatedId);
+		}
 
 		int n = Integer.parseInt(br.readLine());
 		for (int i = 0; i < n; i++) {
 			String str = br.readLine();
 			if (mapIdToString != null) {
 				int strId = Integer.parseInt(str);
+				if (eliminatedId != null && Arrays.binarySearch(eliminatedId, strId) < 0) {
+					if (haveId) br.readLine();//read the id in inFile for each string
+					br.readLine();//read occurrence
+					continue;
+				}
 				str = mapIdToString.getWord(strId); //exception may occur if the trie has no string associate with strId
 			}
 
@@ -527,5 +577,15 @@ public class Trie {
 		br.close();
 		fr.close();
 		return t;
+	}
+
+	public void rearrangeId() {
+		this.nodeMap.clear();
+		TrieIterator it = new TrieIterator(this.root);
+		for (int i = 0; it.hasNext(); i++) {
+			TrieNode nc = it.currentPath.get(it.len);
+			this.nodeMap.put(i, nc);
+		}
+		//wordCnt and differentWordCnt will not changed
 	}
 }

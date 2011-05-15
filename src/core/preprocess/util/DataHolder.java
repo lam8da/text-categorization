@@ -27,7 +27,8 @@ public class DataHolder {
 		this.labelFeatureTries = new Vector<Trie>(256);
 	}
 
-	private static void loadTrieVector(Vector<Trie> vec, File inputDir, String folderName, String metaFilename, Trie mapIdToString) throws Exception {
+	private static void loadTrieVector(Vector<Trie> vec, File inputDir, String folderName, String metaFilename, Trie mapIdToString, int[] eliminatedId)
+			throws Exception {
 		File triesFolder = new File(inputDir, folderName);
 		File sizeFile = new File(triesFolder, metaFilename);
 		FileReader fr = new FileReader(sizeFile);
@@ -37,17 +38,11 @@ public class DataHolder {
 		fr.close();
 
 		for (int i = 0; i < size; i++) {
-			vec.add(Trie.deserialize(new File(triesFolder, String.valueOf(i)), false, mapIdToString));
+			vec.add(Trie.deserialize(new File(triesFolder, String.valueOf(i)), false, mapIdToString, eliminatedId));
 		}
 	}
 
-	public static DataHolder deserialize(File inputDir) throws Exception {
-		DataHolder res = new DataHolder();
-		deserialize(res, inputDir);
-		return res;
-	}
-
-	public static void deserialize(DataHolder res, File inputDir) throws Exception {
+	protected static void deserialize(DataHolder res, File inputDir, int[] eliminatedId) throws Exception {
 		File docLabelFile = new File(inputDir, Constant.DOC_LABELS_FILE);
 		FileReader fr = new FileReader(docLabelFile);
 		BufferedReader br = new BufferedReader(fr);
@@ -63,15 +58,17 @@ public class DataHolder {
 		br.close();
 		fr.close();
 
-		res.featureTrie = Trie.deserialize(new File(inputDir, Constant.FEATURE_TRIE_FILE), true, null);
-		res.featureTrieAddedPerDoc = Trie.deserialize(new File(inputDir, Constant.FEATURE_TRIE_ADDED_PER_DOC_FILE), false, res.featureTrie);
-		res.labelNameTrie = Trie.deserialize(new File(inputDir, Constant.LABEL_NAME_TRIE_FILE), true, null);
+		res.featureTrie = Trie.deserialize(new File(inputDir, Constant.FEATURE_TRIE_FILE), true, null, eliminatedId);
+		res.featureTrieAddedPerDoc = Trie.deserialize(new File(inputDir, Constant.FEATURE_TRIE_ADDED_PER_DOC_FILE), false, res.featureTrie,
+				eliminatedId);
+		res.labelNameTrie = Trie.deserialize(new File(inputDir, Constant.LABEL_NAME_TRIE_FILE), true, null, null);
 
-		loadTrieVector(res.documentTries, inputDir, Constant.DOCUMENT_TRIES_FOLDER, Constant.DOCUMENT_TRIES_FOLDER_SIZE_FILE, res.featureTrie);
+		loadTrieVector(res.documentTries, inputDir, Constant.DOCUMENT_TRIES_FOLDER, Constant.DOCUMENT_TRIES_FOLDER_SIZE_FILE, res.featureTrie,
+				eliminatedId);
 		loadTrieVector(res.labelFeatureTries, inputDir, Constant.LABEL_FEATURE_TRIES_FOLDER, Constant.LABEL_FEATURE_TRIES_FOLDER_SIZE_FILE,
-				res.featureTrie);
+				res.featureTrie, eliminatedId);
 		loadTrieVector(res.labelFeatureTriesAddedPerDoc, inputDir, Constant.LABEL_FEATURE_TRIES_ADDED_PER_DOC_FOLDER,
-				Constant.LABEL_FEATURE_TRIES_ADDED_PER_DOC_FOLDER_SIZE_FILE, res.featureTrie);
+				Constant.LABEL_FEATURE_TRIES_ADDED_PER_DOC_FOLDER_SIZE_FILE, res.featureTrie, eliminatedId);
 	}
 
 	/************************************ meta data ************************************/

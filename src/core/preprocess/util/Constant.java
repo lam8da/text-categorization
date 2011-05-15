@@ -52,6 +52,7 @@ public final class Constant {
 
 	//output path names
 	public static final String XML_DATA_PATH = "xml-data";
+	public static final String ORG_STATISTICAL_DATA_PATH = "original-statistical-data";
 	public static final String STATISTICAL_DATA_PATH = "statistical-data";
 	
 	//for feature selection
