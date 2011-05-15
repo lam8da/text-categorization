@@ -38,7 +38,7 @@ public class DataHolder {
 		fr.close();
 
 		for (int i = 0; i < size; i++) {
-			vec.add(Trie.deserialize(new File(triesFolder, String.valueOf(i)), false, mapIdToString, eliminatedId));
+			vec.add(Trie.deserialize(new File(triesFolder, String.valueOf(i)), mapIdToString, eliminatedId));
 		}
 	}
 
@@ -58,10 +58,9 @@ public class DataHolder {
 		br.close();
 		fr.close();
 
-		res.featureTrie = Trie.deserialize(new File(inputDir, Constant.FEATURE_TRIE_FILE), true, null, eliminatedId);
-		res.featureTrieAddedPerDoc = Trie.deserialize(new File(inputDir, Constant.FEATURE_TRIE_ADDED_PER_DOC_FILE), false, res.featureTrie,
-				eliminatedId);
-		res.labelNameTrie = Trie.deserialize(new File(inputDir, Constant.LABEL_NAME_TRIE_FILE), true, null, null);
+		res.featureTrie = Trie.deserialize(new File(inputDir, Constant.FEATURE_TRIE_FILE), null, eliminatedId);
+		res.featureTrieAddedPerDoc = Trie.deserialize(new File(inputDir, Constant.FEATURE_TRIE_ADDED_PER_DOC_FILE), res.featureTrie, eliminatedId);
+		res.labelNameTrie = Trie.deserialize(new File(inputDir, Constant.LABEL_NAME_TRIE_FILE), null, null);
 
 		loadTrieVector(res.documentTries, inputDir, Constant.DOCUMENT_TRIES_FOLDER, Constant.DOCUMENT_TRIES_FOLDER_SIZE_FILE, res.featureTrie,
 				eliminatedId);

@@ -7,7 +7,7 @@ import java.util.Arrays;
 import core.preprocess.util.DataAnalyzer;
 import core.preprocess.util.XmlDocument;
 
-public class DataAnalyzerTest extends DataHolderTest{
+public class DataAnalyzerTest extends DataHolderTest {
 	//the content of the being tested documents is as follows:
 	//  --------------------------------------
 	//  |   labels   |  docId  |   features  |
@@ -21,8 +21,10 @@ public class DataAnalyzerTest extends DataHolderTest{
 	//  |    c2,c3   |    5    |       D E E |
 	//  |  c1,c2,c3  |    6    |       D E E |
 	//  --------------------------------------
-	
+
 	public DataAnalyzerTest(String inputPath) throws Exception {
+		super();
+
 		File inputDir = new File(inputPath);
 		File[] xmlFiles = inputDir.listFiles(new FileFilter() {
 			public boolean accept(File file) {
@@ -41,33 +43,36 @@ public class DataAnalyzerTest extends DataHolderTest{
 			((DataAnalyzer) holder).addDocument(xml.getLabels(), xml.getTitleFeatures(), xml.getContentFeatures());
 		}
 
-		this.docCnt = xmlFiles.length;
-		this.featureCnt = 5;
-		this.labelCnt = 3;
-		this.features = new String[] { "B", "E", "C", "A", "D" }; //their IDs are 0,1,2,3,4
-		this.labels = new String[] { "c2", "c3", "c1" }; //their IDs are 0,1,2
-		this.separatedLine = "---------------------------------------------";
+		if (this.docCnt != xmlFiles.length) {
+			throw new Exception("invalid xmlFiles.length!");
+		}
 	}
 
 	public static void main(String[] args) throws Exception {
-		DataAnalyzerTest test = new DataAnalyzerTest("res/test/DataAnalyzerTest");
+		if (args.length != 1) {
+			System.out.println("invalid parameters!");
+			return;
+		}
 
-		System.out.println("\r\n******************************** basic information ********************************");
-		test.testBasicInformation();
+		DataAnalyzerTest daTest = new DataAnalyzerTest("res/test/DataAnalyzerTest");
+		//DataHolderTest.test(daTest);
 
-		System.out.println("\r\n******************************** document counting ********************************");
-		test.testDocumentCounting();
+		File dir = new File(args[0]);
+		dir.mkdirs();
+		File[] files = dir.listFiles();
+		for (int i = 0; i < files.length; i++) {
+			files[i].delete();
+		}
 
-		System.out.println("\r\n********************************** word counting **********************************");
-		test.testWordCounting();
+		((DataAnalyzer) daTest.holder).serialize(dir);
 
-		System.out.println("\r\n************************** single feature word counting ***************************");
-		test.testSingleFeatureWordCounting();
+		DataAnalyzer ana = DataAnalyzer.deserialize(dir, new int[] { 1 });
+		daTest.holder = ana;
+		daTest.featureCnt = 4;
+		daTest.features = new String[] { "A", "B", "C", "D" }; //their IDs are 0,1,2,3
+		daTest.labels = new String[] { "c2", "c3", "c1" }; //their IDs are 0,1,2
+		daTest.separatedLine = "---------------------------------------------";
 
-		System.out.println("\r\n********************************* feature counting ********************************");
-		test.testFeatureCounting();
-
-		System.out.println("\r\n********************************** label counting *********************************");
-		test.testLabelCounting();
+		DataHolderTest.test(daTest);
 	}
 }
