@@ -31,6 +31,7 @@ public class Preprocessor {
 	private File outputDir; //where the output data should be placed
 	private File trainingDir;
 	private File xmlDir;
+	private File orgStatisticalDir;
 	private File statisticalDir;
 	private Stopper stopper;
 	private Stemmer stemmer;
@@ -92,6 +93,8 @@ public class Preprocessor {
 		this.trainingDir.mkdirs();
 		this.statisticalDir = new File(this.outputDir, Constant.STATISTICAL_DATA_PATH);
 		this.statisticalDir.mkdirs();
+		this.orgStatisticalDir = new File(this.outputDir, Constant.ORG_STATISTICAL_DATA_PATH);
+		this.orgStatisticalDir.mkdirs();
 
 		this.corpusId = corpusId;
 		this.splitting = splitting;
@@ -191,7 +194,6 @@ public class Preprocessor {
 			xml.parseDocument(xmlFiles[i]);
 			this.analyzer.addDocument(xml.getLabels(), xml.getTitleFeatures(), xml.getContentFeatures());
 		}
-		this.analyzer.accomplishAdding();
 		System.out.println("analyzing done!");
 
 		//------------------------- start feature selecting -------------------------		
@@ -209,7 +211,10 @@ public class Preprocessor {
 			this.selector = new IGFeatureSelector(this.analyzer, this.selectMethodId);
 			break;
 		}
-		this.selector.getReductionList();
+		String[] reductionList = this.selector.getReductionList();
+		int[] eliminatedId = new int[reductionList.length];
+		this.analyzer.serialize(this.orgStatisticalDir);
+		this.analyzer = DataAnalyzer.deserialize(this.orgStatisticalDir, eliminatedId);
 		System.out.println("feature selecting done!");
 
 		//-------------------------- serialize the result  --------------------------

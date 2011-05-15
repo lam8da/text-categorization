@@ -63,7 +63,7 @@ public class TrieTest {
 
 		for (int i = 0; i < words.length; i++) {
 			System.out.print("deleting " + words[i] + ": ");
-			if (trie.delete(words[i])) {
+			if (trie.delete(words[i], true)) {
 				System.out.print("succeed!");
 			}
 			else System.out.print("failed!!!!");
@@ -84,7 +84,7 @@ public class TrieTest {
 		System.out.println();
 
 		trie.serialize(new File(outputDir, "trie.txt"), true, null);
-		Trie newTrie = Trie.deserialize(new File(outputDir, "trie.txt"), true, null);
+		Trie newTrie = Trie.deserialize(new File(outputDir, "trie.txt"), true, null, null);
 		newTrie.traverse();
 	}
 }

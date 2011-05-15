@@ -3,6 +3,7 @@ package test.preprocess.util;
 import java.util.Random;
 
 import core.preprocess.util.KmppOneDimension;
+
 public class KmppOneDimensionTest {
 	/**
 	 * @param args
@@ -15,8 +16,8 @@ public class KmppOneDimensionTest {
 			data[i] = r.nextDouble();
 		}
 		KmppOneDimension kmpp = new KmppOneDimension(data,3,100);
-		System.out.println("number of interactions: "+kmpp.Cluster());
-		System.out.println("Threshold: "+kmpp.GetThresh());
-		kmpp.Output();
+		System.out.println("number of interactions: "+kmpp.cluster());
+		System.out.println("Threshold: "+kmpp.getThresh());
+		kmpp.output();
 	}
 }

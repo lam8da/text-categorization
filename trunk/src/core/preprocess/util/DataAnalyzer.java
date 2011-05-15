@@ -15,14 +15,11 @@ import core.preprocess.util.Trie;
  * 
  */
 public class DataAnalyzer extends DataHolder {
-	private boolean addingOK; //whether function "accomplishAdding" has been invoked before
-
 	/**
 	 * constructor
 	 */
 	public DataAnalyzer() {
 		super();
-		this.addingOK = false;
 	}
 
 	/**
@@ -40,10 +37,6 @@ public class DataAnalyzer extends DataHolder {
 	 *             added, or there will be an exception
 	 */
 	public void addDocument(String[] labels, String[] titleFeatures, String[] contentFeatures) throws Exception {
-		if (this.addingOK) {
-			throw new Exception("cannot add document after the statistical data was created!");
-		}
-
 		this.docCnt++;
 		this.docLabels.add(labels);
 		int[] labelIds = new int[labels.length];
@@ -100,37 +93,11 @@ public class DataAnalyzer extends DataHolder {
 		}
 	}
 
-	public void accomplishAdding() {
-		this.addingOK = true;
-	}
-
-	/**
-	 * eliminate a feature given by "feature", mainly invoked in feature
-	 * selection phase
-	 * 
-	 * @param feature
-	 *            the feature to be eliminated
-	 * @throws Exception
-	 *             if this function is invoked after "finish", an exception will
-	 *             occur
-	 */
-	public void reduce(String feature) throws Exception {
-		if (!this.addingOK) throw new Exception("feature selection is not allowed before the process of adding documents is finished!");
-
-		this.featureTrie.delete(feature);
-		this.featureTrieAddedPerDoc.delete(feature);
-
-		for (int i = 0; i < this.documentTries.size(); i++) {
-			this.documentTries.get(i).delete(feature);
-		}
-
-		for (int i = 0; i < this.labelFeatureTries.size(); i++) {
-			this.labelFeatureTries.get(i).delete(feature);
-		}
-
-		for (int i = 0; i < this.labelFeatureTriesAddedPerDoc.size(); i++) {
-			this.labelFeatureTriesAddedPerDoc.get(i).delete(feature);
-		}
+	public static DataAnalyzer deserialize(File inputDir, int[] eliminatedId) throws Exception {
+		DataAnalyzer res = new DataAnalyzer();
+		DataHolder.deserialize(res, inputDir, eliminatedId);
+		res.featureTrie.rearrangeId();//do not forget to do this!
+		return res;
 	}
 
 	public void serialize(File outputDir) throws Exception {
