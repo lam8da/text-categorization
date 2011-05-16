@@ -20,25 +20,32 @@ public abstract class FeatureSelector {
 		this.type = type;
 	}
 
-	public String[] getReductionList() throws Exception {
+	public int[] getReductionList() throws Exception {
 		this.thresh = determineThreshold();
-		Vector<String> reductionList = new Vector<String>(1024);
-
+		System.out.println("threshold = " + this.thresh);
+		
+		Vector<Integer> reductionList = new Vector<Integer>(1024);
 		for (int i = 0; i != weighting.length; i++) {
 			if (weighting[i] <= thresh) {
-				reductionList.add(analyzer.getFeature(i));
+				reductionList.add(i);
 			}
 		}
-		return reductionList.toArray(new String[0]);
+
+		int[] res = new int[reductionList.size()];
+		for (int i = 0; i < res.length; i++) {
+			res[i] = reductionList.get(i);
+		}
+		return res;
 	}
 
 	public abstract double getAvgSelectionWeighting(int featureId);
 
 	public abstract double getMaxSelectionWeighting(int featureId);
 
-	private double determineThreshold() {
+	private double determineThreshold() throws Exception {
 		int size = analyzer.getV();
-		System.out.println("size = " + size);
+		System.out.println("vocabulary size = " + size);
+
 		weighting = new double[size];
 		if (type == Constant.FEATURE_SELECTION_MAXSELECTION) {
 			for (int i = 0; i != size; i++) {
@@ -53,6 +60,7 @@ public abstract class FeatureSelector {
 
 		KmppOneDimension k = new KmppOneDimension(weighting, FeatureSelector.CLUSTER, FeatureSelector.INTERACTION);
 		k.cluster();
+		k.output();
 		return k.getThresh();
 	}
 

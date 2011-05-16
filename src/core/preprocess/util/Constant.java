@@ -54,16 +54,18 @@ public final class Constant {
 	public static final String XML_DATA_PATH = "xml-data";
 	public static final String ORG_STATISTICAL_DATA_PATH = "original-statistical-data";
 	public static final String STATISTICAL_DATA_PATH = "statistical-data";
-	
+
 	//for feature selection
 	public static final int FEATURE_SELECTION_MAXSELECTION = 1;
 	public static final int FEATURE_SELECTION_AVGSELECTION = 2;
-	
+	public static final String REDUCTIONG_LIST_FILENAME = "reductionList.txt";
+
 	//for selector choosing
 	public static final int CHI_SELECTOR = 1;
 	public static final int DF_SELECTOR = 2;
 	public static final int IG_SELECTOR = 3;
-	public static final int MI_SELECTOR = 4;	
+	public static final int MI_SELECTOR = 4;
+	public static final int WF_SELECTOR = 5;
 
 	//filenames for DataHolder to serialize
 	public static final String DOC_LABELS_FILE = "docLabels.dat";
@@ -80,4 +82,10 @@ public final class Constant {
 
 	public static final String LABEL_FEATURE_TRIES_ADDED_PER_DOC_FOLDER = "labelFeatureTriesAddedPerDoc";
 	public static final String LABEL_FEATURE_TRIES_ADDED_PER_DOC_FOLDER_SIZE_FILE = "labelFeatureTriesAddedPerDoc.meta";
+
+	//preprosessing stage id
+	public static final int STAGE_EXTRACTION = 0;
+	public static final int STAGE_ANALYZATION = 1;
+	public static final int STAGE_FEATURE_SELECTION = 2;
+	public static final int STAGE_SERIALIZATION = 3;
 }

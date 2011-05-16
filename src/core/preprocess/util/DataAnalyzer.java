@@ -93,10 +93,10 @@ public class DataAnalyzer extends DataHolder {
 		}
 	}
 
-	public static DataAnalyzer deserialize(File inputDir, int[] eliminatedId) throws Exception {
+	public static DataAnalyzer deserialize(File inputDir, int[] eliminatedId, boolean rearrangeId) throws Exception {
 		DataAnalyzer res = new DataAnalyzer();
 		DataHolder.deserialize(res, inputDir, eliminatedId);
-		res.featureTrie.rearrangeId();//do not forget to do this!
+		if (rearrangeId) res.featureTrie.rearrangeId();//do not forget to do this!
 		return res;
 	}
 

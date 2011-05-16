@@ -2,9 +2,9 @@ package core.preprocess.selection;
 
 import core.preprocess.util.DataAnalyzer;
 
-public class WFFeatureSelection extends FeatureSelector{
+public class WFFeatureSelector extends FeatureSelector{
 
-	public WFFeatureSelection(DataAnalyzer data, int type) {
+	public WFFeatureSelector(DataAnalyzer data, int type) {
 		super(data, type);
 		// TODO Auto-generated constructor stub
 	}

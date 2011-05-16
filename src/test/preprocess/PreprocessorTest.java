@@ -9,14 +9,14 @@ public class PreprocessorTest {
 	 * @throws Exception
 	 */
 	public static void main(String[] args) throws Exception {
-		/*if (args.length != 2) {
+		if (args.length != 2) {
 			System.out.println("Invalid arguments.");
 			return;
-		}*/
+		}
 
 		Preprocessor p = new Preprocessor(//
-				"C:\\Documents and Settings\\Administrator\\workspace\\TextClassification\\test",//args[0], //inputPath
-				"C:\\Documents and Settings\\Administrator\\workspace\\TextClassification\\test\\output",//args[1], //outputPath
+				args[0], //inputPath
+				args[1], //outputPath
 				Constant.REUTERS, //corpusId
 				Constant.MOD_LEWIS, //splitting
 				Constant.USE_STOPPER, //stopperId
@@ -27,6 +27,7 @@ public class PreprocessorTest {
 				Constant.DF_SELECTOR, //selectorId
 				Constant.FEATURE_SELECTION_MAXSELECTION //selectMethodId
 		);
-		p.preprocess();
+		p.preprocess(Constant.STAGE_EXTRACTION, Constant.STAGE_FEATURE_SELECTION);
+		p.preprocess(Constant.STAGE_SERIALIZATION, Constant.STAGE_SERIALIZATION);
 	}
 }
