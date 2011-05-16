@@ -24,7 +24,7 @@ public class PreprocessorTest {
 				true, //toLower
 				true, //timeToConst
 				true, //numToConst
-				Constant.DF_SELECTOR, //selectorId
+				Constant.WF_SELECTOR, //selectorId
 				Constant.FEATURE_SELECTION_MAXSELECTION //selectMethodId
 		);
 		p.preprocess(Constant.STAGE_EXTRACTION, Constant.STAGE_FEATURE_SELECTION);
