@@ -29,11 +29,11 @@ public abstract class Extractor {
 		this.trainingDir = new File(outputDir, Constant.TRAINING_FOLDER);
 		this.testDir = new File(outputDir, Constant.TEST_FOLDER);
 
-		System.out.println("Deleting all files in " + outputDir);
-		File[] files = outputDir.listFiles();
-		for (int i = 0; i < files.length; i++) {
-			files[i].delete();
-		}
+//		System.out.println("Deleting all files in " + outputDir);
+//		File[] files = outputDir.listFiles();
+//		for (int i = 0; i < files.length; i++) {
+//			files[i].delete();
+//		}
 
 		this.trainingDir.mkdirs();
 		this.testDir.mkdirs();

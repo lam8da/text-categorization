@@ -66,7 +66,7 @@ public class DataAnalyzerTest extends DataHolderTest {
 
 		((DataAnalyzer) daTest.holder).serialize(dir);
 
-		DataAnalyzer ana = DataAnalyzer.deserialize(dir, new int[] { 1 });
+		DataAnalyzer ana = DataAnalyzer.deserialize(dir, new int[] { 1 }, true);
 		daTest.holder = ana;
 		daTest.featureCnt = 4;
 		daTest.features = new String[] { "A", "B", "C", "D" }; //their IDs are 0,1,2,3

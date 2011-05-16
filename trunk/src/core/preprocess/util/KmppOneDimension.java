@@ -1,147 +1,106 @@
 package core.preprocess.util;
 
+import java.util.Arrays;
+
 public class KmppOneDimension {
-	private double[] weighting = null;
-	private double[] cluster = null;
-	private int[] pos = null;
+	private double[] weighting;
+	private double[] cluster;
+	private double[] sum;
+	private int[] pos;
 	private int k;
-	private int maxinterations;
+	private int maxIterations;
 
 	/**
 	 * @param double[] data weighting to be clustered
 	 * @param int k number of cluster
 	 * @param int maxinteractions times of interactions
-	 * */
-	public KmppOneDimension(double[] data, int k, int maxinteractions) throws IndexOutOfBoundsException {
-		int i;
-		this.k = k;
-		this.maxinterations = maxinteractions;
-		this.weighting = new double[data.length];
-		System.arraycopy((double[]) data, 0, (double[]) this.weighting, 0, data.length);
-		qsort(this.weighting, 0, this.weighting.length - 1);
-		this.cluster = new double[this.k];
-		this.pos = new int[k + 1];
-		this.pos[0] = -1;
-		this.pos[this.k] = this.weighting.length - 1;
-		/* initialize the cluster point */
-		for (i = 0; i != this.k; i++) {
-			this.cluster[i] = this.weighting[(i + 1) * (this.weighting.length) / (this.k + 2)];
+	 * @throws Exception
+	 */
+	public KmppOneDimension(double[] data, int k, int maxIterations) throws Exception {
+		if (data.length < k) {
+			throw new Exception("data.length < k !!!");
 		}
+
+		this.k = k;
+		this.maxIterations = maxIterations;
+		this.weighting = Arrays.copyOf(data, data.length);
+		Arrays.sort(this.weighting);
+
+		this.sum = Arrays.copyOf(this.weighting, this.weighting.length);
+		for (int i = 1; i < sum.length; i++) {
+			sum[i] += sum[i - 1];
+		}
+
+		/* initialize the cluster point */
+		this.cluster = new double[this.k];
+		for (int i = 0; i < this.k; i++) {
+			this.cluster[i] = this.weighting[i];
+		}
+
+		this.pos = new int[k];
+		for (int i = 0; i < this.k - 1; i++) {
+			this.pos[i] = i;
+		}
+		this.pos[this.k - 1] = this.weighting.length - 1;
 	}
 
 	/**
 	 * @param void void
 	 * @return int number of interactions
-	 * */
+	 */
 	public int cluster() {
-		if (this.k > this.weighting.length) {
-			return 0;
-		}
-		int i;
-		int j;
-		int k;
-		boolean changed;
-		double[] tmp = new double[this.k];
 		/* keep the mean value of clusters of the last time */
-		System.arraycopy((double[]) this.cluster, 0, (double[]) tmp, 0, this.k);
-		k = 0;
-		for (j = 1;; j++) {
-			if (Math.abs(this.weighting[j] - this.cluster[k]) > Math.abs(this.cluster[k + 1] - this.weighting[j])) {
-				this.pos[++k] = j - 1;
-				if (this.k - 1 == k) break;
-			}
-		}
-		for (i = 1; i != this.maxinterations; i++) {
+		double[] tmp = Arrays.copyOf(this.cluster, this.k);
+		for (int i = 1; i <= this.maxIterations; i++) {
 			/* calculate the new mean value */
-			for (j = 0; j != this.k; j++) {
-				this.cluster[j] = 0;
-				for (k = this.pos[j] + 1; k <= this.pos[j + 1]; k++) {
-					this.cluster[j] += this.weighting[k];
-				}
-				this.cluster[j] /= (this.pos[j + 1] - this.pos[j]);
+			cluster[0] = sum[pos[0]];
+			for (int j = 1; j < this.k; j++) {
+				cluster[j] = (sum[pos[j]] - sum[pos[j - 1]]) / (pos[j] - pos[j - 1]);
 			}
-			changed = false;
-			for (j = 0; j != this.k; j++) {
+			boolean changed = false;
+			for (int j = 0; j != this.k; j++) {
 				if (this.cluster[j] != tmp[j]) {
 					changed = true;
 					break;
 				}
 			}
-			if (!changed) {
-				return i;
+			if (!changed) return i;
+			for (int j = 0; j < this.k; j++) {
+				tmp[j] = cluster[j];
 			}
-			System.arraycopy(this.cluster, 0, tmp, 0, this.k);
+
 			/* calculate the new boundary */
-			k = 0;
-			for (j = 1;; j++) {
-				if (Math.abs(this.weighting[j] - this.cluster[k]) > Math.abs(this.cluster[k + 1] - this.weighting[j])) {
-					this.pos[++k] = j - 1;
-					if (this.k - 1 == k) break;
+			for (int j = 1, x = 0; x < k - 1; j++) {
+				if (Math.abs(weighting[j] - cluster[x]) >= Math.abs(weighting[j] - cluster[x + 1])) {
+					this.pos[x++] = j - 1;
 				}
 			}
 		}
-		return this.maxinterations;
+		return this.maxIterations;
 	}
 
 	/**
 	 * @param void void
 	 * @return void void
-	 * */
+	 */
 	public void output() {
-		for (int i = 0; i != this.k; i++) {
-			System.out.print(this.cluster[i] + "\t");
-			for (int j = this.pos[i] + 1; j <= this.pos[i + 1]; j++) {
-				System.out.print(this.weighting[j] + "\t");
+		for (int i = 0; i < k; i++) {
+			System.out.println(i + " - " + cluster[i] + ":");
+			for (int j = (i == 0 ? 0 : (pos[i - 1] + 1)); j <= pos[i]; j++) {
+				System.out.print("\t" + this.weighting[j] + "\t");
+				int cnt = 1, k;
+				for (k = j + 1; k <= pos[i] && weighting[k] == weighting[j]; k++, cnt++);
+				j = k - 1;
+				System.out.println("(" + cnt + ")");
 			}
-			System.out.println();
 		}
 	}
 
 	/**
 	 * @param void void
 	 * @return double the threshold call it after cluster has been called
-	 * */
+	 */
 	public double getThresh() {
-		if (this.k > this.weighting.length) {
-			return this.weighting[0];
-		}
-		return this.weighting[this.pos[1]];
-	}
-
-	/**
-	 * @param double[] data data to be partitioned
-	 * @param int left the left boundary of data
-	 * @param int right the right boundary of data
-	 * @return int the divided index
-	 * */
-	public int partition(double[] data, int left, int right) {
-		int part = left;
-		double tmp;
-		double t = data[part];
-		for (int i = left + 1; i <= right; i++) {
-			if (data[i] < t) {
-				tmp = data[i];
-				data[i] = data[part + 1];
-				data[part] = tmp;
-				part++;
-			}
-		}
-		data[part] = t;
-		return part;
-	}
-
-	/**
-	 * @param double[] data data to be sorted
-	 * @param int left left boundary of the array to be sorted
-	 * @param int right right boundary of the array to be sorted
-	 * @return void
-	 * */
-	public void qsort(double[] data, int left, int right) {
-		int part;
-		if (left < right) {
-			part = partition(data, left, right);
-			qsort(data, left, part - 1);
-			qsort(data, part + 1, right);
-		}
+		return weighting[pos[0]];
 	}
 }
