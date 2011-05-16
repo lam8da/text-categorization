@@ -151,6 +151,8 @@ public class Preprocessor {
 			break;
 		case Constant.IG_SELECTOR:
 			break;
+		case Constant.WF_SELECTOR:
+			break;
 		default:
 			throw new Exception("invalid selector id!");
 		}
