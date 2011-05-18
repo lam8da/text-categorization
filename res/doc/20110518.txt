@@ -1,0 +1,9 @@
+21:23, May 18th, 2011
+
+Agenda for the next phase
+
+1.Apply data clustering algorithm to dynamically determin the threshold
+see http://en.wikipedia.org/wiki/Category:Data_clustering_algorithms
+
+3.map the evaluation of single word in one dimension into two dimension
+combine two or more evluation method, like IG, CHI, MI, DF etc.
