@@ -57,12 +57,12 @@ public class KmppOneDimension {
                 for(i = 1; i != this.maxinterations; i++){
                         /*calculate the new mean value*/
                         for(j = 0; j !=  this.k; j++){
-                                this.cluster[j] = 0;
+                        		double sum = 0;
                                 for(k = this.pos[j]+1; k <= this.pos[j+1]; k++){
-                                        this.cluster[j] += this.weighting[k];
+                                        sum += this.weighting[k];
                                 }
                                 if(this.pos[j+1] != this.pos[j])
-                                	this.cluster[j] /= (this.pos[j+1]-this.pos[j]);
+                                	this.cluster[j] = sum/(this.pos[j+1]-this.pos[j]);
                         }
                         changed = false;
                         for(j = 0; j != this.k; j++){
