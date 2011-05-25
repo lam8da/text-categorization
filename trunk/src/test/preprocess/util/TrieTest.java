@@ -85,8 +85,8 @@ public class TrieTest {
 		System.out.println();
 
 		trie.serialize(new File(outputDir, "trie.txt"), true, null);
-		
-		Trie newTrie = Trie.deserialize(new File(outputDir, "trie.txt"), null, new int[] { 3 });
+
+		Trie newTrie = (Trie) Trie.deserialize(false, new File(outputDir, "trie.txt"), null, new int[] { 3 });
 		newTrie.rearrangeId();
 		newTrie.traverse();
 	}

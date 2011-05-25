@@ -9,26 +9,26 @@ public class DataHolder {
 	protected int docCnt; //equal to documentTries.size()
 	protected Vector<String[]> docLabels;
 	protected Trie featureTrie; //features
-	protected Trie featureTrieAddedPerDoc; //one feature will only be added once for each document containing that feature
-	protected Vector<Trie> documentTries; //features per document
+	protected SimpleTrie featureTrieAddedPerDoc; //one feature will only be added once for each document containing that feature
+	protected Vector<SimpleTrie> documentTries; //features per document
 	protected Trie labelNameTrie; //labels
-	protected Vector<Trie> labelFeatureTries; //features (duplicated) per label
-	protected Vector<Trie> labelFeatureTriesAddedPerDoc; //features (unduplicated per document) per label
+	protected Vector<SimpleTrie> labelFeatureTries; //features (duplicated) per label
+	protected Vector<SimpleTrie> labelFeatureTriesAddedPerDoc; //features (unduplicated per document) per label
 
 	protected DataHolder() {
 		this.docCnt = 0;
 
 		this.docLabels = new Vector<String[]>();
 		this.featureTrie = new Trie();
-		this.featureTrieAddedPerDoc = new Trie();
-		this.labelFeatureTriesAddedPerDoc = new Vector<Trie>(256);
+		this.featureTrieAddedPerDoc = new SimpleTrie();
+		this.labelFeatureTriesAddedPerDoc = new Vector<SimpleTrie>(256);
 		this.labelNameTrie = new Trie();
-		this.documentTries = new Vector<Trie>(8192);
-		this.labelFeatureTries = new Vector<Trie>(256);
+		this.documentTries = new Vector<SimpleTrie>(8192);
+		this.labelFeatureTries = new Vector<SimpleTrie>(256);
 	}
 
-	private static void loadTrieVector(Vector<Trie> vec, File inputDir, String folderName, String metaFilename, Trie mapIdToString, int[] eliminatedId)
-			throws Exception {
+	private static void loadTrieVector(Vector<SimpleTrie> vec, File inputDir, String folderName, String metaFilename, Trie mapIdToString,
+			int[] eliminatedId) throws Exception {
 		File triesFolder = new File(inputDir, folderName);
 		File sizeFile = new File(triesFolder, metaFilename);
 		FileReader fr = new FileReader(sizeFile);
@@ -38,7 +38,8 @@ public class DataHolder {
 		fr.close();
 
 		for (int i = 0; i < size; i++) {
-			vec.add(Trie.deserialize(new File(triesFolder, String.valueOf(i)), mapIdToString, eliminatedId));
+			//these are all SimpleTries, so "true"
+			vec.add(Trie.deserialize(true, new File(triesFolder, String.valueOf(i)), mapIdToString, eliminatedId));
 		}
 	}
 
@@ -58,9 +59,10 @@ public class DataHolder {
 		br.close();
 		fr.close();
 
-		res.featureTrie = Trie.deserialize(new File(inputDir, Constant.FEATURE_TRIE_FILE), null, eliminatedId);
-		res.featureTrieAddedPerDoc = Trie.deserialize(new File(inputDir, Constant.FEATURE_TRIE_ADDED_PER_DOC_FILE), res.featureTrie, eliminatedId);
-		res.labelNameTrie = Trie.deserialize(new File(inputDir, Constant.LABEL_NAME_TRIE_FILE), null, null);
+		res.featureTrie = (Trie) Trie.deserialize(false, new File(inputDir, Constant.FEATURE_TRIE_FILE), null, eliminatedId);
+		res.featureTrieAddedPerDoc = Trie.deserialize(true, new File(inputDir, Constant.FEATURE_TRIE_ADDED_PER_DOC_FILE), res.featureTrie,
+				eliminatedId);
+		res.labelNameTrie = (Trie) Trie.deserialize(false, new File(inputDir, Constant.LABEL_NAME_TRIE_FILE), null, null);
 
 		loadTrieVector(res.documentTries, inputDir, Constant.DOCUMENT_TRIES_FOLDER, Constant.DOCUMENT_TRIES_FOLDER_SIZE_FILE, res.featureTrie,
 				eliminatedId);
@@ -133,14 +135,14 @@ public class DataHolder {
 	}
 
 	public int getN_ci_tk(int labelId, int featureId) {
-		Trie labelTrie = this.labelFeatureTriesAddedPerDoc.get(labelId);
+		SimpleTrie labelTrie = this.labelFeatureTriesAddedPerDoc.get(labelId);
 		String feature = this.featureTrie.getWord(featureId);
 		return labelTrie.getOccurrence(feature);
 	}
 
 	public int getN_ci_tk(String label, String feature) {
 		int labelId = this.labelNameTrie.getId(label);
-		Trie labelTrie = this.labelFeatureTriesAddedPerDoc.get(labelId);
+		SimpleTrie labelTrie = this.labelFeatureTriesAddedPerDoc.get(labelId);
 		return labelTrie.getOccurrence(feature);
 	}
 
@@ -212,13 +214,13 @@ public class DataHolder {
 	}
 
 	public int getW_ci_tk(int labelId, int featureId) {
-		Trie labelTrie = this.labelFeatureTries.get(labelId);
+		SimpleTrie labelTrie = this.labelFeatureTries.get(labelId);
 		String feature = this.featureTrie.getWord(featureId);
 		return labelTrie.getOccurrence(feature);
 	}
 
 	public int getW_ci_tk(String label, String feature) {
-		Trie labelTrie = this.labelFeatureTries.get(this.labelNameTrie.getId(label));
+		SimpleTrie labelTrie = this.labelFeatureTries.get(this.labelNameTrie.getId(label));
 		return labelTrie.getOccurrence(feature);
 	}
 
@@ -236,7 +238,7 @@ public class DataHolder {
 	}
 
 	public int getW_dj_tk(int docId, String feature) {
-		Trie docTrie = this.documentTries.get(docId);
+		SimpleTrie docTrie = this.documentTries.get(docId);
 		return docTrie.getOccurrence(feature);
 	}
 
