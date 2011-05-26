@@ -1,13 +1,30 @@
 package core.preprocess.util;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.util.Arrays;
 import java.util.TreeMap;
 import java.util.Vector;
 
-public class Trie extends SimpleTrie {
+public class Trie extends AbstractTrie {
+	protected class TrieNode extends AbstractTrieNode {
+		protected int id; //the globally unique identifier for words, start from 0
+		protected TrieNode parent;
+
+		/**
+		 * constructor
+		 */
+		public TrieNode(char val, AbstractTrieNode child, AbstractTrieNode brother, AbstractTrieNode parent) {
+			super(val, child, brother);
+			this.id = -1;
+			this.parent = (TrieNode) parent;
+		}
+	}
+
+	protected static final int DO_NOT_RESET = -618618618;
 	private TreeMap<Integer, TrieNode> nodeMap;
 
 	/**
@@ -19,9 +36,25 @@ public class Trie extends SimpleTrie {
 	}
 
 	@Override
-	protected TrieNode add(String word, int times, int newId) throws Exception {
-		TrieNode res = super.add(word, times, newId);
-		if (res.occurrence == times) this.nodeMap.put(res.id, res);
+	protected AbstractTrieNode createTrieNode(char val, AbstractTrieNode child, AbstractTrieNode brother, AbstractTrieNode parent) {
+		return new TrieNode(val, child, brother, parent);
+	}
+
+	@Override
+	public int add(String word) throws Exception {
+		TrieNode res = (TrieNode) add(word, 1, DO_NOT_RESET);
+		return res.id;
+	}
+
+	protected AbstractTrieNode add(String word, int times, int newId) throws Exception {
+		TrieNode res = (TrieNode) super.add(word, times);
+		if (res.occurrence == times) {
+			if (newId == DO_NOT_RESET) {
+				res.id = differentWordCnt - 1;
+			}
+			else res.id = newId;
+			this.nodeMap.put(res.id, res);
+		}
 		return res;
 	}
 
@@ -35,10 +68,24 @@ public class Trie extends SimpleTrie {
 	public String getWord(int id) {
 		StringBuffer sb = new StringBuffer(32);
 		//exception may occur here when cur==null due to the missing string for given id!!!!!!
-		for (TrieNode cur = nodeMap.get(id); cur.parent != null; cur = cur.parent) {
+		for (TrieNode cur = (TrieNode) nodeMap.get(id); cur.parent != null; cur = cur.parent) {
 			sb.append(cur.val);
 		}
 		return sb.reverse().toString();
+	}
+
+	/**
+	 * find the identifier of word
+	 * 
+	 * @param word
+	 *            the id of which someone want to get
+	 * @return if the word is not in trie, returns -1, otherwise return the id
+	 *         of the word
+	 */
+	public int getId(String word) {
+		TrieNode tmp = (TrieNode) getNode(word);
+		if (tmp == null) return -1;
+		return tmp.id;
 	}
 
 	/**
@@ -53,7 +100,7 @@ public class Trie extends SimpleTrie {
 		}
 
 		StringBuffer sb = new StringBuffer(32);
-		dfs(root, sb);
+		dfs((TrieNode) root, sb);
 	}
 
 	/**
@@ -62,7 +109,7 @@ public class Trie extends SimpleTrie {
 	 * @param sb
 	 */
 	private void dfs(TrieNode node, StringBuffer sb) {
-		for (TrieNode nc = node.child; nc != null; nc = nc.brother) {
+		for (TrieNode nc = (TrieNode) node.child; nc != null; nc = (TrieNode) nc.brother) {
 			sb.append(nc.val);
 			//if (nc.occurrence != 0) System.out.println("id: " + nc.id + ", cnt: " + nc.occurrence + " - " + sb);
 			System.out.println("id: " + (nc.id == -1 ? "" : " ") + nc.id + ", cnt: " + nc.occurrence + " - " + sb);
@@ -83,11 +130,11 @@ public class Trie extends SimpleTrie {
 	 *         false otherwise
 	 */
 	public boolean delete(String word, boolean rearrangeId) {
-		Vector<TrieNode> preBrother = new Vector<TrieNode>(16);
-		TrieNode nc = root;
+		Vector<AbstractTrieNode> preBrother = new Vector<AbstractTrieNode>(16);
+		TrieNode nc = (TrieNode) root;
 		for (int i = 0; i < word.length(); i++) {
 			TrieNode np = null, pre = null;
-			for (np = nc.child; np != null; np = np.brother) {
+			for (np = (TrieNode) nc.child; np != null; np = (TrieNode) np.brother) {
 				if (np.val >= word.charAt(i)) break;
 				pre = np;
 			}
@@ -98,7 +145,7 @@ public class Trie extends SimpleTrie {
 			nc = np;
 			preBrother.add(pre);
 		}
-		if (nc == null || nc.id == -1) return false;
+		if (nc == null || nc.occurrence == 0) return false;
 
 		if (rearrangeId) {
 			TrieNode nLast = this.nodeMap.get(this.differentWordCnt - 1);
@@ -117,7 +164,7 @@ public class Trie extends SimpleTrie {
 
 		for (int i = preBrother.size() - 1; i >= 0; i--) {
 			if (nc.id == -1 && nc.child == null) {
-				TrieNode pre = preBrother.get(i);
+				AbstractTrieNode pre = preBrother.get(i);
 				if (pre == null) {
 					if (nc.brother == null) {
 						nc = nc.parent;
@@ -141,8 +188,6 @@ public class Trie extends SimpleTrie {
 	/**
 	 * deserialize the input file to obtain a new trie
 	 * 
-	 * @param isSimple
-	 *            whether the result would be a SimpleTrie
 	 * @param inFile
 	 *            the file to be deserialized
 	 * @param mapIdToString
@@ -159,37 +204,20 @@ public class Trie extends SimpleTrie {
 	 * @return the new trie
 	 * @throws Exception
 	 */
-	public static SimpleTrie deserialize(boolean isSimple, File inFile, Trie mapIdToString, int[] eliminatedId) throws Exception {
-		SimpleTrie t;
-		if (isSimple) t = new SimpleTrie();
-		else t = new Trie();
-		
+	public static Trie deserialize(File inFile, int[] eliminatedId) throws Exception {
+		Trie t = new Trie();
 		FileReader fr = new FileReader(inFile);
 		BufferedReader br = new BufferedReader(fr);
 
-		if (eliminatedId != null) {
-			Arrays.sort(eliminatedId);
-		}
+		if (eliminatedId != null) Arrays.sort(eliminatedId);
 
 		int n = Integer.parseInt(br.readLine());
 		for (int i = 0; i < n; i++) {
 			String str = br.readLine(); //'string' field
-			int id = DO_NOT_RESET; //'id' field
-
-			if (mapIdToString != null) {
-				int givenId = Integer.parseInt(str); //'string' field
-				if (eliminatedId != null && Arrays.binarySearch(eliminatedId, givenId) >= 0) {
-					br.readLine();//read occurrence
-					continue;
-				}
-				str = mapIdToString.getWord(givenId); //exception may occur if the trie has no string associate with strId
-			}
-			else {
-				id = Integer.parseInt(br.readLine());
-				if (eliminatedId != null && Arrays.binarySearch(eliminatedId, id) >= 0) {
-					br.readLine();//read occurrence
-					continue;
-				}
+			int id = Integer.parseInt(br.readLine()); //'id' field
+			if (eliminatedId != null && Arrays.binarySearch(eliminatedId, id) >= 0) {
+				br.readLine();//read occurrence
+				continue;
 			}
 
 			int occurrence = Integer.parseInt(br.readLine());
@@ -201,12 +229,44 @@ public class Trie extends SimpleTrie {
 		return t;
 	}
 
+	@Override
+	public void serialize(File outFile) throws Exception {
+		StringBuffer sb = new StringBuffer(32);
+		FileWriter fw = new FileWriter(outFile);
+		BufferedWriter bw = new BufferedWriter(fw);
+		bw.write(String.valueOf(this.differentWordCnt));
+		bw.newLine();
+		serializeDfs((TrieNode) root, sb, bw);
+		bw.flush();
+		bw.close();
+		fw.close();
+	}
+
+	private void serializeDfs(TrieNode node, StringBuffer sb, BufferedWriter bw) throws Exception {
+		for (TrieNode nc = (TrieNode) node.child; nc != null; nc = (TrieNode) nc.brother) {
+			sb.append(nc.val);
+			if (nc.occurrence != 0) {
+				bw.write(sb.toString());
+				bw.newLine();
+				bw.write(String.valueOf(nc.id));
+				bw.newLine();
+				bw.write(String.valueOf(nc.occurrence));
+				bw.newLine();
+			}
+			serializeDfs(nc, sb, bw);
+			sb.setLength(sb.length() - 1);
+		}
+	}
+
+	@Override
+	public void serialize(File outFile, Trie mapStringToId) throws Exception {}
+
 	public void rearrangeId() {
 		this.nodeMap.clear();
 		TrieIterator it = new TrieIterator(this.root);
 		for (int i = 0; it.hasNext(); i++) {
 			it.hasNextCalled = false;
-			TrieNode nc = it.currentPath.get(it.len);
+			TrieNode nc = (TrieNode) it.currentPath.get(it.len);
 			nc.id = i;
 			this.nodeMap.put(i, nc);
 		}
