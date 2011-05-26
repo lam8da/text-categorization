@@ -27,9 +27,9 @@ public class IGFeatureSelector extends FeatureSelector {
 			/*L = analyzer.getN_ci(i);
 			tmp1 -= (L / N) * (Math.log(L)/log2-logN/log2);*/
 			A = analyzer.getN_ci_tk(i, featureId)+1;
-			tmp2 += (A / T) * (Math.log(A) /log2-logT/log2);
+			tmp2 += (A / T) * (Math.log(A)-logT)/log2;
 			C = analyzer.getN_ci_exclude_tk(i, featureId)+1;
-			tmp3 += (C / T_) * (Math.log(C) /log2-logT_/log2);
+			tmp3 += (C / T_) * (Math.log(C)-logT_)/log2;
 		}
 		tmp2 = T / N * tmp2;
 		tmp3 = T_ / N * tmp3;

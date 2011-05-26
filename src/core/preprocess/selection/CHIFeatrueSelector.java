@@ -14,13 +14,14 @@ public class CHIFeatrueSelector extends FeatureSelector {
 		// TODO Auto-generated method stub
 		double A, B, C, D, L;
 		double avg = 0;
-		for (int i = 0; i != analyzer.getM(); i++) {
+		double M = analyzer.getM();
+		for (int i = 0; i != M; i++) {
 			A = analyzer.getN_ci_tk(i, featureId);
 			B = analyzer.getN_not_ci_tk(i, featureId);
 			C = analyzer.getN_ci_exclude_tk(i, featureId);
 			D = analyzer.getN_not_ci_exclude_tk(i, featureId);
 			L = analyzer.getN_ci(i);
-			avg += L * (A * D - C * B) * (A * D - C * B) / ((A + C) * (B + D) * (A + B) * (C + D)+1);/*in case of 0 and does not affect precision*/
+			avg += (L * (A * D - C * B) * (A * D - C * B)+1) / ((A + C) * (B + D) * (A + B) * (C + D)+1);/*in case of 0 and does not affect precision*/
 		}
 		return avg;
 	}
@@ -28,16 +29,17 @@ public class CHIFeatrueSelector extends FeatureSelector {
 	@Override
 	public double getMaxSelectionWeighting(int featureId) {
 		// TODO Auto-generated method stub
-		double A, B, C, D, N;
+		double A, B, C, D, N,M;
 		double max = 0;
 		double tmp;
 		N = analyzer.getN();
-		for (int i = 0; i != analyzer.getM(); i++) {
+		M = analyzer.getM();
+		for (int i = 0; i != M; i++) {
 			A = analyzer.getN_ci_tk(i, featureId);
 			B = analyzer.getN_not_ci_tk(i, featureId);
 			C = analyzer.getN_ci_exclude_tk(i, featureId);
 			D = analyzer.getN_not_ci_exclude_tk(i, featureId);
-			tmp = N*(A * D - C * B) * (A * D - C * B) / ((A + C) * (B + D) * (A + B) * (C + D));
+			tmp = (N*(A * D - C * B) * (A * D - C * B)+1) / ((A + C) * (B + D) * (A + B) * (C + D)+1);/*in case of 0 and does not affect precision*/
 			if (tmp > max) {
 				max = tmp;
 			}
