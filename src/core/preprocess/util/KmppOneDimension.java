@@ -9,6 +9,7 @@ public class KmppOneDimension {
         private int[] pos = null;
         private int k;
         private int maxinterations;
+        private int actinterations;
         
         /**
          * @param double[] data weighting to be clustered
@@ -33,10 +34,9 @@ public class KmppOneDimension {
                 this.pos = new int[k+1];
                 /*initialize the cluster point*/
                 this.cluster[0] = this.weighting[0];
-                for(i = 1; i != this.k-1; i++){
-                        this.cluster[i] = this.weighting[i*(this.weighting.length)/(this.k-1)];
+                for(i = 1; i != this.k; i++){
+                        this.cluster[i] = this.weighting[i*(this.weighting.length)/this.k];
                 }
-                this.cluster[this.k-1] = this.weighting[this.weighting.length-1];
         }
         
         /**
@@ -97,10 +97,11 @@ public class KmppOneDimension {
                 		}
                 	}
                 	if(j == this.bestCluster){
-                		return i;
+                		break;
                 	}
                 }
-                return this.maxinterations;
+                this.actinterations = i;
+                return this.actinterations;
         }
         
         /**
@@ -115,13 +116,15 @@ public class KmppOneDimension {
                     System.out.print(this.weighting[i]+"\t");
             	}
                 return ;
-        }
+            }
+            System.out.println("Actual Interation Times "+this.actinterations);
+            System.out.println("Best Clusters "+this.bestCluster);
             for(int i = 0; i != this.bestCluster; i++){
-                    System.out.print(this.cluster[i]+":\t");
-                    for(int j = this.pos[i]+1; j <= this.pos[i+1]; j++){
+                    System.out.println("Clusterint Point "+this.cluster[i]+" Range "+(this.pos[i]+1+1)+"-"+(this.pos[i+1]+1));
+                    /*for(int j = this.pos[i]+1; j <= this.pos[i+1]; j++){
                             System.out.print(this.weighting[j]+"\t");
                     }
-                    System.out.println();
+                    System.out.println();*/
             }
         }
         
