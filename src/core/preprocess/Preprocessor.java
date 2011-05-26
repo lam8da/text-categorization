@@ -194,6 +194,7 @@ public class Preprocessor {
 			stemmer = new PorterStemmer();
 		}
 
+		System.out.println("extracting...");
 		extractor.extract(stopper, stemmer, this.toLower, this.timeToConst, this.numToConst);
 		System.out.println("<------------extraction done!");
 	}

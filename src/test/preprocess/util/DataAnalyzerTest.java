@@ -55,7 +55,7 @@ public class DataAnalyzerTest extends DataHolderTest {
 		}
 
 		DataAnalyzerTest daTest = new DataAnalyzerTest("res/test/DataAnalyzerTest");
-		//DataHolderTest.test(daTest);
+		DataHolderTest.test(daTest);
 
 		File dir = new File(args[0]);
 		dir.mkdirs();
@@ -73,6 +73,6 @@ public class DataAnalyzerTest extends DataHolderTest {
 		daTest.labels = new String[] { "c2", "c3", "c1" }; //their IDs are 0,1,2
 		daTest.separatedLine = "---------------------------------------------";
 
-		DataHolderTest.test(daTest);
+		//DataHolderTest.test(daTest);
 	}
 }
