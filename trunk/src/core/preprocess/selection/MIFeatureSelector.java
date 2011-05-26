@@ -14,13 +14,14 @@ public class MIFeatureSelector extends FeatureSelector {
 		// TODO Auto-generated method stub
 		double res = 0;
 		double A, B, C,N,L;
+		double log2 = Math.log(2);
 		N = analyzer.getN();
 		for (int i = 0; i != analyzer.getM(); i++) {
 			L = analyzer.getN_ci(i);
 			A = analyzer.getN_ci_tk(i, featureId);
 			B = analyzer.getN_not_ci_tk(i, featureId);
 			C = analyzer.getN_ci_exclude_tk(i, featureId);
-			res += L/N*Math.log( (A * N / (A + C) / (A + B)) );
+			res += L/N*Math.log( (A * N / (A + C) / (A + B)) )/log2;
 		}
 		return res;
 	}
