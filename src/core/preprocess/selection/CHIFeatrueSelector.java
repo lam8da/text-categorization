@@ -20,7 +20,7 @@ public class CHIFeatrueSelector extends FeatureSelector {
 			C = analyzer.getN_ci_exclude_tk(i, featureId);
 			D = analyzer.getN_not_ci_exclude_tk(i, featureId);
 			L = analyzer.getN_ci(i);
-			avg += L * (A * D - C * B) * (A * D - C * B) / ((A + C) * (B + D) * (A + B) * (C + D));
+			avg += L * (A * D - C * B) * (A * D - C * B) / ((A + C) * (B + D) * (A + B) * (C + D)+1);/*in case of 0 and does not affect precision*/
 		}
 		return avg;
 	}
