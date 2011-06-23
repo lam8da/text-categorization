@@ -1,4 +1,4 @@
-package core.preprocess.util;
+package core.preprocess.analyzation.trie;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -9,7 +9,9 @@ import java.util.Arrays;
 import java.util.TreeMap;
 import java.util.Vector;
 
-public class Trie extends AbstractTrie {
+import core.preprocess.analyzation.interfaces.FeatureContainer;
+
+public class Trie extends AbstractTrie implements FeatureContainer {
 	protected class TrieNode extends AbstractTrieNode {
 		protected int id; //the globally unique identifier for words, start from 0
 		protected TrieNode parent;
@@ -40,7 +42,6 @@ public class Trie extends AbstractTrie {
 		return new TrieNode(val, child, brother, parent);
 	}
 
-	@Override
 	public int add(String word) throws Exception {
 		TrieNode res = (TrieNode) add(word, 1, DO_NOT_RESET);
 		return res.id;
@@ -185,51 +186,6 @@ public class Trie extends AbstractTrie {
 		return true;
 	}
 
-	/**
-	 * deserialize the input file to obtain a new trie
-	 * 
-	 * @param inFile
-	 *            the file to be deserialized
-	 * @param mapIdToString
-	 *            mapIdToString is null means that the file contains each string
-	 *            itself and must contain an id for each string, otherwise the
-	 *            file contains the id of each string without its id written and
-	 *            we should provide a map
-	 * @param eliminatedId
-	 *            eliminatedId is null means that we should read all strings in
-	 *            the file and add them to the trie, otherwise we should
-	 *            eliminate those whose id (i.e., the id in 'id' field when
-	 *            haveId is true, and the id in 'string' field otherwise) is in
-	 *            eliminatedId
-	 * @return the new trie
-	 * @throws Exception
-	 */
-	public static Trie deserialize(File inFile, int[] eliminatedId) throws Exception {
-		Trie t = new Trie();
-		FileReader fr = new FileReader(inFile);
-		BufferedReader br = new BufferedReader(fr);
-
-		if (eliminatedId != null) Arrays.sort(eliminatedId);
-
-		int n = Integer.parseInt(br.readLine());
-		for (int i = 0; i < n; i++) {
-			String str = br.readLine(); //'string' field
-			int id = Integer.parseInt(br.readLine()); //'id' field
-			if (eliminatedId != null && Arrays.binarySearch(eliminatedId, id) >= 0) {
-				br.readLine();//read occurrence
-				continue;
-			}
-
-			int occurrence = Integer.parseInt(br.readLine());
-			t.add(str, occurrence, id);
-		}
-
-		br.close();
-		fr.close();
-		return t;
-	}
-
-	@Override
 	public void serialize(File outFile) throws Exception {
 		StringBuffer sb = new StringBuffer(32);
 		FileWriter fw = new FileWriter(outFile);
@@ -258,9 +214,6 @@ public class Trie extends AbstractTrie {
 		}
 	}
 
-	@Override
-	public void serialize(File outFile, Trie mapStringToId) throws Exception {}
-
 	public void rearrangeId() {
 		this.nodeMap.clear();
 		TrieIterator it = new TrieIterator(this.root);
@@ -271,5 +224,50 @@ public class Trie extends AbstractTrie {
 			this.nodeMap.put(i, nc);
 		}
 		//wordCnt and differentWordCnt will not changed
+	}
+
+	/**
+	 * deserialize the input file to obtain a new trie
+	 * 
+	 * @param inFile
+	 *            the file to be deserialized
+	 * @param mapIdToString
+	 *            mapIdToString is null means that the file contains each string
+	 *            itself and must contain an id for each string, otherwise the
+	 *            file contains the id of each string without its id written and
+	 *            we should provide a map
+	 * @param eliminatedId
+	 *            eliminatedId is null means that we should read all strings in
+	 *            the file and add them to the trie, otherwise we should
+	 *            eliminate those whose id (i.e., the id in 'id' field when
+	 *            haveId is true, and the id in 'string' field otherwise) is in
+	 *            eliminatedId
+	 * @return the new trie
+	 * @throws Exception
+	 */
+	public void deserializeFrom(File inFile, int[] eliminatedId) throws Exception {
+		this.nodeMap.clear();
+		this.clear();
+		
+		FileReader fr = new FileReader(inFile);
+		BufferedReader br = new BufferedReader(fr);
+
+		if (eliminatedId != null) Arrays.sort(eliminatedId);
+
+		int n = Integer.parseInt(br.readLine());
+		for (int i = 0; i < n; i++) {
+			String str = br.readLine(); //'string' field
+			int id = Integer.parseInt(br.readLine()); //'id' field
+			if (eliminatedId != null && Arrays.binarySearch(eliminatedId, id) >= 0) {
+				br.readLine();//read occurrence
+				continue;
+			}
+
+			int occurrence = Integer.parseInt(br.readLine());
+			add(str, occurrence, id);
+		}
+
+		br.close();
+		fr.close();
 	}
 }

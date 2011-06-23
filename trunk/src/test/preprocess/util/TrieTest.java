@@ -3,7 +3,7 @@ package test.preprocess.util;
 import java.util.Iterator;
 import java.io.File;
 
-import core.preprocess.util.Trie;
+import core.preprocess.analyzation.trie.Trie;
 
 public class TrieTest {
 	public static void main(String[] args) throws Exception {
@@ -86,7 +86,8 @@ public class TrieTest {
 
 		trie.serialize(new File(outputDir, "trie.txt"));
 
-		Trie newTrie = Trie.deserialize(new File(outputDir, "trie.txt"), new int[] { 3 });
+		Trie newTrie = new Trie();
+		newTrie.deserializeFrom(new File(outputDir, "trie.txt"), new int[] { 3 });
 		newTrie.rearrangeId();
 		newTrie.traverse();
 	}

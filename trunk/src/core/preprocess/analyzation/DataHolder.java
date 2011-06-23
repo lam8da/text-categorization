@@ -1,34 +1,47 @@
-package core.preprocess.util;
+package core.preprocess.analyzation;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.util.Vector;
 
+import core.preprocess.analyzation.generator.ContainerGenerator;
+import core.preprocess.analyzation.interfaces.FeatureContainer;
+import core.preprocess.analyzation.interfaces.SimpleContainer;
+import core.preprocess.util.Constant;
+
 public class DataHolder {
+	protected ContainerGenerator generator;
 	protected int docCnt; //equal to documentTries.size()
 	protected Vector<String[]> docLabels;
-	protected Trie featureTrie; //features
-	protected SimpleTrie featureTrieAddedPerDoc; //one feature will only be added once for each document containing that feature
-	protected Vector<SimpleTrie> documentTries; //features per document
-	protected Trie labelNameTrie; //labels
-	protected Vector<SimpleTrie> labelFeatureTries; //features (duplicated) per label
-	protected Vector<SimpleTrie> labelFeatureTriesAddedPerDoc; //features (unduplicated per document) per label
+	protected FeatureContainer featureContainer; //features
+	protected SimpleContainer featureAddedPerDoc; //one feature will only be added once for each document containing that feature
+	protected Vector<SimpleContainer> documentContainers; //features per document
+	protected FeatureContainer labelNameContainer; //labels
+	protected Vector<SimpleContainer> labelFeatureContainers; //features (duplicated) per label
+	protected Vector<SimpleContainer> labelFeatureContainersAddedPerDoc; //features (unduplicated per document) per label
 
-	protected DataHolder() {
+	protected DataHolder(ContainerGenerator g) {
+		this.generator = g;
 		this.docCnt = 0;
-
 		this.docLabels = new Vector<String[]>();
-		this.featureTrie = new Trie();
-		this.featureTrieAddedPerDoc = new SimpleTrie();
-		this.labelFeatureTriesAddedPerDoc = new Vector<SimpleTrie>(256);
-		this.labelNameTrie = new Trie();
-		this.documentTries = new Vector<SimpleTrie>(8192);
-		this.labelFeatureTries = new Vector<SimpleTrie>(256);
+		this.featureContainer = g.generateFeatureContainer();
+		this.featureAddedPerDoc = g.generateSimpleContainer();
+		this.labelFeatureContainersAddedPerDoc = new Vector<SimpleContainer>(256);
+		this.labelNameContainer = g.generateFeatureContainer();
+		this.documentContainers = new Vector<SimpleContainer>(8192);
+		this.labelFeatureContainers = new Vector<SimpleContainer>(256);
 	}
 
-	private static void loadTrieVector(Vector<SimpleTrie> vec, File inputDir, String folderName, String metaFilename, Trie mapIdToString,
-			int[] eliminatedId) throws Exception {
+	private static void loadTrieVector(//
+			ContainerGenerator g,//
+			Vector<SimpleContainer> vec,//
+			File inputDir,//
+			String folderName,//
+			String metaFilename, FeatureContainer mapIdToString,//
+			int[] eliminatedId//
+	) throws Exception {
+
 		File triesFolder = new File(inputDir, folderName);
 		File sizeFile = new File(triesFolder, metaFilename);
 		FileReader fr = new FileReader(sizeFile);
@@ -39,7 +52,9 @@ public class DataHolder {
 
 		for (int i = 0; i < size; i++) {
 			//these are all SimpleTries, so "true"
-			vec.add(SimpleTrie.deserialize(new File(triesFolder, String.valueOf(i)), mapIdToString, eliminatedId));
+			SimpleContainer st = g.generateSimpleContainer();
+			st.deserializeFrom(new File(triesFolder, String.valueOf(i)), mapIdToString, eliminatedId);
+			vec.add(st);
 		}
 	}
 
@@ -59,17 +74,39 @@ public class DataHolder {
 		br.close();
 		fr.close();
 
-		res.featureTrie = Trie.deserialize(new File(inputDir, Constant.FEATURE_TRIE_FILE), eliminatedId);
-		res.featureTrieAddedPerDoc = SimpleTrie.deserialize(new File(inputDir, Constant.FEATURE_TRIE_ADDED_PER_DOC_FILE), res.featureTrie,
-				eliminatedId);
-		res.labelNameTrie = Trie.deserialize(new File(inputDir, Constant.LABEL_NAME_TRIE_FILE), null);
+		res.featureContainer.deserializeFrom(new File(inputDir, Constant.FEATURE_TRIE_FILE), eliminatedId);
+		res.featureAddedPerDoc.deserializeFrom(new File(inputDir, Constant.FEATURE_TRIE_ADDED_PER_DOC_FILE), res.featureContainer, eliminatedId);
+		res.labelNameContainer.deserializeFrom(new File(inputDir, Constant.LABEL_NAME_TRIE_FILE), null);
 
-		loadTrieVector(res.documentTries, inputDir, Constant.DOCUMENT_TRIES_FOLDER, Constant.DOCUMENT_TRIES_FOLDER_SIZE_FILE, res.featureTrie,
-				eliminatedId);
-		loadTrieVector(res.labelFeatureTries, inputDir, Constant.LABEL_FEATURE_TRIES_FOLDER, Constant.LABEL_FEATURE_TRIES_FOLDER_SIZE_FILE,
-				res.featureTrie, eliminatedId);
-		loadTrieVector(res.labelFeatureTriesAddedPerDoc, inputDir, Constant.LABEL_FEATURE_TRIES_ADDED_PER_DOC_FOLDER,
-				Constant.LABEL_FEATURE_TRIES_ADDED_PER_DOC_FOLDER_SIZE_FILE, res.featureTrie, eliminatedId);
+		loadTrieVector(//
+				res.generator,//
+				res.documentContainers,//
+				inputDir,//
+				Constant.DOCUMENT_TRIES_FOLDER,//
+				Constant.DOCUMENT_TRIES_FOLDER_SIZE_FILE,//
+				res.featureContainer,//
+				eliminatedId//
+		);
+
+		loadTrieVector(//
+				res.generator,//
+				res.labelFeatureContainers,//
+				inputDir,//
+				Constant.LABEL_FEATURE_TRIES_FOLDER,//
+				Constant.LABEL_FEATURE_TRIES_FOLDER_SIZE_FILE,//
+				res.featureContainer,//
+				eliminatedId//
+		);
+
+		loadTrieVector(//
+				res.generator,//
+				res.labelFeatureContainersAddedPerDoc,//
+				inputDir,//
+				Constant.LABEL_FEATURE_TRIES_ADDED_PER_DOC_FOLDER,//
+				Constant.LABEL_FEATURE_TRIES_ADDED_PER_DOC_FOLDER_SIZE_FILE,//
+				res.featureContainer,//
+				eliminatedId//
+		);
 	}
 
 	/************************************ meta data ************************************/
@@ -79,19 +116,19 @@ public class DataHolder {
 	}
 
 	public int getFeatureId(String feature) {
-		return this.featureTrie.getId(feature);
+		return this.featureContainer.getId(feature);
 	}
 
 	public String getFeature(int featureId) {
-		return this.featureTrie.getWord(featureId);
+		return this.featureContainer.getWord(featureId);
 	}
 
 	public int getLabelId(String label) {
-		return this.labelNameTrie.getId(label);
+		return this.labelNameContainer.getId(label);
 	}
 
 	public String getLabel(int labelId) {
-		return this.labelNameTrie.getWord(labelId);
+		return this.labelNameContainer.getWord(labelId);
 	}
 
 	/******************************** document counting ********************************/
@@ -101,12 +138,12 @@ public class DataHolder {
 	}
 
 	public int getN_ci(int labelId) {
-		String label = this.labelNameTrie.getWord(labelId);
+		String label = this.labelNameContainer.getWord(labelId);
 		return getN_ci(label);
 	}
 
 	public int getN_ci(String label) {
-		return this.labelNameTrie.getOccurrence(label);
+		return this.labelNameContainer.getOccurrence(label);
 	}
 
 	public int getN_not_ci(int labelId) {
@@ -118,12 +155,12 @@ public class DataHolder {
 	}
 
 	public int getN_tk(int featureId) {
-		String feature = this.featureTrie.getWord(featureId);
+		String feature = this.featureContainer.getWord(featureId);
 		return getN_tk(feature);
 	}
 
 	public int getN_tk(String feature) {
-		return this.featureTrieAddedPerDoc.getOccurrence(feature);
+		return this.featureAddedPerDoc.getOccurrence(feature);
 	}
 
 	public int getN_exclude_tk(int featureId) {
@@ -135,14 +172,14 @@ public class DataHolder {
 	}
 
 	public int getN_ci_tk(int labelId, int featureId) {
-		SimpleTrie labelTrie = this.labelFeatureTriesAddedPerDoc.get(labelId);
-		String feature = this.featureTrie.getWord(featureId);
+		SimpleContainer labelTrie = this.labelFeatureContainersAddedPerDoc.get(labelId);
+		String feature = this.featureContainer.getWord(featureId);
 		return labelTrie.getOccurrence(feature);
 	}
 
 	public int getN_ci_tk(String label, String feature) {
-		int labelId = this.labelNameTrie.getId(label);
-		SimpleTrie labelTrie = this.labelFeatureTriesAddedPerDoc.get(labelId);
+		int labelId = this.labelNameContainer.getId(label);
+		SimpleContainer labelTrie = this.labelFeatureContainersAddedPerDoc.get(labelId);
 		return labelTrie.getOccurrence(feature);
 	}
 
@@ -173,15 +210,15 @@ public class DataHolder {
 	/********************************** word counting **********************************/
 
 	public int getW() {
-		return this.featureTrie.getCounting();
+		return this.featureContainer.getCounting();
 	}
 
 	public int getW_ci(int labelId) {
-		return this.labelFeatureTries.get(labelId).getCounting();
+		return this.labelFeatureContainers.get(labelId).getCounting();
 	}
 
 	public int getW_ci(String label) {
-		int labelId = this.labelNameTrie.getId(label);
+		int labelId = this.labelNameContainer.getId(label);
 		return getW_ci(labelId);
 	}
 
@@ -190,12 +227,12 @@ public class DataHolder {
 	}
 
 	public int getW_not_ci(String label) {
-		int labelId = this.labelNameTrie.getId(label);
+		int labelId = this.labelNameContainer.getId(label);
 		return getW() - getW_ci(labelId);
 	}
 
 	public int getW_dj(int docId) {
-		return this.documentTries.get(docId).getCounting();
+		return this.documentContainers.get(docId).getCounting();
 	}
 
 	public int getW_not_dj(int docId) {
@@ -205,22 +242,22 @@ public class DataHolder {
 	/*************************** single feature word counting ***************************/
 
 	public int getW_tk(int featureId) {
-		String feature = this.featureTrie.getWord(featureId);
+		String feature = this.featureContainer.getWord(featureId);
 		return getW_tk(feature);
 	}
 
 	public int getW_tk(String feature) {
-		return this.featureTrie.getOccurrence(feature);
+		return this.featureContainer.getOccurrence(feature);
 	}
 
 	public int getW_ci_tk(int labelId, int featureId) {
-		SimpleTrie labelTrie = this.labelFeatureTries.get(labelId);
-		String feature = this.featureTrie.getWord(featureId);
+		SimpleContainer labelTrie = this.labelFeatureContainers.get(labelId);
+		String feature = this.featureContainer.getWord(featureId);
 		return labelTrie.getOccurrence(feature);
 	}
 
 	public int getW_ci_tk(String label, String feature) {
-		SimpleTrie labelTrie = this.labelFeatureTries.get(this.labelNameTrie.getId(label));
+		SimpleContainer labelTrie = this.labelFeatureContainers.get(this.labelNameContainer.getId(label));
 		return labelTrie.getOccurrence(feature);
 	}
 
@@ -233,12 +270,12 @@ public class DataHolder {
 	}
 
 	public int getW_dj_tk(int docId, int featureId) {
-		String feature = this.featureTrie.getWord(featureId);
+		String feature = this.featureContainer.getWord(featureId);
 		return getW_dj_tk(docId, feature);
 	}
 
 	public int getW_dj_tk(int docId, String feature) {
-		SimpleTrie docTrie = this.documentTries.get(docId);
+		SimpleContainer docTrie = this.documentContainers.get(docId);
 		return docTrie.getOccurrence(feature);
 	}
 
@@ -253,15 +290,15 @@ public class DataHolder {
 	/********************************* feature counting *********************************/
 
 	public int getV() {
-		return this.featureTrie.size();
+		return this.featureContainer.size();
 	}
 
 	public int getV_ci(int labelId) {
-		return this.labelFeatureTries.get(labelId).size();
+		return this.labelFeatureContainers.get(labelId).size();
 	}
 
 	public int getV_ci(String label) {
-		int labelId = this.labelNameTrie.getId(label);
+		int labelId = this.labelNameContainer.getId(label);
 		return getV_ci(labelId);
 	}
 
@@ -274,11 +311,11 @@ public class DataHolder {
 	}
 
 	public int getV_not_ci(int labelId) {
-		return this.featureTrie.difference(this.labelFeatureTries.get(labelId));
+		return this.featureContainer.difference(this.labelFeatureContainers.get(labelId));
 	}
 
 	public int getV_not_ci(String label) {
-		int labelId = this.labelNameTrie.getId(label);
+		int labelId = this.labelNameContainer.getId(label);
 		return getV_not_ci(labelId);
 	}
 
@@ -287,12 +324,12 @@ public class DataHolder {
 	}
 
 	public int getV_not_ci_exclude(String label) {
-		int labelId = this.labelNameTrie.getId(label);
+		int labelId = this.labelNameContainer.getId(label);
 		return getV_not_ci_exclude(labelId);
 	}
 
 	public int getV_dj(int docId) {
-		return this.documentTries.get(docId).size();
+		return this.documentContainers.get(docId).size();
 	}
 
 	public int getV_dj_exclude(int docId) {
@@ -300,7 +337,7 @@ public class DataHolder {
 	}
 
 	public int getV_not_dj(int docId) {
-		return this.featureTrie.difference(this.documentTries.get(docId));
+		return this.featureContainer.difference(this.documentContainers.get(docId));
 	}
 
 	public int getV_not_dj_exclude(int docId) {
@@ -310,20 +347,20 @@ public class DataHolder {
 	/********************************** label counting **********************************/
 
 	public int getM() {
-		return this.labelNameTrie.size();
+		return this.labelNameContainer.size();
 	}
 
 	public int getM_tk(int featureId) {
-		String feature = this.featureTrie.getWord(featureId);
-		int cnt = 0, labelSize = this.labelNameTrie.size();
+		String feature = this.featureContainer.getWord(featureId);
+		int cnt = 0, labelSize = this.labelNameContainer.size();
 		for (int i = 0; i < labelSize; i++) {
-			if (this.labelFeatureTries.get(i).contains(feature)) cnt++;
+			if (this.labelFeatureContainers.get(i).contains(feature)) cnt++;
 		}
 		return cnt;
 	}
 
 	public int getM_tk(String feature) {
-		int featureId = this.featureTrie.getId(feature);
+		int featureId = this.featureContainer.getId(feature);
 		return getM_tk(featureId);
 	}
 

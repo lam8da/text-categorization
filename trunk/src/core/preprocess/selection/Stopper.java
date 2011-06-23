@@ -3,8 +3,8 @@ package core.preprocess.selection;
 import java.io.File;
 import java.util.Scanner;
 
+import core.preprocess.analyzation.trie.Trie;
 import core.preprocess.util.Constant;
-import core.preprocess.util.Trie;
 
 public class Stopper {
 	private Trie trie = new Trie();

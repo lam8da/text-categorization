@@ -2,7 +2,7 @@ package core.preprocess.selection;
 
 import java.util.Vector;
 
-import core.preprocess.util.DataAnalyzer;
+import core.preprocess.analyzation.DataAnalyzer;
 import core.preprocess.util.Constant;
 import core.preprocess.util.KmppOneDimension;
 

@@ -1,6 +1,6 @@
 package core.preprocess.selection;
 
-import core.preprocess.util.DataAnalyzer;
+import core.preprocess.analyzation.DataAnalyzer;
 
 public class WFFeatureSelector extends FeatureSelector{
 
