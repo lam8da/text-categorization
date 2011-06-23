@@ -25,7 +25,8 @@ public class PreprocessorTest {
 				true, //timeToConst
 				true, //numToConst
 				Constant.WF_SELECTOR, //selectorId
-				Constant.FEATURE_SELECTION_MAXSELECTION //selectMethodId
+				Constant.FEATURE_SELECTION_MAXSELECTION, //selectMethodId
+				Constant.TRIE_GENERATOR //generatorId
 		);
 		p.preprocess(Constant.STAGE_EXTRACTION, Constant.STAGE_FEATURE_SELECTION);
 		p.preprocess(Constant.STAGE_SERIALIZATION, Constant.STAGE_SERIALIZATION);

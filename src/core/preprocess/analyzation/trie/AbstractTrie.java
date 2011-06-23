@@ -1,11 +1,12 @@
-package core.preprocess.util;
+package core.preprocess.analyzation.trie;
 
-import java.io.File;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Vector;
 
-public abstract class AbstractTrie {
+import core.preprocess.analyzation.interfaces.Container;
+
+public abstract class AbstractTrie implements Container {
 	protected abstract class AbstractTrieNode {
 		protected char val;
 		protected int occurrence;
@@ -99,31 +100,16 @@ public abstract class AbstractTrie {
 	protected int differentWordCnt; //number of different strings which have been added to the trie
 
 	public AbstractTrie() {
+		this.clear();
+	}
+	
+	protected abstract AbstractTrieNode createTrieNode(char val, AbstractTrieNode child, AbstractTrieNode brother, AbstractTrieNode parent);
+
+	protected void clear()
+	{
 		this.root = createTrieNode('\\', null, null, null);
 		this.differentWordCnt = 0;
 		this.wordCnt = 0;
-	}
-
-	/**
-	 * create an iterator for the current trie
-	 * 
-	 * @return the iterator created
-	 */
-	public Iterator<String> iterator() {
-		return new TrieIterator(this.root);
-	}
-
-	/**
-	 * add word to the trie
-	 * 
-	 * @param word
-	 *            the word to be added
-	 * @return return the id of the inserted word in the trie
-	 * @throws Exception
-	 */
-	public int add(String word) throws Exception {
-		add(word, 1);
-		return -1;
 	}
 
 	/**
@@ -215,6 +201,15 @@ public abstract class AbstractTrie {
 		}
 		return tmp;
 	}
+	
+	/**
+	 * create an iterator for the current trie
+	 * 
+	 * @return the iterator created
+	 */
+	public Iterator<String> iterator() {
+		return new TrieIterator(this.root);
+	}
 
 	/**
 	 * find whether the current trie contains the given word
@@ -267,7 +262,8 @@ public abstract class AbstractTrie {
 	 *            the trie we want to compare to
 	 * @return the difference defined as above
 	 */
-	public int difference(AbstractTrie other) {
+	public int difference(Container otherC) {
+		AbstractTrie other = (AbstractTrie) otherC;
 		Iterator<String> it = this.iterator();
 		if (!it.hasNext()) return 0;
 
@@ -316,10 +312,4 @@ public abstract class AbstractTrie {
 		}
 		return diff;
 	}
-
-	protected abstract AbstractTrieNode createTrieNode(char val, AbstractTrieNode child, AbstractTrieNode brother, AbstractTrieNode parent);
-
-	public abstract void serialize(File outFile, Trie mapStringToId) throws Exception;
-
-	public abstract void serialize(File outFile) throws Exception;
 }

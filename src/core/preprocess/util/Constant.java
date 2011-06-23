@@ -88,4 +88,11 @@ public final class Constant {
 	public static final int STAGE_ANALYZATION = 1;
 	public static final int STAGE_FEATURE_SELECTION = 2;
 	public static final int STAGE_SERIALIZATION = 3;
+	
+	//for generator
+	public static final int TRIE_GENERATOR = 1;
+	public static final int MAP_GENERATOR = 2;
+	
+	//for configurator
+	public static String CONFIG_FILENAME = "config.txt";
 }

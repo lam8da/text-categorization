@@ -1,6 +1,7 @@
 package core.preprocess.selection;
 
-import core.preprocess.util.DataAnalyzer;
+import core.preprocess.analyzation.DataAnalyzer;
+
 import java.lang.Math;
 
 public class IGFeatureSelector extends FeatureSelector {
@@ -13,11 +14,11 @@ public class IGFeatureSelector extends FeatureSelector {
 	@Override
 	public double getAvgSelectionWeighting(int featureId) {
 		// TODO Auto-generated method stub
-		double N, L, T, T_, A, C;
+		double N, /*L,*/ T, T_, A, C;
 		double res, tmp1 = 0, tmp2 = 0, tmp3 = 0;
 		double log2 = Math.log(2);
 		N = analyzer.getN();
-		double logN = Math.log(N);
+		//double logN = Math.log(N);
 		T_ = analyzer.getN_exclude_tk(featureId)+1;
 		double logT_ = Math.log(T_);
 		T = analyzer.getN_tk(featureId)+1;

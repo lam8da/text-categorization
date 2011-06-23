@@ -1,4 +1,4 @@
-package core.preprocess.util;
+package core.preprocess.analyzation.trie;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -7,7 +7,10 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.Arrays;
 
-public class SimpleTrie extends AbstractTrie {
+import core.preprocess.analyzation.interfaces.FeatureContainer;
+import core.preprocess.analyzation.interfaces.SimpleContainer;
+
+public class SimpleTrie extends AbstractTrie implements SimpleContainer {
 	protected class SimpleTrieNode extends AbstractTrieNode {
 		public SimpleTrieNode(char val, AbstractTrieNode child, AbstractTrieNode brother) {
 			super(val, child, brother);
@@ -17,6 +20,12 @@ public class SimpleTrie extends AbstractTrie {
 	@Override
 	protected AbstractTrieNode createTrieNode(char val, AbstractTrieNode child, AbstractTrieNode brother, AbstractTrieNode parent) {
 		return new SimpleTrieNode(val, child, brother);
+	}	
+
+	@Override
+	public int add(String word) throws Exception {
+		add(word, 1);
+		return -1;
 	}
 
 	/**
@@ -31,8 +40,7 @@ public class SimpleTrie extends AbstractTrie {
 	 *            to outFile, otherwise the id of each string will be written
 	 * @throws Exception
 	 */
-	@Override
-	public void serialize(File outFile, Trie mapStringToId) throws Exception {
+	public void serialize(File outFile, FeatureContainer mapStringToId) throws Exception {
 		StringBuffer sb = new StringBuffer(32);
 		FileWriter fw = new FileWriter(outFile);
 		BufferedWriter bw = new BufferedWriter(fw);
@@ -44,7 +52,7 @@ public class SimpleTrie extends AbstractTrie {
 		fw.close();
 	}
 
-	private void serializeDfs(AbstractTrieNode node, StringBuffer sb, BufferedWriter bw, Trie mapStringToId) throws Exception {
+	private void serializeDfs(AbstractTrieNode node, StringBuffer sb, BufferedWriter bw, FeatureContainer mapStringToId) throws Exception {
 		for (AbstractTrieNode nc = node.child; nc != null; nc = nc.brother) {
 			sb.append(nc.val);
 			if (nc.occurrence != 0) {
@@ -62,11 +70,8 @@ public class SimpleTrie extends AbstractTrie {
 		}
 	}
 
-	@Override
-	public void serialize(File outFile) {}
-
-	public static SimpleTrie deserialize(File inFile, Trie mapIdToString, int[] eliminatedId) throws Exception {
-		SimpleTrie t = new SimpleTrie();
+	public void deserializeFrom(File inFile, FeatureContainer mapIdToString, int[] eliminatedId) throws Exception {
+		this.clear();
 		FileReader fr = new FileReader(inFile);
 		BufferedReader br = new BufferedReader(fr);
 
@@ -84,11 +89,10 @@ public class SimpleTrie extends AbstractTrie {
 			str = mapIdToString.getWord(givenId); //exception may occur if the trie has no string associate with strId
 
 			int occurrence = Integer.parseInt(br.readLine());
-			t.add(str, occurrence);
+			add(str, occurrence);
 		}
 
 		br.close();
 		fr.close();
-		return t;
 	}
 }

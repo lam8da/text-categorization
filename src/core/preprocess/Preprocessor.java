@@ -18,9 +18,11 @@ import core.preprocess.selection.DFFeatureSelector;
 import core.preprocess.selection.IGFeatureSelector;
 import core.preprocess.selection.MIFeatureSelector;
 import core.preprocess.selection.WFFeatureSelector;
+import core.preprocess.util.Configurator;
 import core.preprocess.util.Constant;
-import core.preprocess.util.DataAnalyzer;
 import core.preprocess.util.XmlDocument;
+import core.preprocess.analyzation.DataAnalyzer;
+import core.preprocess.analyzation.generator.ContainerGenerator;
 import core.preprocess.corpus.Extractor;
 import core.preprocess.corpus.reuters.ReutersExtractor;
 
@@ -31,22 +33,8 @@ import core.preprocess.corpus.reuters.ReutersExtractor;
  * 
  */
 public class Preprocessor {
-	private int corpusId;
-	private int splitting;
-	private File inputDir; //where the original corpus data is placed
-	private File outputDir; //where the output data should be placed
-	private File trainingDir;
-	private File xmlDir;
-	private File reductionListFile;
-	private File orgStatisticalDir;
-	private File statisticalDir;
-	private int stopperId;
-	private int stemmerId;
-	private boolean toLower;
-	private boolean timeToConst;
-	private boolean numToConst;
-	private int selectorId;
-	private int selectMethodId;
+	private Configurator config;
+	private ContainerGenerator generator;
 
 	/**
 	 * 
@@ -77,33 +65,25 @@ public class Preprocessor {
 			boolean timeToConst, //
 			boolean numToConst, //
 			int selectorId, //
-			int selectMethodId //
+			int selectMethodId, //
+			int generatorId//
 	) throws Exception {
-		validate(corpusId, splitting, selectorId, selectMethodId);
-
-		this.inputDir = new File(inputPath);
-		this.outputDir = new File(outputPath);
-		this.outputDir.mkdirs();
-
-		this.xmlDir = new File(this.outputDir, Constant.XML_DATA_PATH);
-		this.xmlDir.mkdirs();
-		this.reductionListFile = new File(this.outputDir, Constant.REDUCTIONG_LIST_FILENAME);
-		this.trainingDir = new File(this.xmlDir, Constant.TRAINING_FOLDER);
-		this.trainingDir.mkdirs();
-		this.statisticalDir = new File(this.outputDir, Constant.STATISTICAL_DATA_PATH);
-		this.statisticalDir.mkdirs();
-		this.orgStatisticalDir = new File(this.outputDir, Constant.ORG_STATISTICAL_DATA_PATH);
-		this.orgStatisticalDir.mkdirs();
-
-		this.corpusId = corpusId;
-		this.splitting = splitting;
-		this.stopperId = stopperId;
-		this.stemmerId = stemmerId;
-		this.toLower = toLower;
-		this.timeToConst = timeToConst;
-		this.numToConst = numToConst;
-		this.selectorId = selectorId;
-		this.selectMethodId = selectMethodId;
+		config = Configurator.getConfigurator();
+		config.setValues( //
+				inputPath, //
+				outputPath, //
+				corpusId, //
+				splitting, //
+				stopperId, //
+				stemmerId, //
+				toLower, //
+				timeToConst, //
+				numToConst, //
+				selectorId, //
+				selectMethodId, //
+				generatorId //
+		);
+		this.generator = config.getGenerator();
 	}
 
 	private void deleteDirectory(File dir) throws IOException {
@@ -121,87 +101,41 @@ public class Preprocessor {
 		}
 	}
 
-	private void validate(int corpusId, int splitting, int selectorId, int selectMethodId) throws Exception {
-		switch (corpusId) {
-		case Constant.REUTERS:
-			switch (splitting) {
-			case Constant.MOD_APTE:
-				break;
-			case Constant.MOD_HAYES:
-				break;
-			case Constant.MOD_LEWIS:
-				break;
-			default:
-				throw new Exception("splitting does not match corpus id!");
-			}
-			break;
-		//case Constant.TWENTY_NEWS_GTOUP:
-		//	//not implemented yet
-		//	break;
-		default:
-			throw new Exception("invalid corpus id!");
-		}
-
-		switch (selectorId) {
-		case Constant.CHI_SELECTOR:
-			break;
-		case Constant.DF_SELECTOR:
-			break;
-		case Constant.MI_SELECTOR:
-			break;
-		case Constant.IG_SELECTOR:
-			break;
-		case Constant.WF_SELECTOR:
-			break;
-		default:
-			throw new Exception("invalid selector id!");
-		}
-
-		switch (selectMethodId) {
-		case Constant.FEATURE_SELECTION_MAXSELECTION:
-			break;
-		case Constant.FEATURE_SELECTION_AVGSELECTION:
-			break;
-		default:
-			throw new Exception("invalid selection method id!");
-		}
-	}
-
 	private void extraction() throws Exception {
 		System.out.println("------------>start extraction!");
-		System.out.println("Deleting all files in " + this.xmlDir);
-		deleteDirectory(this.xmlDir);
+		System.out.println("Deleting all files in " + config.getXmlDir());
+		deleteDirectory(config.getXmlDir());
 
 		Extractor extractor = null;
 		Stopper stopper = null;
 		Stemmer stemmer = null;
 
-		if (this.corpusId == Constant.REUTERS) {
-			extractor = new ReutersExtractor(this.inputDir, this.xmlDir, this.splitting);
+		if (config.getCorpusId() == Constant.REUTERS) {
+			extractor = new ReutersExtractor(config.getInputDir(), config.getXmlDir(), config.getSplitting());
 		}
-		//else if (this.corpusId == Constant.TWENTY_NEWS_GTOUP) {
+		//else if (config.getcorpusId() == Constant.TWENTY_NEWS_GTOUP) {
 		//	//not implemented yet
 		//}
 
-		if (this.stopperId == Constant.USE_STOPPER) {
+		if (config.getStopperId() == Constant.USE_STOPPER) {
 			stopper = new Stopper();
 		}
 
-		if (this.stemmerId == Constant.KROVETZ_STEMMER) {
+		if (config.getStemmerId() == Constant.KROVETZ_STEMMER) {
 			stemmer = new KrovetzStemmer();
 		}
-		else if (this.stemmerId == Constant.PORTER_STEMMER) {
+		else if (config.getStemmerId() == Constant.PORTER_STEMMER) {
 			stemmer = new PorterStemmer();
 		}
 
 		System.out.println("extracting...");
-		extractor.extract(stopper, stemmer, this.toLower, this.timeToConst, this.numToConst);
+		extractor.extract(stopper, stemmer, config.getToLower(), config.getTimeToConst(), config.getNumToConst());
 		System.out.println("<------------extraction done!");
 	}
 
 	private void analyzation() throws Exception {
 		System.out.println("------------>start analyzing!");
-		File[] xmlFiles = this.trainingDir.listFiles(new FileFilter() {
+		File[] xmlFiles = config.getTrainingDir().listFiles(new FileFilter() {
 			public boolean accept(File file) {
 				return file.getName().endsWith(".xml");
 			}
@@ -209,7 +143,7 @@ public class Preprocessor {
 		System.out.println("training file cnt: " + xmlFiles.length);
 
 		XmlDocument xml = new XmlDocument();
-		DataAnalyzer analyzer = new DataAnalyzer();
+		DataAnalyzer analyzer = new DataAnalyzer(generator);
 
 		System.out.print("passing documents: ");
 		for (int i = 0; i < xmlFiles.length; i++) {
@@ -220,43 +154,43 @@ public class Preprocessor {
 		}
 		System.out.println();
 
-		System.out.println("Deleting all files in " + this.orgStatisticalDir);
-		deleteDirectory(this.orgStatisticalDir);
+		System.out.println("Deleting all files in " + config.getOrgStatisticalDir());
+		deleteDirectory(config.getOrgStatisticalDir());
 
 		System.out.println("serializing original data...");
-		analyzer.serialize(this.orgStatisticalDir);
+		analyzer.serialize(config.getOrgStatisticalDir());
 
 		System.out.println("<------------analyzing done!");
 	}
 
 	private void featureSelection() throws Exception {
 		System.out.println("------------>start feature selection!");
-		DataAnalyzer analyzer = DataAnalyzer.deserialize(this.orgStatisticalDir, null, false);
+		DataAnalyzer analyzer = DataAnalyzer.deserialize(generator, config.getOrgStatisticalDir(), null, false);
 		FeatureSelector selector = null;
 
-		switch (selectorId) {
+		switch (config.getSelectorId()) {
 		case Constant.CHI_SELECTOR:
-			selector = new CHIFeatrueSelector(analyzer, this.selectMethodId);
+			selector = new CHIFeatrueSelector(analyzer, config.getSelectMethodId());
 			break;
 		case Constant.DF_SELECTOR:
-			selector = new DFFeatureSelector(analyzer, this.selectMethodId);
+			selector = new DFFeatureSelector(analyzer, config.getSelectMethodId());
 			break;
 		case Constant.MI_SELECTOR:
-			selector = new MIFeatureSelector(analyzer, this.selectMethodId);
+			selector = new MIFeatureSelector(analyzer, config.getSelectMethodId());
 			break;
 		case Constant.IG_SELECTOR:
-			selector = new IGFeatureSelector(analyzer, this.selectMethodId);
+			selector = new IGFeatureSelector(analyzer, config.getSelectMethodId());
 			break;
 		case Constant.WF_SELECTOR:
-			selector = new WFFeatureSelector(analyzer, this.selectMethodId);
+			selector = new WFFeatureSelector(analyzer, config.getSelectMethodId());
 			break;
 		}
 
 		System.out.println("getting reduction list...");
 		int[] eliminatedId = selector.getReductionList();
 
-		System.out.println("writting reduction list to " + this.reductionListFile);
-		FileWriter fw = new FileWriter(this.reductionListFile);
+		System.out.println("writting reduction list to " + config.getReductionListFile());
+		FileWriter fw = new FileWriter(config.getReductionListFile());
 		BufferedWriter bw = new BufferedWriter(fw);
 		bw.write(String.valueOf(eliminatedId.length));
 		bw.newLine();
@@ -281,7 +215,7 @@ public class Preprocessor {
 		System.out.println("------------>start serialization!");
 
 		System.out.println("deserializing and reducing data...");
-		FileReader fr = new FileReader(this.reductionListFile);
+		FileReader fr = new FileReader(config.getReductionListFile());
 		BufferedReader br = new BufferedReader(fr);
 		int cnt = Integer.parseInt(br.readLine());
 		int[] eliminatedId = new int[cnt];
@@ -291,9 +225,9 @@ public class Preprocessor {
 		}
 		br.close();
 		fr.close();
-		DataAnalyzer analyzer = DataAnalyzer.deserialize(this.orgStatisticalDir, eliminatedId, true);
+		DataAnalyzer analyzer = DataAnalyzer.deserialize(generator, config.getOrgStatisticalDir(), eliminatedId, true);
 
-		analyzer.serialize(statisticalDir);
+		analyzer.serialize(config.getStatisticalDir());
 		System.out.println("<------------serialization done!");
 	}
 
