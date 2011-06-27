@@ -3,17 +3,17 @@ package test.classifier.util;
 import java.io.File;
 
 import core.preprocess.analyzation.DataAnalyzer;
-import core.preprocess.analyzation.generator.ContainerGenerator;
-import core.preprocess.analyzation.generator.TrieGenerator;
+import core.preprocess.util.Configurator;
+import core.preprocess.util.Constant;
 import core.classifier.util.FinalDataHolder;
 
 import test.preprocess.analyzation.DataAnalyzerTest;
 import test.preprocess.analyzation.DataHolderTest;
 
 public class FinalDataHolderTest extends DataHolderTest {
-	public FinalDataHolderTest(File inputPath, ContainerGenerator g) throws Exception {
+	public FinalDataHolderTest(File inputPath) throws Exception {
 		super();
-		this.holder = FinalDataHolder.deserialize(g, inputPath);
+		this.holder = FinalDataHolder.deserialize(inputPath);
 	}
 
 	/**
@@ -25,14 +25,29 @@ public class FinalDataHolderTest extends DataHolderTest {
 			System.out.println("invalid parameters!");
 			return;
 		}
-		ContainerGenerator generator = new TrieGenerator();
+
+		Configurator config = Configurator.getConfigurator();
+		config.setValues( //
+				"", //
+				args[0], //
+				1, //
+				1, //
+				1, //
+				1, //
+				true, //
+				true, //
+				true, //
+				1, //
+				1, //
+				Constant.TRIE_GENERATOR //
+		);
 
 		File stdout = new File("res/test/DataAnalyzerTest/standard output.txt");
 		StringBuffer stdSb = new StringBuffer();
 		readIntoSb(stdout, stdSb);
 
 		StringBuffer holderSb = new StringBuffer();
-		DataAnalyzerTest daTest = new DataAnalyzerTest("res/test/DataAnalyzerTest", generator);
+		DataAnalyzerTest daTest = new DataAnalyzerTest("res/test/DataAnalyzerTest");
 		holderSb.append("file cnt: " + daTest.fileCnt).append("\r\n");
 		DataHolderTest.test(daTest, holderSb);
 
@@ -52,7 +67,7 @@ public class FinalDataHolderTest extends DataHolderTest {
 		((DataAnalyzer) (daTest.holder)).serialize(outputDir);
 
 		StringBuffer finalHolderSb = new StringBuffer();
-		FinalDataHolderTest fdhTest = new FinalDataHolderTest(outputDir, generator);
+		FinalDataHolderTest fdhTest = new FinalDataHolderTest(outputDir);
 		finalHolderSb.append("file cnt: " + daTest.fileCnt).append("\r\n");
 		DataHolderTest.test(fdhTest, finalHolderSb);
 

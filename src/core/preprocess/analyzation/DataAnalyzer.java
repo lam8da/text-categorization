@@ -7,7 +7,7 @@ import java.util.HashSet;
 
 import core.preprocess.analyzation.generator.ContainerGenerator;
 import core.preprocess.analyzation.interfaces.SimpleContainer;
-import core.preprocess.analyzation.trie.SimpleTrie;
+import core.preprocess.util.Configurator;
 import core.preprocess.util.Constant;
 
 /**
@@ -18,11 +18,16 @@ import core.preprocess.util.Constant;
  * 
  */
 public class DataAnalyzer extends DataHolder {
+	ContainerGenerator cg;
+
 	/**
 	 * constructor
+	 * 
+	 * @throws Exception
 	 */
-	public DataAnalyzer(ContainerGenerator g) {
-		super(g);
+	public DataAnalyzer() throws Exception {
+		super();
+		this.cg = Configurator.getConfigurator().getGenerator();
 	}
 
 	/**
@@ -44,21 +49,24 @@ public class DataAnalyzer extends DataHolder {
 		this.docLabels.add(labels);
 		int[] labelIds = new int[labels.length];
 
-		// we ignore the specialness of the title and treat it as normal document content at present
+		// we ignore the specialness of the title and treat it as normal
+		// document content at present
 		String[] ptr = new String[titleFeatures.length + contentFeatures.length];
 		int copyIdx;
-		for (copyIdx = 0; copyIdx < titleFeatures.length; ptr[copyIdx] = titleFeatures[copyIdx], copyIdx++);
-		for (; copyIdx < titleFeatures.length + contentFeatures.length; ptr[copyIdx] = contentFeatures[copyIdx - titleFeatures.length], copyIdx++);
+		for (copyIdx = 0; copyIdx < titleFeatures.length; ptr[copyIdx] = titleFeatures[copyIdx], copyIdx++)
+			;
+		for (; copyIdx < titleFeatures.length + contentFeatures.length; ptr[copyIdx] = contentFeatures[copyIdx - titleFeatures.length], copyIdx++)
+			;
 
-		int labelNameTrieSize = this.labelNameContainer.size();
+		int labelNameContainerSize = this.labelNameContainer.size();
 		for (int i = 0; i < labels.length; i++) {
-			int labelId = this.labelNameContainer.add(labels[i]); //label id starts from 0
+			int labelId = this.labelNameContainer.add(labels[i]); // label id starts from 0
 			labelIds[i] = labelId;
 
-			if (labelNameTrieSize == this.labelNameContainer.size() - 1) { //a new label
-				labelNameTrieSize++;
-				this.labelFeatureContainersAddedPerDoc.add(new SimpleTrie());
-				this.labelFeatureContainers.add(new SimpleTrie());
+			if (labelNameContainerSize == this.labelNameContainer.size() - 1) { // a new label
+				labelNameContainerSize++;
+				this.labelFeatureContainersAddedPerDoc.add(this.cg.generateSimpleContainer(featureContainer));
+				this.labelFeatureContainers.add(this.cg.generateSimpleContainer(featureContainer));
 
 				if (this.labelFeatureContainersAddedPerDoc.size() != this.labelNameContainer.size()) {
 					throw new Exception("fatal error occurs in program logic!");
@@ -69,18 +77,18 @@ public class DataAnalyzer extends DataHolder {
 			}
 		}
 
-		SimpleContainer docTrie = new SimpleTrie();
-		this.documentContainers.add(docTrie);
+		SimpleContainer docContainer = this.cg.generateSimpleContainer(featureContainer);
+		this.documentContainers.add(docContainer);
 
 		HashSet<String> wordMap = new HashSet<String>(512);
 
 		for (int i = 0; i < ptr.length; i++) {
 			if (ptr[i].length() > 0) {
 				String fea = ptr[i];
-				//System.out.println(fea);
+				// System.out.println(fea);
 
 				this.featureContainer.add(fea);
-				docTrie.add(fea);
+				docContainer.add(fea);
 				for (int j = 0; j < labels.length; j++) {
 					this.labelFeatureContainers.get(labelIds[j]).add(fea);
 				}
@@ -96,10 +104,10 @@ public class DataAnalyzer extends DataHolder {
 		}
 	}
 
-	public static DataAnalyzer deserialize(ContainerGenerator g, File inputDir, int[] eliminatedId, boolean rearrangeId) throws Exception {
-		DataAnalyzer res = new DataAnalyzer(g);
+	public static DataAnalyzer deserialize(File inputDir, int[] eliminatedId, boolean rearrangeId) throws Exception {
+		DataAnalyzer res = new DataAnalyzer();
 		DataHolder.deserialize(res, inputDir, eliminatedId);
-		if (rearrangeId) res.featureContainer.rearrangeId();//do not forget to do this!
+		if (rearrangeId) res.rearrangeId(); // do not forget to do this!
 		return res;
 	}
 
@@ -127,12 +135,12 @@ public class DataAnalyzer extends DataHolder {
 		bw.close();
 		fw.close();
 
-		this.featureContainer.serialize(new File(outputDir, Constant.FEATURE_TRIE_FILE));
-		this.featureAddedPerDoc.serialize(new File(outputDir, Constant.FEATURE_TRIE_ADDED_PER_DOC_FILE), this.featureContainer);
+		this.featureContainer.serialize(new File(outputDir, Constant.FEATURE_CONTAINER_FILE));
+		this.featureAddedPerDoc.serialize(new File(outputDir, Constant.FEATURE_CONTAINER_ADDED_PER_DOC_FILE));
 
-		File documentTriesFolder = new File(outputDir, Constant.DOCUMENT_TRIES_FOLDER);
-		documentTriesFolder.mkdirs();
-		sizeFile = new File(documentTriesFolder, Constant.DOCUMENT_TRIES_FOLDER_SIZE_FILE);
+		File documentContainersFolder = new File(outputDir, Constant.DOCUMENT_CONTAINERS_FOLDER);
+		documentContainersFolder.mkdirs();
+		sizeFile = new File(documentContainersFolder, Constant.DOCUMENT_CONTAINERS_FOLDER_SIZE_FILE);
 		fw = new FileWriter(sizeFile);
 		bw = new BufferedWriter(fw);
 		bw.write(String.valueOf(this.documentContainers.size()));
@@ -140,14 +148,14 @@ public class DataAnalyzer extends DataHolder {
 		bw.close();
 		fw.close();
 		for (int i = 0; i < this.documentContainers.size(); i++) {
-			this.documentContainers.get(i).serialize(new File(documentTriesFolder, String.valueOf(i)), this.featureContainer);
+			this.documentContainers.get(i).serialize(new File(documentContainersFolder, String.valueOf(i)));
 		}
 
-		this.labelNameContainer.serialize(new File(outputDir, Constant.LABEL_NAME_TRIE_FILE));
+		this.labelNameContainer.serialize(new File(outputDir, Constant.LABEL_NAME_CONTAINER_FILE));
 
-		File labelFeatureTriesFolder = new File(outputDir, Constant.LABEL_FEATURE_TRIES_FOLDER);
-		labelFeatureTriesFolder.mkdirs();
-		sizeFile = new File(labelFeatureTriesFolder, Constant.LABEL_FEATURE_TRIES_FOLDER_SIZE_FILE);
+		File labelFeatureContainersFolder = new File(outputDir, Constant.LABEL_FEATURE_CONTAINERS_FOLDER);
+		labelFeatureContainersFolder.mkdirs();
+		sizeFile = new File(labelFeatureContainersFolder, Constant.LABEL_FEATURE_CONTAINERS_FOLDER_SIZE_FILE);
 		fw = new FileWriter(sizeFile);
 		bw = new BufferedWriter(fw);
 		bw.write(String.valueOf(this.labelFeatureContainers.size()));
@@ -155,12 +163,12 @@ public class DataAnalyzer extends DataHolder {
 		bw.close();
 		fw.close();
 		for (int i = 0; i < this.labelFeatureContainers.size(); i++) {
-			this.labelFeatureContainers.get(i).serialize(new File(labelFeatureTriesFolder, String.valueOf(i)), this.featureContainer);
+			this.labelFeatureContainers.get(i).serialize(new File(labelFeatureContainersFolder, String.valueOf(i)));
 		}
 
-		File labelFeatureTriesAddedPerDocFolder = new File(outputDir, Constant.LABEL_FEATURE_TRIES_ADDED_PER_DOC_FOLDER);
-		labelFeatureTriesAddedPerDocFolder.mkdirs();
-		sizeFile = new File(labelFeatureTriesAddedPerDocFolder, Constant.LABEL_FEATURE_TRIES_ADDED_PER_DOC_FOLDER_SIZE_FILE);
+		File labelFeatureContainersAddedPerDocFolder = new File(outputDir, Constant.LABEL_FEATURE_CONTAINERS_ADDED_PER_DOC_FOLDER);
+		labelFeatureContainersAddedPerDocFolder.mkdirs();
+		sizeFile = new File(labelFeatureContainersAddedPerDocFolder, Constant.LABEL_FEATURE_CONTAINERS_ADDED_PER_DOC_FOLDER_SIZE_FILE);
 		fw = new FileWriter(sizeFile);
 		bw = new BufferedWriter(fw);
 		bw.write(String.valueOf(this.labelFeatureContainersAddedPerDoc.size()));
@@ -168,8 +176,7 @@ public class DataAnalyzer extends DataHolder {
 		bw.close();
 		fw.close();
 		for (int i = 0; i < this.labelFeatureContainersAddedPerDoc.size(); i++) {
-			this.labelFeatureContainersAddedPerDoc.get(i).serialize(new File(labelFeatureTriesAddedPerDocFolder, String.valueOf(i)),
-					this.featureContainer);
+			this.labelFeatureContainersAddedPerDoc.get(i).serialize(new File(labelFeatureContainersAddedPerDocFolder, String.valueOf(i)));
 		}
 	}
 }

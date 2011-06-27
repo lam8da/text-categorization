@@ -13,7 +13,7 @@ public class MapGenerator extends ContainerGenerator {
 	}
 
 	@Override
-	public SimpleContainer generateSimpleContainer() {
-		return new SimpleMap();
+	public SimpleContainer generateSimpleContainer(FeatureContainer mapper) {
+		return new SimpleMap((FeatureMap) mapper);
 	}
 }

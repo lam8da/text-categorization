@@ -3,11 +3,13 @@ package core.preprocess.analyzation;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.util.Iterator;
 import java.util.Vector;
 
 import core.preprocess.analyzation.generator.ContainerGenerator;
 import core.preprocess.analyzation.interfaces.FeatureContainer;
 import core.preprocess.analyzation.interfaces.SimpleContainer;
+import core.preprocess.util.Configurator;
 import core.preprocess.util.Constant;
 
 public class DataHolder {
@@ -21,24 +23,35 @@ public class DataHolder {
 	protected Vector<SimpleContainer> labelFeatureContainers; //features (duplicated) per label
 	protected Vector<SimpleContainer> labelFeatureContainersAddedPerDoc; //features (unduplicated per document) per label
 
-	protected DataHolder(ContainerGenerator g) {
-		this.generator = g;
+	protected void rearrangeId() throws Exception {
+		int[] idConvertor = featureContainer.rearrangeId();
+		if (idConvertor != null) {
+			featureAddedPerDoc.rearrangeId(idConvertor);
+			for (Iterator<SimpleContainer> it = documentContainers.iterator(); it.hasNext(); it.next().rearrangeId(idConvertor));
+			for (Iterator<SimpleContainer> it = labelFeatureContainers.iterator(); it.hasNext(); it.next().rearrangeId(idConvertor));
+			for (Iterator<SimpleContainer> it = labelFeatureContainersAddedPerDoc.iterator(); it.hasNext(); it.next().rearrangeId(
+					idConvertor));
+		}
+	}
+
+	protected DataHolder() throws Exception {
+		this.generator = Configurator.getConfigurator().getGenerator();
 		this.docCnt = 0;
 		this.docLabels = new Vector<String[]>();
-		this.featureContainer = g.generateFeatureContainer();
-		this.featureAddedPerDoc = g.generateSimpleContainer();
+		this.featureContainer = this.generator.generateFeatureContainer();
+		this.featureAddedPerDoc = this.generator.generateSimpleContainer(this.featureContainer);
 		this.labelFeatureContainersAddedPerDoc = new Vector<SimpleContainer>(256);
-		this.labelNameContainer = g.generateFeatureContainer();
+		this.labelNameContainer = this.generator.generateFeatureContainer();
 		this.documentContainers = new Vector<SimpleContainer>(8192);
 		this.labelFeatureContainers = new Vector<SimpleContainer>(256);
 	}
 
 	private static void loadTrieVector(//
-			ContainerGenerator g,//
+			DataHolder res,//
 			Vector<SimpleContainer> vec,//
 			File inputDir,//
 			String folderName,//
-			String metaFilename, FeatureContainer mapIdToString,//
+			String metaFilename,//
 			int[] eliminatedId//
 	) throws Exception {
 
@@ -51,9 +64,8 @@ public class DataHolder {
 		fr.close();
 
 		for (int i = 0; i < size; i++) {
-			//these are all SimpleTries, so "true"
-			SimpleContainer st = g.generateSimpleContainer();
-			st.deserializeFrom(new File(triesFolder, String.valueOf(i)), mapIdToString, eliminatedId);
+			SimpleContainer st = res.generator.generateSimpleContainer(res.featureContainer);
+			st.deserializeFrom(new File(triesFolder, String.valueOf(i)), eliminatedId);
 			vec.add(st);
 		}
 	}
@@ -74,37 +86,34 @@ public class DataHolder {
 		br.close();
 		fr.close();
 
-		res.featureContainer.deserializeFrom(new File(inputDir, Constant.FEATURE_TRIE_FILE), eliminatedId);
-		res.featureAddedPerDoc.deserializeFrom(new File(inputDir, Constant.FEATURE_TRIE_ADDED_PER_DOC_FILE), res.featureContainer, eliminatedId);
-		res.labelNameContainer.deserializeFrom(new File(inputDir, Constant.LABEL_NAME_TRIE_FILE), null);
+		res.featureContainer.deserializeFrom(new File(inputDir, Constant.FEATURE_CONTAINER_FILE), eliminatedId);
+		res.featureAddedPerDoc.deserializeFrom(new File(inputDir, Constant.FEATURE_CONTAINER_ADDED_PER_DOC_FILE), eliminatedId);
+		res.labelNameContainer.deserializeFrom(new File(inputDir, Constant.LABEL_NAME_CONTAINER_FILE), null);
 
 		loadTrieVector(//
-				res.generator,//
+				res,//
 				res.documentContainers,//
 				inputDir,//
-				Constant.DOCUMENT_TRIES_FOLDER,//
-				Constant.DOCUMENT_TRIES_FOLDER_SIZE_FILE,//
-				res.featureContainer,//
+				Constant.DOCUMENT_CONTAINERS_FOLDER,//
+				Constant.DOCUMENT_CONTAINERS_FOLDER_SIZE_FILE,//
 				eliminatedId//
 		);
 
 		loadTrieVector(//
-				res.generator,//
+				res,//
 				res.labelFeatureContainers,//
 				inputDir,//
-				Constant.LABEL_FEATURE_TRIES_FOLDER,//
-				Constant.LABEL_FEATURE_TRIES_FOLDER_SIZE_FILE,//
-				res.featureContainer,//
+				Constant.LABEL_FEATURE_CONTAINERS_FOLDER,//
+				Constant.LABEL_FEATURE_CONTAINERS_FOLDER_SIZE_FILE,//
 				eliminatedId//
 		);
 
 		loadTrieVector(//
-				res.generator,//
+				res,//
 				res.labelFeatureContainersAddedPerDoc,//
 				inputDir,//
-				Constant.LABEL_FEATURE_TRIES_ADDED_PER_DOC_FOLDER,//
-				Constant.LABEL_FEATURE_TRIES_ADDED_PER_DOC_FOLDER_SIZE_FILE,//
-				res.featureContainer,//
+				Constant.LABEL_FEATURE_CONTAINERS_ADDED_PER_DOC_FOLDER,//
+				Constant.LABEL_FEATURE_CONTAINERS_ADDED_PER_DOC_FOLDER_SIZE_FILE,//
 				eliminatedId//
 		);
 	}

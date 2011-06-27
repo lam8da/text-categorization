@@ -6,5 +6,5 @@ import core.preprocess.analyzation.interfaces.SimpleContainer;
 public abstract class ContainerGenerator {
 	public abstract FeatureContainer generateFeatureContainer();
 
-	public abstract SimpleContainer generateSimpleContainer();
+	public abstract SimpleContainer generateSimpleContainer(FeatureContainer mapper);
 }
