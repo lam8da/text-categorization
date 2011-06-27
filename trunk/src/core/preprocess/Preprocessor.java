@@ -22,7 +22,6 @@ import core.preprocess.util.Configurator;
 import core.preprocess.util.Constant;
 import core.preprocess.util.XmlDocument;
 import core.preprocess.analyzation.DataAnalyzer;
-import core.preprocess.analyzation.generator.ContainerGenerator;
 import core.preprocess.corpus.Extractor;
 import core.preprocess.corpus.reuters.ReutersExtractor;
 
@@ -34,7 +33,6 @@ import core.preprocess.corpus.reuters.ReutersExtractor;
  */
 public class Preprocessor {
 	private Configurator config;
-	private ContainerGenerator generator;
 
 	/**
 	 * 
@@ -83,7 +81,12 @@ public class Preprocessor {
 				selectMethodId, //
 				generatorId //
 		);
-		this.generator = config.getGenerator();
+		config.getOutputDir().mkdirs();
+		config.getXmlDir().mkdirs();
+		config.getTrainingDir().mkdirs();
+		config.getTestDir().mkdirs();
+		config.getStatisticalDir().mkdirs();
+		config.getOrgStatisticalDir().mkdirs();
 	}
 
 	private void deleteDirectory(File dir) throws IOException {
@@ -143,7 +146,7 @@ public class Preprocessor {
 		System.out.println("training file cnt: " + xmlFiles.length);
 
 		XmlDocument xml = new XmlDocument();
-		DataAnalyzer analyzer = new DataAnalyzer(generator);
+		DataAnalyzer analyzer = new DataAnalyzer();
 
 		System.out.print("passing documents: ");
 		for (int i = 0; i < xmlFiles.length; i++) {
@@ -165,7 +168,7 @@ public class Preprocessor {
 
 	private void featureSelection() throws Exception {
 		System.out.println("------------>start feature selection!");
-		DataAnalyzer analyzer = DataAnalyzer.deserialize(generator, config.getOrgStatisticalDir(), null, false);
+		DataAnalyzer analyzer = DataAnalyzer.deserialize(config.getOrgStatisticalDir(), null, false);
 		FeatureSelector selector = null;
 
 		switch (config.getSelectorId()) {
@@ -225,7 +228,7 @@ public class Preprocessor {
 		}
 		br.close();
 		fr.close();
-		DataAnalyzer analyzer = DataAnalyzer.deserialize(generator, config.getOrgStatisticalDir(), eliminatedId, true);
+		DataAnalyzer analyzer = DataAnalyzer.deserialize(config.getOrgStatisticalDir(), eliminatedId, true);
 
 		analyzer.serialize(config.getStatisticalDir());
 		System.out.println("<------------serialization done!");

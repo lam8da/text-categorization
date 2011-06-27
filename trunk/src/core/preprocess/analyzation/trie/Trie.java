@@ -6,9 +6,11 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.TreeMap;
 import java.util.Vector;
 
+import core.preprocess.analyzation.interfaces.Container;
 import core.preprocess.analyzation.interfaces.FeatureContainer;
 
 public class Trie extends AbstractTrie implements FeatureContainer {
@@ -42,7 +44,9 @@ public class Trie extends AbstractTrie implements FeatureContainer {
 		return new TrieNode(val, child, brother, parent);
 	}
 
+	@Override
 	public int add(String word) throws Exception {
+		if (word == null) throw new Exception("word should not be null!");
 		TrieNode res = (TrieNode) add(word, 1, DO_NOT_RESET);
 		return res.id;
 	}
@@ -66,11 +70,16 @@ public class Trie extends AbstractTrie implements FeatureContainer {
 	 *            the id of the word we want to find
 	 * @return return the word if it exist, or null
 	 */
+	@Override
 	public String getWord(int id) {
 		StringBuffer sb = new StringBuffer(32);
-		//exception may occur here when cur==null due to the missing string for given id!!!!!!
-		for (TrieNode cur = (TrieNode) nodeMap.get(id); cur.parent != null; cur = cur.parent) {
+		TrieNode cur = (TrieNode) nodeMap.get(id);
+		//should exception occur here when cur==null due to the missing string for given id ??
+		if (cur == null) return null;
+		
+		while (cur.parent != null) {
 			sb.append(cur.val);
+			cur = cur.parent;
 		}
 		return sb.reverse().toString();
 	}
@@ -83,6 +92,7 @@ public class Trie extends AbstractTrie implements FeatureContainer {
 	 * @return if the word is not in trie, returns -1, otherwise return the id
 	 *         of the word
 	 */
+	@Override
 	public int getId(String word) {
 		TrieNode tmp = (TrieNode) getNode(word);
 		if (tmp == null) return -1;
@@ -186,6 +196,7 @@ public class Trie extends AbstractTrie implements FeatureContainer {
 		return true;
 	}
 
+	@Override
 	public void serialize(File outFile) throws Exception {
 		StringBuffer sb = new StringBuffer(32);
 		FileWriter fw = new FileWriter(outFile);
@@ -214,7 +225,8 @@ public class Trie extends AbstractTrie implements FeatureContainer {
 		}
 	}
 
-	public void rearrangeId() {
+	@Override
+	public int[] rearrangeId() {
 		this.nodeMap.clear();
 		TrieIterator it = new TrieIterator(this.root);
 		for (int i = 0; it.hasNext(); i++) {
@@ -224,6 +236,7 @@ public class Trie extends AbstractTrie implements FeatureContainer {
 			this.nodeMap.put(i, nc);
 		}
 		//wordCnt and differentWordCnt will not changed
+		return null;
 	}
 
 	/**
@@ -245,10 +258,11 @@ public class Trie extends AbstractTrie implements FeatureContainer {
 	 * @return the new trie
 	 * @throws Exception
 	 */
+	@Override
 	public void deserializeFrom(File inFile, int[] eliminatedId) throws Exception {
 		this.nodeMap.clear();
 		this.clear();
-		
+
 		FileReader fr = new FileReader(inFile);
 		BufferedReader br = new BufferedReader(fr);
 
@@ -269,5 +283,66 @@ public class Trie extends AbstractTrie implements FeatureContainer {
 
 		br.close();
 		fr.close();
+	}
+
+	/**
+	 * find the number of words which is contained in current trie but not in
+	 * "other", or contained in both but the occurrence in current trie is
+	 * greater than that in "other"
+	 * 
+	 * @param other
+	 *            the trie we want to compare to
+	 * @return the difference defined as above
+	 */
+	@Override
+	public int difference(Container otherC) {
+		AbstractTrie other = (AbstractTrie) otherC;
+		Iterator<String> it = this.iterator();
+		if (!it.hasNext()) return 0;
+
+		int diff = 0;
+		Iterator<String> otherIt = other.iterator();
+		String itNext = it.next();
+		String otherItNext = "\0"; //need to be tested
+
+		while (true) {
+			boolean bk = false;
+
+			while (otherItNext.compareTo(itNext) < 0) {
+				if (otherIt.hasNext()) otherItNext = otherIt.next();
+				else {
+					diff++;
+					while (it.hasNext()) {
+						itNext = it.next();
+						diff++;
+					}
+					bk = true;
+					break;
+				}
+			}
+			if (bk) break;
+
+			if (otherItNext.equals(itNext)) {
+				int occurrence = getOccurrence(itNext) - other.getOccurrence(itNext);
+				if (occurrence > 0) diff++;
+			}
+			else diff++;
+
+			if (it.hasNext()) {
+				itNext = it.next();
+			}
+			else break;
+
+			while (itNext.compareTo(otherItNext) < 0) {
+				diff++;
+				if (it.hasNext()) itNext = it.next();
+				else {
+					bk = true;
+					break;
+				}
+			}
+			if (bk) break;
+		}
+		return diff;
 	}
 }

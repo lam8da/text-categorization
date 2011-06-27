@@ -7,7 +7,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.Arrays;
 
-import core.preprocess.analyzation.interfaces.FeatureContainer;
 import core.preprocess.analyzation.interfaces.SimpleContainer;
 
 public class SimpleTrie extends AbstractTrie implements SimpleContainer {
@@ -17,15 +16,21 @@ public class SimpleTrie extends AbstractTrie implements SimpleContainer {
 		}
 	}
 
+	private Trie idMapper;
+
+	public SimpleTrie(Trie mapper) {
+		this.idMapper = mapper;
+	}
+
 	@Override
 	protected AbstractTrieNode createTrieNode(char val, AbstractTrieNode child, AbstractTrieNode brother, AbstractTrieNode parent) {
 		return new SimpleTrieNode(val, child, brother);
-	}	
+	}
 
 	@Override
-	public int add(String word) throws Exception {
+	public void add(String word) throws Exception {
+		if (word == null) throw new Exception("word should not be null!");
 		add(word, 1);
-		return -1;
 	}
 
 	/**
@@ -40,23 +45,24 @@ public class SimpleTrie extends AbstractTrie implements SimpleContainer {
 	 *            to outFile, otherwise the id of each string will be written
 	 * @throws Exception
 	 */
-	public void serialize(File outFile, FeatureContainer mapStringToId) throws Exception {
+	@Override
+	public void serialize(File outFile) throws Exception {
 		StringBuffer sb = new StringBuffer(32);
 		FileWriter fw = new FileWriter(outFile);
 		BufferedWriter bw = new BufferedWriter(fw);
 		bw.write(String.valueOf(this.differentWordCnt));
 		bw.newLine();
-		serializeDfs(root, sb, bw, mapStringToId);
+		serializeDfs(root, sb, bw);
 		bw.flush();
 		bw.close();
 		fw.close();
 	}
 
-	private void serializeDfs(AbstractTrieNode node, StringBuffer sb, BufferedWriter bw, FeatureContainer mapStringToId) throws Exception {
+	private void serializeDfs(AbstractTrieNode node, StringBuffer sb, BufferedWriter bw) throws Exception {
 		for (AbstractTrieNode nc = node.child; nc != null; nc = nc.brother) {
 			sb.append(nc.val);
 			if (nc.occurrence != 0) {
-				int id = mapStringToId.getId(sb.toString());
+				int id = idMapper.getId(sb.toString());
 				if (id == -1) {
 					throw new Exception("serializeDfs: invalid word or bad map!");
 				}
@@ -65,12 +71,13 @@ public class SimpleTrie extends AbstractTrie implements SimpleContainer {
 				bw.write(String.valueOf(nc.occurrence));
 				bw.newLine();
 			}
-			serializeDfs(nc, sb, bw, mapStringToId);
+			serializeDfs(nc, sb, bw);
 			sb.setLength(sb.length() - 1);
 		}
 	}
 
-	public void deserializeFrom(File inFile, FeatureContainer mapIdToString, int[] eliminatedId) throws Exception {
+	@Override
+	public void deserializeFrom(File inFile, int[] eliminatedId) throws Exception {
 		this.clear();
 		FileReader fr = new FileReader(inFile);
 		BufferedReader br = new BufferedReader(fr);
@@ -79,14 +86,14 @@ public class SimpleTrie extends AbstractTrie implements SimpleContainer {
 
 		int n = Integer.parseInt(br.readLine());
 		for (int i = 0; i < n; i++) {
-			String str = br.readLine(); //'string' field
+			String str = br.readLine(); // 'string' field
 
-			int givenId = Integer.parseInt(str); //'string' field
+			int givenId = Integer.parseInt(str); // 'string' field
 			if (eliminatedId != null && Arrays.binarySearch(eliminatedId, givenId) >= 0) {
-				br.readLine();//read occurrence
+				br.readLine();// read occurrence
 				continue;
 			}
-			str = mapIdToString.getWord(givenId); //exception may occur if the trie has no string associate with strId
+			str = this.idMapper.getWord(givenId); // exception may occur if the trie has no string associate with strId
 
 			int occurrence = Integer.parseInt(br.readLine());
 			add(str, occurrence);
@@ -95,4 +102,7 @@ public class SimpleTrie extends AbstractTrie implements SimpleContainer {
 		br.close();
 		fr.close();
 	}
+
+	@Override
+	public void rearrangeId(int[] idConvertor) {}
 }

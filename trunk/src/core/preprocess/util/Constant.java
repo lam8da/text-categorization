@@ -69,19 +69,19 @@ public final class Constant {
 
 	//filenames for DataHolder to serialize
 	public static final String DOC_LABELS_FILE = "docLabels.dat";
-	public static final String FEATURE_TRIE_FILE = "featureTrie.dat";
-	public static final String FEATURE_TRIE_ADDED_PER_DOC_FILE = "featureTrieAddedPerDoc.dat";
+	public static final String FEATURE_CONTAINER_FILE = "featureContainer.dat";
+	public static final String FEATURE_CONTAINER_ADDED_PER_DOC_FILE = "featureContainerAddedPerDoc.dat";
 
-	public static final String DOCUMENT_TRIES_FOLDER = "documentTries";
-	public static final String DOCUMENT_TRIES_FOLDER_SIZE_FILE = "documentTries.meta";
+	public static final String DOCUMENT_CONTAINERS_FOLDER = "documentContainers";
+	public static final String DOCUMENT_CONTAINERS_FOLDER_SIZE_FILE = "documentContainers.meta";
 
-	public static final String LABEL_NAME_TRIE_FILE = "labelNameTrie.dat";
+	public static final String LABEL_NAME_CONTAINER_FILE = "labelNameContainer.dat";
 
-	public static final String LABEL_FEATURE_TRIES_FOLDER = "labelFeatureTries";
-	public static final String LABEL_FEATURE_TRIES_FOLDER_SIZE_FILE = "labelFeatureTries.meta";
+	public static final String LABEL_FEATURE_CONTAINERS_FOLDER = "labelFeatureContainers";
+	public static final String LABEL_FEATURE_CONTAINERS_FOLDER_SIZE_FILE = "labelFeatureContainers.meta";
 
-	public static final String LABEL_FEATURE_TRIES_ADDED_PER_DOC_FOLDER = "labelFeatureTriesAddedPerDoc";
-	public static final String LABEL_FEATURE_TRIES_ADDED_PER_DOC_FOLDER_SIZE_FILE = "labelFeatureTriesAddedPerDoc.meta";
+	public static final String LABEL_FEATURE_CONTAINERS_ADDED_PER_DOC_FOLDER = "labelFeatureContainersAddedPerDoc";
+	public static final String LABEL_FEATURE_CONTAINERS_ADDED_PER_DOC_FOLDER_SIZE_FILE = "labelFeatureContainersAddedPerDoc.meta";
 
 	//preprosessing stage id
 	public static final int STAGE_EXTRACTION = 0;

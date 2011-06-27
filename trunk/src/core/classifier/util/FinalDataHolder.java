@@ -4,18 +4,17 @@ import java.io.File;
 import java.util.Vector;
 
 import core.preprocess.analyzation.DataHolder;
-import core.preprocess.analyzation.generator.ContainerGenerator;
 
 public final class FinalDataHolder extends DataHolder {
-	private FinalDataHolder(ContainerGenerator g) {
-		super(g);
+	private FinalDataHolder() throws Exception {
+		super();
 		this.V_not_ci = new Vector<Integer>(256);
 		this.V_not_dj = new Vector<Integer>(16384);
 		this.M_tk = new Vector<Integer>(8192);
 	}
 
-	public static FinalDataHolder deserialize(ContainerGenerator g, File inputDir) throws Exception {
-		FinalDataHolder res = new FinalDataHolder(g);
+	public static FinalDataHolder deserialize(File inputDir) throws Exception {
+		FinalDataHolder res = new FinalDataHolder();
 		deserialize(res, inputDir, null);
 		res.finalizeData();
 		return res;

@@ -13,7 +13,7 @@ public class TrieGenerator extends ContainerGenerator {
 	}
 
 	@Override
-	public SimpleContainer generateSimpleContainer() {
-		return new SimpleTrie();
+	public SimpleContainer generateSimpleContainer(FeatureContainer mapper) {
+		return new SimpleTrie((Trie) mapper);
 	}
 }
