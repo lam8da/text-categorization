@@ -2,14 +2,9 @@ file cnt: 8
 
 ******************************** basic information ********************************
 getDocLabels:
-docId = 0: c2,
-docId = 1: c3,
-docId = 2: c1,c3,
-docId = 3: c1,
-docId = 4: c1,c2,
-docId = 5: c2,c3,
-docId = 6: c1,c2,c3,
-docId = 7: c2,
+labelId = 0 (c2): doc0,doc4,doc5,doc6,doc7,
+labelId = 1 (c3): doc1,doc2,doc5,doc6,
+labelId = 2 (c1): doc2,doc3,doc4,doc6,
 ---------------------------------------------
 getFeatureId:
 A: 0

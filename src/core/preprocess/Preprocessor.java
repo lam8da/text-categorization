@@ -8,6 +8,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import core.Configurator;
+import core.Constant;
 import core.preprocess.extraction.Stemmer;
 import core.preprocess.extraction.KrovetzStemmer;
 import core.preprocess.extraction.PorterStemmer;
@@ -18,8 +20,6 @@ import core.preprocess.selection.DFFeatureSelector;
 import core.preprocess.selection.IGFeatureSelector;
 import core.preprocess.selection.MIFeatureSelector;
 import core.preprocess.selection.WFFeatureSelector;
-import core.preprocess.util.Configurator;
-import core.preprocess.util.Constant;
 import core.preprocess.util.XmlDocument;
 import core.preprocess.analyzation.DataAnalyzer;
 import core.preprocess.corpus.Extractor;
@@ -81,6 +81,16 @@ public class Preprocessor {
 				selectMethodId, //
 				generatorId //
 		);
+		mkdirs();
+	}
+
+	public Preprocessor(File configFile) throws Exception {
+		config = Configurator.getConfigurator();
+		config.deserializeFrom(configFile);
+		mkdirs();
+	}
+
+	private void mkdirs() throws Exception {
 		config.getOutputDir().mkdirs();
 		config.getXmlDir().mkdirs();
 		config.getTrainingDir().mkdirs();

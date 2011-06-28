@@ -1,8 +1,7 @@
-package core.preprocess.util;
+package core;
 
 /**
- * this class provide some constants which may be useful in the procedure of
- * preprocessing
+ * this class provide some constants which may be useful in the whole procedure
  * 
  * @author lambda
  * 
@@ -88,11 +87,14 @@ public final class Constant {
 	public static final int STAGE_ANALYZATION = 1;
 	public static final int STAGE_FEATURE_SELECTION = 2;
 	public static final int STAGE_SERIALIZATION = 3;
-	
+
 	//for generator
 	public static final int TRIE_GENERATOR = 1;
 	public static final int MAP_GENERATOR = 2;
-	
+
 	//for configurator
-	public static String CONFIG_FILENAME = "config.txt";
+	public static final String CONFIG_FILENAME = "config.txt";
+
+	// for classifier selection
+	public static final int TWCNB = 1;
 }

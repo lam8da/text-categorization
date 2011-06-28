@@ -6,16 +6,16 @@ import java.io.FileReader;
 import java.util.Iterator;
 import java.util.Vector;
 
+import core.Configurator;
+import core.Constant;
 import core.preprocess.analyzation.generator.ContainerGenerator;
 import core.preprocess.analyzation.interfaces.FeatureContainer;
 import core.preprocess.analyzation.interfaces.SimpleContainer;
-import core.preprocess.util.Configurator;
-import core.preprocess.util.Constant;
 
 public class DataHolder {
 	protected ContainerGenerator generator;
 	protected int docCnt; //equal to documentTries.size()
-	protected Vector<String[]> docLabels;
+	protected Vector<Vector<Integer>> docIdsPerLabel;
 	protected FeatureContainer featureContainer; //features
 	protected SimpleContainer featureAddedPerDoc; //one feature will only be added once for each document containing that feature
 	protected Vector<SimpleContainer> documentContainers; //features per document
@@ -37,7 +37,7 @@ public class DataHolder {
 	protected DataHolder() throws Exception {
 		this.generator = Configurator.getConfigurator().getGenerator();
 		this.docCnt = 0;
-		this.docLabels = new Vector<String[]>();
+		this.docIdsPerLabel = new Vector<Vector<Integer>>();
 		this.featureContainer = this.generator.generateFeatureContainer();
 		this.featureAddedPerDoc = this.generator.generateSimpleContainer(this.featureContainer);
 		this.labelFeatureContainersAddedPerDoc = new Vector<SimpleContainer>(256);
@@ -75,13 +75,14 @@ public class DataHolder {
 		FileReader fr = new FileReader(docLabelFile);
 		BufferedReader br = new BufferedReader(fr);
 		res.docCnt = Integer.parseInt(br.readLine());
-		for (int i = 0; i < res.docCnt; i++) {
+		int labelCnt = Integer.parseInt(br.readLine());
+		for (int i = 0; i < labelCnt; i++) {
 			int lLength = Integer.parseInt(br.readLine());
-			String[] l = new String[lLength];
+			Vector<Integer> l = new Vector<Integer>(lLength);
 			for (int j = 0; j < lLength; j++) {
-				l[j] = br.readLine();
+				l.add(Integer.parseInt(br.readLine()));
 			}
-			res.docLabels.add(l);
+			res.docIdsPerLabel.add(l);
 		}
 		br.close();
 		fr.close();
@@ -120,8 +121,8 @@ public class DataHolder {
 
 	/************************************ meta data ************************************/
 
-	public String[] getDocLabels(int docId) {
-		return this.docLabels.get(docId);
+	public Vector<Integer> getDocIdsByLabel(int labelId) {
+		return this.docIdsPerLabel.get(labelId);
 	}
 
 	public int getFeatureId(String feature) {

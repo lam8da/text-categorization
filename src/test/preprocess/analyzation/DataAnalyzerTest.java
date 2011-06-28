@@ -4,24 +4,24 @@ import java.io.File;
 import java.io.FileFilter;
 import java.util.Arrays;
 
+import core.Configurator;
+import core.Constant;
 import core.preprocess.analyzation.DataAnalyzer;
-import core.preprocess.util.Configurator;
-import core.preprocess.util.Constant;
 import core.preprocess.util.XmlDocument;
 
 public class DataAnalyzerTest extends DataHolderTest {
 	// the content of the being tested documents is as follows:
 	// --------------------------------------
-	// | labels | docId | features |
+	// | -labels- | docId | -features-- |
 	// --------------------------------------
-	// | c1 | 3 | A B D E E |
-	// | c2 | 0 | B E E |
-	// | c1,c2 | 4 | C E E |
-	// | c2 | 7 | D E E |
-	// | c3 | 1 | C E E |
-	// | c1,c3 | 2 | C E E |
-	// | c2,c3 | 5 | D E E |
-	// | c1,c2,c3 | 6 | D E E |
+	// | ---c1--- | --3-- | A B - D E E |
+	// | ---c2--- | --0-- | - B - - E E |
+	// | --c1,c2- | --4-- | - - C - E E |
+	// | ---c2--- | --7-- | - - - D E E |
+	// | ---c3--- | --1-- | - - C - E E |
+	// | --c1,c3- | --2-- | - - C - E E |
+	// | --c2,c3- | --5-- | - - - D E E |
+	// | c1,c2,c3 | --6-- | - - - D E E |
 	// --------------------------------------
 
 	public int fileCnt = 0;
