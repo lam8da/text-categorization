@@ -1,11 +1,14 @@
 package core.classifier.twcnb;
 
-import core.classifier.util.FinalDataHolder;
-import core.classifier.util.Trainer;
+import java.io.File;
+import java.util.Arrays;
+import java.util.Vector;
 
-public class TWCNBayes implements Trainer {
+import core.classifier.util.FinalDataHolder;
+import core.classifier.util.Classifier;
+
+public class TWCNBayes implements Classifier {
 	private FinalDataHolder dataHolder;
-	private double[][] dtWeight;
 	private double[][] ctWeight;
 	private int documentCnt;
 	private int labelCnt;
@@ -16,11 +19,11 @@ public class TWCNBayes implements Trainer {
 		this.documentCnt = dataHolder.getN();
 		this.labelCnt = dataHolder.getLabelCnt();
 		this.featureCnt = dataHolder.getFeatureCnt();
-		this.dtWeight = new double[documentCnt][featureCnt];
 		this.ctWeight = new double[labelCnt][featureCnt];
 	}
 
 	public void train() {
+		double[][] dtWeight = new double[documentCnt][featureCnt]; // the document-term matrix
 		for (int docId = 0; docId < documentCnt; docId++) {
 			for (int featureId = 0; featureId < featureCnt; featureId++) {
 				double dkj = dataHolder.getW_dj_tk(docId, featureId);
@@ -39,13 +42,69 @@ public class TWCNBayes implements Trainer {
 				dtWeight[docId][featureId] /= sum;
 			}
 		}
-		for (int labelId = 0; labelId < labelCnt; labelId++) {
 
+		double[] rowSum = new double[documentCnt];
+		double[] columnSum = new double[featureCnt];
+		double dtWeightSum = 0;
+		Arrays.fill(rowSum, 0);
+		Arrays.fill(columnSum, 0);
+		for (int docId = 0; docId < documentCnt; docId++) {
+			for (int featureId = 0; featureId < featureCnt; featureId++) {
+				double tmp = dtWeight[docId][featureId];
+				rowSum[docId] += tmp;
+				columnSum[featureId] += tmp;
+				dtWeightSum += tmp;
+			}
+		}
+
+		double alpha_i = 1;
+		double alpha = featureCnt;
+		for (int labelId = 0; labelId < labelCnt; labelId++) {
+			Vector<Integer> l = dataHolder.getDocIdsByLabel(labelId);
+			int lsize = l.size();
+			double denominator = dtWeightSum + alpha;
+			for (int i = 0; i < lsize; i++) {
+				denominator -= rowSum[l.get(i)];
+			}
+			for (int featureId = 0; featureId < featureCnt; featureId++) {
+				double numerator = columnSum[featureId] + alpha_i;
+				for (int i = 0; i < lsize; i++) {
+					numerator -= dtWeight[l.get(i)][featureId];
+				}
+				ctWeight[labelId][featureId] = Math.log(numerator / denominator);
+			}
+		}
+
+		for (int labelId = 0; labelId < labelCnt; labelId++) {
+			double s = 0;
+			for (int featureId = 0; featureId < featureCnt; featureId++) {
+				s += ctWeight[labelId][featureId];
+			}
+			for (int featureId = 0; featureId < featureCnt; featureId++) {
+				ctWeight[labelId][featureId] /= s;
+			}
 		}
 	}
 
-	public double calculateW_ci_tk(int labelId, int featureId) {
-		double ans = 0;
+	@Override
+	public int classify(String[] titleFeatures, String[] contentFeatures) {
+		// we regard the features in the title and the content the same
+		double mins = Double.MAX_VALUE;
+		int ans = -1;
+		for (int i = 0; i < labelCnt; i++) {
+			double s = 0;
+			for (int j = 0; j < titleFeatures.length; j++) {
+				int id = dataHolder.getFeatureId(titleFeatures[i]);
+				if (id != -1) s += ctWeight[i][id];
+			}
+			if (s < mins) {
+				mins = s;
+				ans = i;
+			}
+		}
 		return ans;
 	}
+
+	@Override
+	public void serialize(File outputDir) throws Exception {}
 }

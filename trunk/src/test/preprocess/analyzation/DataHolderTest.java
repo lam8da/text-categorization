@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Vector;
 
 import core.preprocess.analyzation.DataHolder;
 
@@ -68,11 +69,11 @@ public abstract class DataHolderTest {
 	public void testBasicInformation(StringBuffer sb) {
 		sb.append("getDocLabels:");
 		sb.append("\r\n");
-		for (int i = 0; i < docCnt; i++) {
-			String[] l = holder.getDocLabels(i);
-			sb.append("docId = " + i + ": ");
-			for (int j = 0; j < l.length; j++) {
-				sb.append(l[j] + ",");
+		for (int i = 0; i < labelCnt; i++) {
+			Vector<Integer> l = holder.getDocIdsByLabel(i);
+			sb.append("labelId = " + i + " (" + holder.getLabel(i) + "): ");
+			for (int j = 0; j < l.size(); j++) {
+				sb.append("doc" + l.get(j) + ",");
 			}
 			sb.append("\r\n");
 		}

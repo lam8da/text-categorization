@@ -4,11 +4,12 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.util.HashSet;
+import java.util.Vector;
 
+import core.Configurator;
+import core.Constant;
 import core.preprocess.analyzation.generator.ContainerGenerator;
 import core.preprocess.analyzation.interfaces.SimpleContainer;
-import core.preprocess.util.Configurator;
-import core.preprocess.util.Constant;
 
 /**
  * this class provide a tool for analyzing the document data and generating
@@ -46,17 +47,13 @@ public class DataAnalyzer extends DataHolder {
 	 */
 	public void addDocument(String[] labels, String[] titleFeatures, String[] contentFeatures) throws Exception {
 		this.docCnt++;
-		this.docLabels.add(labels);
 		int[] labelIds = new int[labels.length];
 
-		// we ignore the specialness of the title and treat it as normal
-		// document content at present
+		// we ignore the specialness of the title and treat it as normal document content at present
 		String[] ptr = new String[titleFeatures.length + contentFeatures.length];
 		int copyIdx;
-		for (copyIdx = 0; copyIdx < titleFeatures.length; ptr[copyIdx] = titleFeatures[copyIdx], copyIdx++)
-			;
-		for (; copyIdx < titleFeatures.length + contentFeatures.length; ptr[copyIdx] = contentFeatures[copyIdx - titleFeatures.length], copyIdx++)
-			;
+		for (copyIdx = 0; copyIdx < titleFeatures.length; ptr[copyIdx] = titleFeatures[copyIdx], copyIdx++);
+		for (; copyIdx < titleFeatures.length + contentFeatures.length; ptr[copyIdx] = contentFeatures[copyIdx - titleFeatures.length], copyIdx++);
 
 		int labelNameContainerSize = this.labelNameContainer.size();
 		for (int i = 0; i < labels.length; i++) {
@@ -67,14 +64,19 @@ public class DataAnalyzer extends DataHolder {
 				labelNameContainerSize++;
 				this.labelFeatureContainersAddedPerDoc.add(this.cg.generateSimpleContainer(featureContainer));
 				this.labelFeatureContainers.add(this.cg.generateSimpleContainer(featureContainer));
+				this.docIdsPerLabel.add(new Vector<Integer>());
 
+				if (labelId != labelNameContainerSize - 1) {
+					throw new Exception("fatal error occurs in program logic 1!");
+				}
 				if (this.labelFeatureContainersAddedPerDoc.size() != this.labelNameContainer.size()) {
-					throw new Exception("fatal error occurs in program logic!");
+					throw new Exception("fatal error occurs in program logic 2!");
 				}
 				if (this.labelFeatureContainers.size() != this.labelNameContainer.size()) {
-					throw new Exception("fatal error occurs in program logic!");
+					throw new Exception("fatal error occurs in program logic 3!");
 				}
 			}
+			this.docIdsPerLabel.get(labelId).add(this.docCnt - 1);
 		}
 
 		SimpleContainer docContainer = this.cg.generateSimpleContainer(featureContainer);
@@ -122,12 +124,15 @@ public class DataAnalyzer extends DataHolder {
 		bw = new BufferedWriter(fw);
 		bw.write(String.valueOf(docCnt));
 		bw.newLine();
-		for (int i = 0; i < docCnt; i++) {
-			String[] l = this.docLabels.get(i);
-			bw.write(String.valueOf(l.length));
+		int labelCnt = getM();
+		bw.write(String.valueOf(labelCnt));
+		bw.newLine();
+		for (int i = 0; i < labelCnt; i++) {
+			Vector<Integer> l = this.docIdsPerLabel.get(i);
+			bw.write(String.valueOf(l.size()));
 			bw.newLine();
-			for (int j = 0; j < l.length; j++) {
-				bw.write(l[j]);
+			for (int j = 0; j < l.size(); j++) {
+				bw.write(String.valueOf(l.get(j)));
 				bw.newLine();
 			}
 		}

@@ -1,7 +1,7 @@
 package test.preprocess;
 
+import core.Constant;
 import core.preprocess.Preprocessor;
-import core.preprocess.util.Constant;
 
 public class PreprocessorTest {
 	/**

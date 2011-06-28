@@ -2,8 +2,8 @@ package core.preprocess.selection;
 
 import java.util.Vector;
 
+import core.Constant;
 import core.preprocess.analyzation.DataAnalyzer;
-import core.preprocess.util.Constant;
 import core.preprocess.util.KmppOneDimension;
 
 public abstract class FeatureSelector {

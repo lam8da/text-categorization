@@ -11,7 +11,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.lang.CharSequence;
 
-import core.preprocess.util.Constant;
+import core.Constant;
 import core.preprocess.util.XmlDocument;
 import core.preprocess.corpus.Extractor;
 
