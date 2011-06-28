@@ -72,16 +72,14 @@ public class DataAnalyzerTest extends DataHolderTest {
 				true, //
 				1, //
 				1, //
-				Constant.TRIE_GENERATOR //
+				Constant.MAP_GENERATOR //
 		);
+
+		// ------------------------------------------------------------------------------------------//
 
 		File stdout = new File("res/test/DataAnalyzerTest/standard output.txt");
 		StringBuffer stdSb = new StringBuffer();
 		readIntoSb(stdout, stdSb);
-
-		File stdoutE = new File("res/test/DataAnalyzerTest/standard output (eliminated).txt");
-		StringBuffer stdSbE = new StringBuffer();
-		readIntoSb(stdoutE, stdSbE);
 
 		StringBuffer holderSb = new StringBuffer();
 		DataAnalyzerTest daTest = new DataAnalyzerTest("res/test/DataAnalyzerTest");
@@ -103,15 +101,18 @@ public class DataAnalyzerTest extends DataHolderTest {
 		dir.mkdirs();
 
 		((DataAnalyzer) daTest.holder).serialize(dir);
-
 		DataAnalyzer ana = DataAnalyzer.deserialize(dir, new int[] { 1 }, true);
 		daTest.holder = ana;
 		daTest.featureCnt = 4;
-		daTest.features = new String[] { "A", "B", "C", "D" }; // their IDs are
-																// 0,1,2,3
-		daTest.labels = new String[] { "c2", "c3", "c1" }; // their IDs are
-															// 0,1,2
+		daTest.features = new String[] { "A", "B", "C", "D" }; // their IDs are 0,1,2,3
+		daTest.labels = new String[] { "c2", "c3", "c1" }; // their IDs are 0,1,2
 		daTest.separatedLine = "---------------------------------------------";
+
+		// ------------------------------------------------------------------------------------------//
+
+		File stdoutE = new File("res/test/DataAnalyzerTest/standard output (eliminated).txt");
+		StringBuffer stdSbE = new StringBuffer();
+		readIntoSb(stdoutE, stdSbE);
 
 		StringBuffer analyzerSb = new StringBuffer();
 		analyzerSb.append("file cnt: " + daTest.fileCnt).append("\r\n");

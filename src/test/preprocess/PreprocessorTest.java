@@ -26,7 +26,7 @@ public class PreprocessorTest {
 				true, //numToConst
 				Constant.WF_SELECTOR, //selectorId
 				Constant.FEATURE_SELECTION_MAXSELECTION, //selectMethodId
-				Constant.TRIE_GENERATOR //generatorId
+				Constant.TRIE_GENERATOR //generatorId, Constant.MAP_GENERATOR needs to be tested
 		);
 		p.preprocess(Constant.STAGE_EXTRACTION, Constant.STAGE_FEATURE_SELECTION);
 		p.preprocess(Constant.STAGE_SERIALIZATION, Constant.STAGE_SERIALIZATION);

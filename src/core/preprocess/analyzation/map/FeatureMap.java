@@ -37,7 +37,7 @@ public class FeatureMap implements FeatureContainer {
 		differentWordCnt = 0;
 	}
 
-	private WordInfo add(String word, int times) throws Exception {
+	private WordInfo add(String word, int times, boolean addToIdMap) throws Exception {
 		if (times <= 0) throw new Exception("times should be greater than 0!");
 		WordInfo info;
 		if (hmap.containsKey(word)) {
@@ -51,23 +51,20 @@ public class FeatureMap implements FeatureContainer {
 			hmap.put(word, info);
 		}
 		wordCnt += times;
-		idMap.put(info.id, word);
+		if (addToIdMap) idMap.put(info.id, word);
 		return info;
 	}
 
 	private void add(String word, int times, int newId) throws Exception {
-		WordInfo info = add(word, times);
-		if (info.id != newId) {
-			idMap.remove(info.id);
-			idMap.put(newId, word);
-			info.id = newId;
-		}
+		WordInfo info = add(word, times, false);
+		idMap.put(newId, word);
+		info.id = newId;
 	}
 
 	@Override
 	public int add(String word) throws Exception {
 		if (word == null) throw new Exception("word should not be null!");
-		return add(word, 1).id;
+		return add(word, 1, true).id;
 	}
 
 	@Override
@@ -90,8 +87,15 @@ public class FeatureMap implements FeatureContainer {
 
 	@Override
 	public int difference(Container other) {
-
-		return 0;
+		int ans = 0;
+		Set<String> set = hmap.keySet();
+		for (Iterator<String> it = set.iterator(); it.hasNext();) {
+			String str = it.next();
+			WordInfo info = hmap.get(str);
+			int otherCnt = other.getOccurrence(str);
+			if (info.cnt > otherCnt) ans++;
+		}
+		return ans;
 	}
 
 	@Override
