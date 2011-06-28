@@ -39,7 +39,7 @@ public class FinalDataHolderTest extends DataHolderTest {
 				true, //
 				1, //
 				1, //
-				Constant.TRIE_GENERATOR //
+				Constant.MAP_GENERATOR //
 		);
 
 		File stdout = new File("res/test/DataAnalyzerTest/standard output.txt");
