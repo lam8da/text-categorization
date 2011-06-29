@@ -1,18 +1,18 @@
-package test.classifier.twcnb;
+package test.evaluation;
 
 import java.io.File;
 
-import core.classifier.ClassifierTrainer;
+import core.evaluation.Evaluator;
 import core.util.Constant;
 
-public class TWCNBayesTest {
+public class EvaluatorTest {
 	public static void main(String[] args) throws Exception {
 		if (args.length != 1) {
 			System.out.println("invalid parameters!");
 			return;
 		}
 
-		ClassifierTrainer trainer = new ClassifierTrainer(new File(args[0]));
-		trainer.train(Constant.TWCNB);
+		Evaluator evaluator = new Evaluator(new File(args[0]));
+		evaluator.evaluate(Constant.TWCNB);
 	}
 }

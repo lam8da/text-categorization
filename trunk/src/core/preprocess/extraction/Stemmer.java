@@ -1,6 +1,6 @@
 package core.preprocess.extraction;
 
-import core.Constant;
+import core.util.Constant;
 
 public abstract class Stemmer {
 	public abstract String stem(String str, boolean toLower);

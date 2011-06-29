@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.Vector;
 import java.util.HashMap;
 
-import core.Constant;
+import core.util.Constant;
 
 public class BadWordHandler {
 	private static final String[] VERB_ABBR = {	//verb abbreviations

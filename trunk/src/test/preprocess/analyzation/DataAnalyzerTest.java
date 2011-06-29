@@ -4,10 +4,10 @@ import java.io.File;
 import java.io.FileFilter;
 import java.util.Arrays;
 
-import core.Configurator;
-import core.Constant;
 import core.preprocess.analyzation.DataAnalyzer;
 import core.preprocess.util.XmlDocument;
+import core.util.Configurator;
+import core.util.Constant;
 
 public class DataAnalyzerTest extends DataHolderTest {
 	// the content of the being tested documents is as follows:

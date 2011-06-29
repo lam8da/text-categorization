@@ -2,9 +2,9 @@ package core.preprocess.selection;
 
 import java.util.Vector;
 
-import core.Constant;
 import core.preprocess.analyzation.DataAnalyzer;
 import core.preprocess.util.KmppOneDimension;
+import core.util.Constant;
 
 public abstract class FeatureSelector {
 	public static final int INTERACTION = 2000;

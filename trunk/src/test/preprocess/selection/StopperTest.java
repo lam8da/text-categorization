@@ -1,7 +1,7 @@
 package test.preprocess.selection;
 
-import core.Constant;
 import core.preprocess.selection.Stopper;
+import core.util.Constant;
 
 public class StopperTest {
 	public static void main(String[] args) throws Exception {

@@ -8,8 +8,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import core.Configurator;
-import core.Constant;
 import core.preprocess.extraction.Stemmer;
 import core.preprocess.extraction.KrovetzStemmer;
 import core.preprocess.extraction.PorterStemmer;
@@ -24,6 +22,8 @@ import core.preprocess.util.XmlDocument;
 import core.preprocess.analyzation.DataAnalyzer;
 import core.preprocess.corpus.Extractor;
 import core.preprocess.corpus.reuters.ReutersExtractor;
+import core.util.Configurator;
+import core.util.Constant;
 
 /**
  * this class provide a tool for the whole procedure of propressing
@@ -92,6 +92,11 @@ public class Preprocessor {
 
 	private void mkdirs() throws Exception {
 		config.getOutputDir().mkdirs();
+		
+		System.out.println("Deleting all files in " + config.getOutputDir());
+		deleteDirectory(config.getOutputDir());
+		
+		config.serialize(config.getOutputDir());
 		config.getXmlDir().mkdirs();
 		config.getTrainingDir().mkdirs();
 		config.getTestDir().mkdirs();
@@ -116,8 +121,6 @@ public class Preprocessor {
 
 	private void extraction() throws Exception {
 		System.out.println("------------>start extraction!");
-		System.out.println("Deleting all files in " + config.getXmlDir());
-		deleteDirectory(config.getXmlDir());
 
 		Extractor extractor = null;
 		Stopper stopper = null;

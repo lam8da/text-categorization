@@ -1,7 +1,7 @@
 package test.preprocess;
 
-import core.Constant;
 import core.preprocess.Preprocessor;
+import core.util.Constant;
 
 public class PreprocessorTest {
 	/**
@@ -26,7 +26,7 @@ public class PreprocessorTest {
 				true, //numToConst
 				Constant.WF_SELECTOR, //selectorId
 				Constant.FEATURE_SELECTION_MAXSELECTION, //selectMethodId
-				Constant.TRIE_GENERATOR //generatorId, Constant.MAP_GENERATOR needs to be tested
+				Constant.MAP_GENERATOR //generatorId
 		);
 		p.preprocess(Constant.STAGE_EXTRACTION, Constant.STAGE_FEATURE_SELECTION);
 		p.preprocess(Constant.STAGE_SERIALIZATION, Constant.STAGE_SERIALIZATION);

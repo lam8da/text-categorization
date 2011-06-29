@@ -11,9 +11,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.lang.CharSequence;
 
-import core.Constant;
 import core.preprocess.util.XmlDocument;
 import core.preprocess.corpus.Extractor;
+import core.util.Constant;
 
 //Split the Reuters SGML documents into Simple Text files containing: Label, Title, Content
 public class ReutersExtractor extends Extractor {

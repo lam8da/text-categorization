@@ -2,9 +2,9 @@ package test.preprocess.corpus.reuters;
 
 import java.io.File;
 
-import core.Constant;
 import core.preprocess.corpus.Extractor;
 import core.preprocess.corpus.reuters.ReutersExtractor;
+import core.util.Constant;
 
 public class ExtractReutersTest {
 	public static void main(String[] args) throws Exception {
