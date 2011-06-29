@@ -2,21 +2,30 @@ package core.classifier;
 
 import java.io.File;
 
-import core.Configurator;
-import core.Constant;
 import core.classifier.twcnb.TWCNBayes;
 import core.classifier.util.Classifier;
 import core.classifier.util.FinalDataHolder;
+import core.util.Configurator;
+import core.util.Constant;
 
 public class ClassifierTrainer {
 	private FinalDataHolder dataHolder;
 
+	/**
+	 * constructor
+	 * 
+	 * @param inputDir
+	 *            the output dir of preprocessor (or the folder containing the
+	 *            configuration file)
+	 * @throws Exception
+	 */
 	public ClassifierTrainer(File inputDir) throws Exception {
 		File iniFile = new File(inputDir, Constant.CONFIG_FILENAME);
 		Configurator config = Configurator.getConfigurator();
 		config.deserializeFrom(iniFile);
 
-		dataHolder = FinalDataHolder.deserialize(inputDir); //must be done after the configurator is initialized
+		System.out.println("deserializing dataHolder...");
+		dataHolder = FinalDataHolder.deserialize(config.getStatisticalDir()); //must be done after the configurator is initialized
 	}
 
 	public void train(int classifierId) throws Exception {
@@ -26,7 +35,10 @@ public class ClassifierTrainer {
 			trainer = new TWCNBayes(dataHolder);
 			break;
 		}
-		
+
+		System.out.println("training...");
 		trainer.train();
+		System.out.println("serializing the result...");
+		trainer.serialize();
 	}
 }

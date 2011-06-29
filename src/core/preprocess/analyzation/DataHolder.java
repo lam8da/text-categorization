@@ -6,11 +6,11 @@ import java.io.FileReader;
 import java.util.Iterator;
 import java.util.Vector;
 
-import core.Configurator;
-import core.Constant;
 import core.preprocess.analyzation.generator.ContainerGenerator;
 import core.preprocess.analyzation.interfaces.FeatureContainer;
 import core.preprocess.analyzation.interfaces.SimpleContainer;
+import core.util.Configurator;
+import core.util.Constant;
 
 public class DataHolder {
 	protected ContainerGenerator generator;

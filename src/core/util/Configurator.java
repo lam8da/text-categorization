@@ -1,4 +1,4 @@
-package core;
+package core.util;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -85,7 +85,7 @@ public class Configurator {
 		this.timeToConst = timeToConst;
 		this.numToConst = numToConst;
 
-		serialize();
+		//serialize(this.outputDir);
 		isReady = true;
 	}
 
@@ -164,9 +164,9 @@ public class Configurator {
 		}
 	}
 
-	private void serialize() throws Exception {
+	public void serialize(File outDir) throws Exception {
 		// just for recording
-		File iniFile = new File(this.outputDir, Constant.CONFIG_FILENAME);
+		File iniFile = new File(outDir, Constant.CONFIG_FILENAME);
 		FileWriter fw = new FileWriter(iniFile);
 		BufferedWriter bw = new BufferedWriter(fw);
 

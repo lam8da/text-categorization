@@ -1,9 +1,9 @@
-package test.preprocess.util;
+package test.util;
 
 import java.io.File;
 
-import core.Configurator;
-import core.Constant;
+import core.util.Configurator;
+import core.util.Constant;
 
 public class ConfiguratorTest {
 	public static void main(String[] args) throws Exception {

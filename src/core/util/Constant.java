@@ -1,4 +1,4 @@
-package core;
+package core.util;
 
 /**
  * this class provide some constants which may be useful in the whole procedure
@@ -97,4 +97,8 @@ public final class Constant {
 
 	// for classifier selection
 	public static final int TWCNB = 1;
+	
+	// for classifier output
+	public static final String TWCNB_FOLDER = "twcnb";
+	public static final String TWCNB_CLASS_TERM_WEIGHT_FILE = "ctWeight.dat";
 }

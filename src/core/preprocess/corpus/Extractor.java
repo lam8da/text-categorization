@@ -6,10 +6,10 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.Vector;
 
-import core.Constant;
 import core.preprocess.extraction.Stemmer;
 import core.preprocess.selection.Stopper;
 import core.preprocess.corpus.BadWordHandler;
+import core.util.Constant;
 
 public abstract class Extractor {
 	protected int splitting;

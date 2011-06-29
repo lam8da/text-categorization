@@ -2,9 +2,9 @@ package test.classifier.util;
 
 import java.io.File;
 
-import core.Configurator;
-import core.Constant;
 import core.preprocess.analyzation.DataAnalyzer;
+import core.util.Configurator;
+import core.util.Constant;
 import core.classifier.util.FinalDataHolder;
 
 import test.preprocess.analyzation.DataAnalyzerTest;

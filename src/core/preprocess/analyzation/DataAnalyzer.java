@@ -6,10 +6,10 @@ import java.io.FileWriter;
 import java.util.HashSet;
 import java.util.Vector;
 
-import core.Configurator;
-import core.Constant;
 import core.preprocess.analyzation.generator.ContainerGenerator;
 import core.preprocess.analyzation.interfaces.SimpleContainer;
+import core.util.Configurator;
+import core.util.Constant;
 
 /**
  * this class provide a tool for analyzing the document data and generating
