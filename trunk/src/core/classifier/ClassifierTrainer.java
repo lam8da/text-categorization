@@ -10,27 +10,28 @@ import core.util.Constant;
 
 public class ClassifierTrainer {
 	private FinalDataHolder dataHolder;
+	private Configurator config;
 
-	/**
-	 * constructor
-	 * 
-	 * @param inputDir
-	 *            the output dir of preprocessor (or the folder containing the
-	 *            configuration file)
-	 * @throws Exception
-	 */
-	public ClassifierTrainer(File inputDir) throws Exception {
-		File iniFile = new File(inputDir, Constant.CONFIG_FILENAME);
-		Configurator config = Configurator.getConfigurator();
-		config.deserializeFrom(iniFile);
-
-		System.out.println("deserializing dataHolder...");
-		dataHolder = FinalDataHolder.deserialize(config.getStatisticalDir()); //must be done after the configurator is initialized
+	public ClassifierTrainer() throws Exception {
+		config = Configurator.getConfigurator();
+		deserializeDataHolder();
 	}
 
-	public void train(int classifierId) throws Exception {
+	public ClassifierTrainer(File configFile) throws Exception {
+		config = Configurator.getConfigurator();
+		config.deserializeFrom(configFile);
+		deserializeDataHolder();
+	}
+
+	private void deserializeDataHolder() throws Exception {
+		// this method must be invoked after the configurator is initialized
+		System.out.println("deserializing dataHolder...");
+		dataHolder = FinalDataHolder.deserialize(config.getStatisticalDir());
+	}
+
+	public void train() throws Exception {
 		Classifier trainer = null;
-		switch (classifierId) {
+		switch (config.getClassifierId()) {
 		case Constant.TWCNB:
 			trainer = new TWCNBayes(dataHolder);
 			break;

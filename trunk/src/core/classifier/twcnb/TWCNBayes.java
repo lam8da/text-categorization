@@ -12,6 +12,7 @@ import core.classifier.util.FinalDataHolder;
 import core.classifier.util.Classifier;
 import core.preprocess.analyzation.interfaces.FeatureContainer;
 import core.util.Constant;
+import core.util.UtilityFuncs;
 
 public class TWCNBayes extends Classifier {
 	private double[][] ctWeight;
@@ -156,8 +157,10 @@ public class TWCNBayes extends Classifier {
 
 	@Override
 	public void serialize() throws Exception {
-		File outputDir = new File(config.getOutputDir(), Constant.TWCNB_FOLDER);
+		File outputDir = config.getTwcnbFolder();
 		outputDir.mkdirs();
+		System.out.println("Deleting all files in " + outputDir);
+		UtilityFuncs.deleteDirectory(outputDir);
 
 		File weightFile = new File(outputDir, Constant.TWCNB_CLASS_TERM_WEIGHT_FILE);
 		FileWriter fw = new FileWriter(weightFile);

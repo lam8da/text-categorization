@@ -4,6 +4,7 @@ import java.util.Vector;
 
 import core.preprocess.analyzation.DataAnalyzer;
 import core.preprocess.util.KmppOneDimension;
+import core.util.Configurator;
 import core.util.Constant;
 
 public abstract class FeatureSelector {
@@ -11,19 +12,17 @@ public abstract class FeatureSelector {
 	public static final int CLUSTER = 10;
 
 	protected DataAnalyzer analyzer;
-	private int type;
 	private double thresh;
 	private double[] weighting;
 
-	public FeatureSelector(DataAnalyzer data, int type) {
+	public FeatureSelector(DataAnalyzer data) {
 		this.analyzer = data;
-		this.type = type;
 	}
 
 	public int[] getReductionList() throws Exception {
 		this.thresh = determineThreshold();
 		System.out.println("threshold = " + this.thresh);
-		
+
 		Vector<Integer> reductionList = new Vector<Integer>(1024);
 		for (int i = 0; i != weighting.length; i++) {
 			if (weighting[i] <= thresh) {
@@ -47,21 +46,48 @@ public abstract class FeatureSelector {
 		System.out.println("vocabulary size = " + size);
 
 		weighting = new double[size];
-		if (type == Constant.FEATURE_SELECTION_MAXSELECTION) {
+		Configurator config = Configurator.getConfigurator();
+
+		switch (config.getSelectMethodId()) {
+		case Constant.FEATURE_SELECTION_MAXSELECTION:
 			for (int i = 0; i != size; i++) {
 				weighting[i] = this.getMaxSelectionWeighting(i);
 			}
-		}
-		else if (type == Constant.FEATURE_SELECTION_AVGSELECTION) {
+			break;
+		case Constant.FEATURE_SELECTION_AVGSELECTION:
 			for (int i = 0; i != size; i++) {
 				weighting[i] = this.getAvgSelectionWeighting(i);
 			}
+			break;
 		}
 
-		KmppOneDimension k = new KmppOneDimension(weighting, FeatureSelector.CLUSTER, FeatureSelector.INTERACTION);
-		k.cluster();
-		k.output();
-		return k.getThresh();
+		if (config.getThresholdMethodId() == Constant.THRESHOLD_K_MEANS) {
+			KmppOneDimension k = new KmppOneDimension(weighting, FeatureSelector.CLUSTER, FeatureSelector.INTERACTION);
+			k.cluster();
+			k.output();
+			return k.getThresh();
+		}
+		else {
+			double thres = -1;
+			switch (config.getSelectorId()) {
+			case Constant.CHI_SELECTOR:
+				thres = config.getChiThres();
+				break;
+			case Constant.DF_SELECTOR:
+				thres = config.getDfThres();
+				break;
+			case Constant.MI_SELECTOR:
+				thres = config.getMiThres();
+				break;
+			case Constant.IG_SELECTOR:
+				thres = config.getIgThres();
+				break;
+			case Constant.WF_SELECTOR:
+				thres = config.getWfThres();
+				break;
+			}
+			System.out.println("threshold = " + thres);
+			return thres;
+		}
 	}
-
 }

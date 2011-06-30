@@ -4,8 +4,8 @@ import core.preprocess.analyzation.DataAnalyzer;
 
 public class MIFeatureSelector extends FeatureSelector {
 
-	public MIFeatureSelector(DataAnalyzer data, int type) {
-		super(data, type);
+	public MIFeatureSelector(DataAnalyzer data) {
+		super(data);
 		// TODO Auto-generated constructor stub
 	}
 

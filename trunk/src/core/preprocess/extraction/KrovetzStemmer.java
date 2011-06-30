@@ -1,9 +1,9 @@
 package core.preprocess.extraction;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Scanner;
+
+import res.ResourceProducer;
 
 public class KrovetzStemmer extends Stemmer {
 
@@ -54,7 +54,7 @@ public class KrovetzStemmer extends Stemmer {
 		}
 	}
 
-	public KrovetzStemmer() throws FileNotFoundException {
+	public KrovetzStemmer() throws Exception {
 		stemhtsize = 30013;
 		k = j = 0;
 		word = null;
@@ -1230,29 +1230,29 @@ public class KrovetzStemmer extends Stemmer {
 	}
 
 	// maint.
-	void loadTables() throws FileNotFoundException {
+	void loadTables() throws Exception {
 		/* Initialize hash table */
 		Scanner in;
 
 		try {
-			in = new Scanner(new File("res/KrovetzStemmer-exceptions"));
+			in = new Scanner(ResourceProducer.getResourceByName("KrovetzStemmer-exceptions"));
 			while (in.hasNext()) {
 				addTableEntry(in.next(), "", true);
 			}
 
-			in = new Scanner(new File("res/KrovetzStemmer-headwords"));
+			in = new Scanner(ResourceProducer.getResourceByName("KrovetzStemmer-headwords"));
 			while (in.hasNext()) {
 				addTableEntry(in.next(), "");
 			}
 
-			in = new Scanner(new File("res/KrovetzStemmer-conflation_pair"));
+			in = new Scanner(ResourceProducer.getResourceByName("KrovetzStemmer-conflation_pair"));
 			while (in.hasNext()) {
 				String v = in.next();
 				String w = in.next();
 				addTableEntry(v, w);
 			}
 		}
-		catch (FileNotFoundException e) {
+		catch (Exception e) {
 			System.out.println(e.getMessage());
 			throw e;
 		}

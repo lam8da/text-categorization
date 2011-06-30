@@ -4,8 +4,8 @@ import core.preprocess.analyzation.DataAnalyzer;
 
 public class WFFeatureSelector extends FeatureSelector{
 
-	public WFFeatureSelector(DataAnalyzer data, int type) {
-		super(data, type);
+	public WFFeatureSelector(DataAnalyzer data) {
+		super(data);
 		// TODO Auto-generated constructor stub
 	}
 

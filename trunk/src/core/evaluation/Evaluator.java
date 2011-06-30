@@ -11,28 +11,29 @@ import core.util.Configurator;
 import core.util.Constant;
 
 public class Evaluator {
-	Configurator config;
-	FeatureContainer labelNameContainer;
+	private Configurator config;
+	private FeatureContainer labelNameContainer;
 
-	/**
-	 * constructor
-	 * 
-	 * @param inputDir
-	 *            the output dir of preprocessor (or the folder containing the
-	 *            configuration file)
-	 * @throws Exception
-	 */
-	public Evaluator(File inputDir) throws Exception {
-		File iniFile = new File(inputDir, Constant.CONFIG_FILENAME);
+	public Evaluator() throws Exception {
 		config = Configurator.getConfigurator();
-		config.deserializeFrom(iniFile);
+		deserializeLabelNameContainer();
+	}
+
+	public Evaluator(File configFile) throws Exception {
+		config = Configurator.getConfigurator();
+		config.deserializeFrom(configFile);
+		deserializeLabelNameContainer();
+	}
+
+	private void deserializeLabelNameContainer() throws Exception {
+		// this method must be invoked after the configurator is initialized
 		labelNameContainer = config.getGenerator().generateFeatureContainer();
 		labelNameContainer.deserializeFrom(new File(config.getStatisticalDir(), Constant.LABEL_NAME_CONTAINER_FILE), null);
 	}
 
-	public void evaluate(int classifierId) throws Exception {
+	public void evaluate() throws Exception {
 		Classifier trainer = null;
-		switch (classifierId) {
+		switch (config.getClassifierId()) {
 		case Constant.TWCNB:
 			trainer = new TWCNBayes(); // load parameters
 			break;
