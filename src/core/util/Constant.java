@@ -148,9 +148,9 @@ public final class Constant {
 
 	// for classifier output
 	public static final String TWCNB_FOLDER = "classifier-twcnb";
-	public static final String TWCNB_CLASS_TERM_WEIGHT_FILE = "ctWeight.dat";
-
+	public static final String TWCNB_META_FILE = "twcnb-meta";
+	
 	public static final String SVM_FOLDER = "classifier-svm";
-
+	
 	public static final String KNN_FOLDER = "classifier-knn";
 }

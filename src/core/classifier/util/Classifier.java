@@ -11,25 +11,25 @@ public abstract class Classifier {
 	protected int featureCnt;
 	protected FinalDataHolder dataHolder;
 	protected Configurator config;
-	
+
 	public Classifier() throws Exception {
-		config = Configurator.getConfigurator();
-		documentCnt = -1;
-		//this.actualDocCnt = -1;
-		labelCnt = -1;
-		featureCnt = -1;
+		initialize();
 		dataHolder = null;
 	}
-	
+
 	public Classifier(FinalDataHolder holder) throws Exception {
+		initialize();
+		dataHolder = holder;
+	}
+
+	private void initialize() {
 		config = Configurator.getConfigurator();
 		documentCnt = -1;
 		//this.actualDocCnt = -1;
 		labelCnt = -1;
 		featureCnt = -1;
-		dataHolder = holder;
 	}
-	
+
 	public abstract void train() throws Exception;
 
 	public abstract int classify(String[] titleFeatures, String[] contentFeatures) throws Exception;

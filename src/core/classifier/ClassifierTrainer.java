@@ -33,6 +33,7 @@ public class ClassifierTrainer {
 		Classifier trainer = null;
 		switch (config.getClassifierId()) {
 		case Constant.TWCNB:
+			System.out.println("using twcnb (bayes) classifier.");
 			trainer = new TWCNBayes(dataHolder);
 			break;
 		}

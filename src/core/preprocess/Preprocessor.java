@@ -129,18 +129,23 @@ public class Preprocessor {
 
 		switch (config.getSelectorId()) {
 		case Constant.CHI_SELECTOR:
+			System.out.println("using chi selector.");
 			selector = new CHIFeatrueSelector(analyzer);
 			break;
 		case Constant.DF_SELECTOR:
+			System.out.println("using df selector.");
 			selector = new DFFeatureSelector(analyzer);
 			break;
 		case Constant.MI_SELECTOR:
+			System.out.println("using mi selector.");
 			selector = new MIFeatureSelector(analyzer);
 			break;
 		case Constant.IG_SELECTOR:
+			System.out.println("using ig selector.");
 			selector = new IGFeatureSelector(analyzer);
 			break;
 		case Constant.WF_SELECTOR:
+			System.out.println("using wf selector.");
 			selector = new WFFeatureSelector(analyzer);
 			break;
 		}
