@@ -6,7 +6,6 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.io.IOException;
 
 import core.preprocess.extraction.Stemmer;
 import core.preprocess.extraction.KrovetzStemmer;
@@ -24,6 +23,7 @@ import core.preprocess.corpus.Extractor;
 import core.preprocess.corpus.reuters.ReutersExtractor;
 import core.util.Configurator;
 import core.util.Constant;
+import core.util.UtilityFuncs;
 
 /**
  * this class provide a tool for the whole procedure of propressing
@@ -34,53 +34,8 @@ import core.util.Constant;
 public class Preprocessor {
 	private Configurator config;
 
-	/**
-	 * 
-	 * @param inputPath
-	 *            the directory where the corpus lies
-	 * @param outputPath
-	 *            the root directory where the output data should be put
-	 * @param corpusId
-	 * @param splitting
-	 * @param stopperId
-	 * @param stemmerId
-	 * @param toLower
-	 *            whether all words in the text should be turned to lower case
-	 * @param timeToConst
-	 * @param numToConst
-	 * @param selectorId
-	 * @param selectMethodId
-	 * @throws Exception
-	 */
-	public Preprocessor( //
-			String inputPath, //
-			String outputPath, //
-			int corpusId, //
-			int splitting, //
-			int stopperId, //
-			int stemmerId, //
-			boolean toLower, //
-			boolean timeToConst, //
-			boolean numToConst, //
-			int selectorId, //
-			int selectMethodId, //
-			int generatorId//
-	) throws Exception {
+	public Preprocessor() throws Exception {
 		config = Configurator.getConfigurator();
-		config.setValues( //
-				inputPath, //
-				outputPath, //
-				corpusId, //
-				splitting, //
-				stopperId, //
-				stemmerId, //
-				toLower, //
-				timeToConst, //
-				numToConst, //
-				selectorId, //
-				selectMethodId, //
-				generatorId //
-		);
 		mkdirs();
 	}
 
@@ -91,12 +46,10 @@ public class Preprocessor {
 	}
 
 	private void mkdirs() throws Exception {
+		// this method must be invoked after the configurator is initialized
 		config.getOutputDir().mkdirs();
-		
-		System.out.println("Deleting all files in " + config.getOutputDir());
-		deleteDirectory(config.getOutputDir());
-		
 		config.serialize(config.getOutputDir());
+
 		config.getXmlDir().mkdirs();
 		config.getTrainingDir().mkdirs();
 		config.getTestDir().mkdirs();
@@ -104,23 +57,13 @@ public class Preprocessor {
 		config.getOrgStatisticalDir().mkdirs();
 	}
 
-	private void deleteDirectory(File dir) throws IOException {
-		if ((dir == null) || !dir.isDirectory()) {
-			throw new IllegalArgumentException("Argument " + dir + " is not a directory. ");
-		}
-		File[] entries = dir.listFiles();
-
-		int sz = entries.length;
-		for (int i = 0; i < sz; i++) {
-			if (entries[i].isDirectory()) {
-				deleteDirectory(entries[i]);
-			}
-			entries[i].delete();
-		}
-	}
-
 	private void extraction() throws Exception {
 		System.out.println("------------>start extraction!");
+
+		System.out.println("Deleting all files in " + config.getTrainingDir());
+		UtilityFuncs.deleteDirectory(config.getTrainingDir());
+		System.out.println("Deleting all files in " + config.getTestDir());
+		UtilityFuncs.deleteDirectory(config.getTestDir());
 
 		Extractor extractor = null;
 		Stopper stopper = null;
@@ -171,7 +114,7 @@ public class Preprocessor {
 		System.out.println();
 
 		System.out.println("Deleting all files in " + config.getOrgStatisticalDir());
-		deleteDirectory(config.getOrgStatisticalDir());
+		UtilityFuncs.deleteDirectory(config.getOrgStatisticalDir());
 
 		System.out.println("serializing original data...");
 		analyzer.serialize(config.getOrgStatisticalDir());
@@ -186,19 +129,19 @@ public class Preprocessor {
 
 		switch (config.getSelectorId()) {
 		case Constant.CHI_SELECTOR:
-			selector = new CHIFeatrueSelector(analyzer, config.getSelectMethodId());
+			selector = new CHIFeatrueSelector(analyzer);
 			break;
 		case Constant.DF_SELECTOR:
-			selector = new DFFeatureSelector(analyzer, config.getSelectMethodId());
+			selector = new DFFeatureSelector(analyzer);
 			break;
 		case Constant.MI_SELECTOR:
-			selector = new MIFeatureSelector(analyzer, config.getSelectMethodId());
+			selector = new MIFeatureSelector(analyzer);
 			break;
 		case Constant.IG_SELECTOR:
-			selector = new IGFeatureSelector(analyzer, config.getSelectMethodId());
+			selector = new IGFeatureSelector(analyzer);
 			break;
 		case Constant.WF_SELECTOR:
-			selector = new WFFeatureSelector(analyzer, config.getSelectMethodId());
+			selector = new WFFeatureSelector(analyzer);
 			break;
 		}
 
@@ -243,6 +186,9 @@ public class Preprocessor {
 		fr.close();
 		DataAnalyzer analyzer = DataAnalyzer.deserialize(config.getOrgStatisticalDir(), eliminatedId, true);
 
+		System.out.println("Deleting all files in " + config.getStatisticalDir());
+		UtilityFuncs.deleteDirectory(config.getStatisticalDir());
+
 		analyzer.serialize(config.getStatisticalDir());
 		System.out.println("<------------serialization done!");
 	}
@@ -279,9 +225,5 @@ public class Preprocessor {
 			serialization();
 			System.out.println();
 		}
-	}
-
-	public void printUsage() {
-
 	}
 }

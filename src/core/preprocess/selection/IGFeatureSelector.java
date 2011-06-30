@@ -6,8 +6,8 @@ import java.lang.Math;
 
 public class IGFeatureSelector extends FeatureSelector {
 
-	public IGFeatureSelector(DataAnalyzer data, int type) {
-		super(data, type);
+	public IGFeatureSelector(DataAnalyzer data) {
+		super(data);
 		// TODO Auto-generated constructor stub
 	}
 

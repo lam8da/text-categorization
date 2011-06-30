@@ -3,7 +3,6 @@ package test.classifier.twcnb;
 import java.io.File;
 
 import core.classifier.ClassifierTrainer;
-import core.util.Constant;
 
 public class TWCNBayesTest {
 	public static void main(String[] args) throws Exception {
@@ -13,6 +12,6 @@ public class TWCNBayesTest {
 		}
 
 		ClassifierTrainer trainer = new ClassifierTrainer(new File(args[0]));
-		trainer.train(Constant.TWCNB);
+		trainer.train();
 	}
 }

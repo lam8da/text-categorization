@@ -4,8 +4,8 @@ import core.preprocess.analyzation.DataAnalyzer;
 
 public class CHIFeatrueSelector extends FeatureSelector {
 
-	public CHIFeatrueSelector(DataAnalyzer data, int type) {
-		super(data, type);
+	public CHIFeatrueSelector(DataAnalyzer data) {
+		super(data);
 		// TODO Auto-generated constructor stub
 	}
 

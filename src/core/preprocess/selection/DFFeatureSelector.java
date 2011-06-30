@@ -4,8 +4,8 @@ import core.preprocess.analyzation.DataAnalyzer;
 
 public class DFFeatureSelector extends FeatureSelector {
 
-	public DFFeatureSelector(DataAnalyzer data, int type) {
-		super(data, type);
+	public DFFeatureSelector(DataAnalyzer data) {
+		super(data);
 	}
 
 	@Override

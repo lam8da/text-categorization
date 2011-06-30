@@ -4,7 +4,6 @@ import java.io.File;
 
 import core.preprocess.analyzation.DataAnalyzer;
 import core.util.Configurator;
-import core.util.Constant;
 import core.classifier.util.FinalDataHolder;
 
 import test.preprocess.analyzation.DataAnalyzerTest;
@@ -21,26 +20,13 @@ public class FinalDataHolderTest extends DataHolderTest {
 	 * @throws Exception
 	 */
 	public static void main(String[] args) throws Exception {
-		if (args.length != 1) {
+		if (args.length != 1) { //args[0] is the dir of config file, and the output dir should be config.getOutputDir
 			System.out.println("invalid parameters!");
 			return;
 		}
 
 		Configurator config = Configurator.getConfigurator();
-		config.setValues( //
-				"", //
-				args[0], //
-				1, //
-				1, //
-				1, //
-				1, //
-				true, //
-				true, //
-				true, //
-				1, //
-				1, //
-				Constant.MAP_GENERATOR //
-		);
+		config.deserializeFrom(new File(args[0]));
 
 		File stdout = new File("res/test/DataAnalyzerTest/standard output.txt");
 		StringBuffer stdSb = new StringBuffer();
@@ -62,7 +48,7 @@ public class FinalDataHolderTest extends DataHolderTest {
 
 		//------------------------------------------------------------------------------------------//
 
-		File outputDir = new File(args[0]);
+		File outputDir = config.getOutputDir();
 		outputDir.mkdirs();
 		((DataAnalyzer) (daTest.holder)).serialize(outputDir);
 

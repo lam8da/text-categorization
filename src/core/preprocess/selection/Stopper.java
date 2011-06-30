@@ -1,7 +1,8 @@
 package core.preprocess.selection;
 
-import java.io.File;
 import java.util.Scanner;
+
+import res.ResourceProducer;
 
 import core.preprocess.analyzation.trie.Trie;
 import core.util.Constant;
@@ -10,17 +11,17 @@ public class Stopper {
 	private Trie trie = new Trie();
 
 	public Stopper() throws Exception {
-		Scanner in = new Scanner(new File("res/stopwords-lemur"));
+		Scanner in = new Scanner(ResourceProducer.getResourceByName("stopwords-lemur"));
 		while (in.hasNext()) {
 			trie.add(in.next());
 		}
 
-		in = new Scanner(new File("res/stopwords-tcbook"));
+		in = new Scanner(ResourceProducer.getResourceByName("stopwords-tcbook"));
 		while (in.hasNext()) {
 			trie.add(in.next());
 		}
 
-		in = new Scanner(new File("res/stopwords-web"));
+		in = new Scanner(ResourceProducer.getResourceByName("stopwords-web"));
 		while (in.hasNext()) {
 			trie.add(in.next());
 		}
