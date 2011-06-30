@@ -5,6 +5,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Vector;
 
@@ -15,10 +16,11 @@ import core.util.Constant;
 import core.util.UtilityFuncs;
 
 public class TWCNBayes extends Classifier {
-	private double[][] ctWeight;
+	private File twcnbOutputDir;
 
 	public TWCNBayes() throws Exception {
 		super();
+		this.twcnbOutputDir = config.getTwcnbFolder();
 		deserializeFrom(new File(config.getOutputDir(), Constant.TWCNB_FOLDER));
 	}
 
@@ -27,64 +29,156 @@ public class TWCNBayes extends Classifier {
 		this.documentCnt = dataHolder.getN();
 		this.labelCnt = dataHolder.getLabelCnt();
 		this.featureCnt = dataHolder.getFeatureCnt();
-		this.ctWeight = new double[labelCnt][featureCnt];
+
+		this.twcnbOutputDir = config.getTwcnbFolder();
+		this.twcnbOutputDir.mkdirs();
+	}
+
+	private static final String dtRow = "dtRow";
+	private static final String ctRow = "ctRow";
+	private static final String badDocMarkInfoFile = "badDocMark";
+
+	private void serializeBadDocMarkInfo(boolean[] badDocMark) throws IOException {
+		File dtRowFile = new File(twcnbOutputDir, badDocMarkInfoFile);
+		FileWriter fw = new FileWriter(dtRowFile);
+		BufferedWriter bw = new BufferedWriter(fw);
+
+		int cnt = 0;
+		for (int i = 0; i < badDocMark.length; i++) {
+			if (badDocMark[i]) cnt++;
+		}
+		bw.write(String.valueOf(cnt));
+		bw.newLine();
+		for (int i = 0; i < badDocMark.length; i++) {
+			if (badDocMark[i]) {
+				bw.write(String.valueOf(i));
+				bw.newLine();
+			}
+		}
+
+		bw.flush();
+		bw.close();
+		fw.close();
+	}
+
+	/*
+	 * private void deserializeBadDocMarkInfo(boolean[] badDocMark) throws
+	 * IOException {
+	 * File dtRowFile = new File(twcnbOutputDir, badDocMarkInfoFile);
+	 * FileReader fr = new FileReader(dtRowFile);
+	 * BufferedReader br = new BufferedReader(fr);
+	 * int cnt = Integer.parseInt(br.readLine());
+	 * Arrays.fill(badDocMark, false);
+	 * for (int i = 0; i < cnt; i++) {
+	 * badDocMark[Integer.parseInt(br.readLine())] = true;
+	 * }
+	 * br.close();
+	 * fr.close();
+	 * }
+	 */
+
+	private void serializeOneRow(String type, int rowId, double[] row, boolean compress) throws IOException {
+		File rowFile = new File(twcnbOutputDir, type + rowId);
+		FileWriter fw = new FileWriter(rowFile);
+		BufferedWriter bw = new BufferedWriter(fw);
+
+		if (compress) {
+			int nonZeroCnt = 0;
+			for (int i = 0; i < row.length; i++) {
+				if (row[i] != 0) nonZeroCnt++;
+			}
+			bw.write(String.valueOf(nonZeroCnt));
+			bw.newLine();
+			for (int i = 0; i < row.length; i++) {
+				if (row[i] != 0) {
+					bw.write(String.valueOf(i));
+					bw.newLine();
+					bw.write(String.valueOf(row[i]));
+					bw.newLine();
+				}
+			}
+		}
+		else {
+			for (int i = 0; i < row.length; i++) {
+				bw.write(String.valueOf(row[i]));
+				bw.newLine();
+			}
+		}
+
+		bw.flush();
+		bw.close();
+		fw.close();
+	}
+
+	private void deserializeOneRow(String type, int rowId, double[] row, boolean compressed) throws IOException {
+		File rowFile = new File(twcnbOutputDir, type + rowId);
+		FileReader fr = new FileReader(rowFile);
+		BufferedReader br = new BufferedReader(fr);
+
+		if (compressed) {
+			int nonZeroCnt = Integer.parseInt(br.readLine());
+			Arrays.fill(row, 0);
+			for (int i = 0; i < nonZeroCnt; i++) {
+				int idx = Integer.parseInt(br.readLine());
+				row[idx] = Double.parseDouble(br.readLine());
+			}
+		}
+		else {
+			for (int i = 0; i < row.length; i++) {
+				row[i] = Double.parseDouble(br.readLine());
+			}
+		}
+
+		br.close();
+		fr.close();
 	}
 
 	public void train() throws Exception {
 		if (dataHolder == null) throw new Exception("dataHolder is null, can not train!");
+		System.out.println("Deleting all files in " + twcnbOutputDir);
+		UtilityFuncs.deleteDirectory(twcnbOutputDir);
 
-		System.out.println("calculating the document-term matrix...");
-		double[][] dtWeight = new double[documentCnt][featureCnt]; // the document-term matrix
+		System.out.print("calculating the document-term matrix...");
+		double[] dtWeight = new double[featureCnt]; // one row of the document-term matrix
+		double[] ctWeight = new double[featureCnt]; // one row of the class-term matrix
+
+		boolean[] badDocMark = new boolean[documentCnt];
+		double[] rowSum = new double[documentCnt];
+		double[] columnSum = new double[featureCnt];
+		Arrays.fill(badDocMark, false);
+		Arrays.fill(rowSum, 0);
+		Arrays.fill(columnSum, 0);
+		double dtWeightSum = 0;
+
 		for (int docId = 0; docId < documentCnt; docId++) {
+			if ((docId & 1023) == 0) System.out.println();
+			if ((docId & 255) == 0) System.out.print(docId + ",... ");
+
+			double sum = 0;
 			for (int featureId = 0; featureId < featureCnt; featureId++) {
 				double dkj = dataHolder.getW_dj_tk(docId, featureId);
 				dkj = Math.log1p(dkj);
 				dkj = dkj * Math.log(documentCnt / (double) dataHolder.getN_tk(featureId));
-				dtWeight[docId][featureId] = dkj;
-				//if (dkj > 0) System.out.println(dkj);
-			}
-		}
-
-		boolean[] badDocMark = new boolean[documentCnt];
-		Arrays.fill(badDocMark, false);
-		//actualDocCnt = documentCnt;
-
-		for (int docId = 0; docId < documentCnt; docId++) {
-			double sum = 0;
-			for (int featureId = 0; featureId < featureCnt; featureId++) {
-				sum += dtWeight[docId][featureId] * dtWeight[docId][featureId];
+				dtWeight[featureId] = dkj;
+				sum += dkj * dkj;
 			}
 			if (sum == 0) {
 				badDocMark[docId] = true;
-				//actualDocCnt--;
 				continue;
 			}
 			sum = Math.sqrt(sum);
 			for (int featureId = 0; featureId < featureCnt; featureId++) {
-				dtWeight[docId][featureId] /= sum;
-				//if (dtWeight[docId][featureId] > 0 && Math.random() > 0.8) System.out.println(dtWeight[docId][featureId]);
+				dtWeight[featureId] /= sum;
+				double tmp = dtWeight[featureId];
+				rowSum[docId] += tmp;
+				columnSum[featureId] += tmp;
+				dtWeightSum += tmp;
 			}
+			serializeOneRow(dtRow, docId, dtWeight, true);
 		}
+		System.out.println();
+		serializeBadDocMarkInfo(badDocMark);
 
-		double[] rowSum = new double[documentCnt];
-		double[] columnSum = new double[featureCnt];
-		double dtWeightSum = 0;
-		Arrays.fill(rowSum, 0);
-		Arrays.fill(columnSum, 0);
-		for (int docId = 0; docId < documentCnt; docId++) {
-			if (!badDocMark[docId]) {
-				for (int featureId = 0; featureId < featureCnt; featureId++) {
-					double tmp = dtWeight[docId][featureId];
-					rowSum[docId] += tmp;
-					columnSum[featureId] += tmp;
-					dtWeightSum += tmp;
-					//System.out.println(docId + ": " + dtWeightSum);
-					//if (docId == 97) {
-					//	System.out.println();
-					//}
-				}
-			}
-		}
 		//System.out.println();
 		//for (int i = 0; i < documentCnt; i++) {
 		//	System.out.println(rowSum[i]);
@@ -108,24 +202,39 @@ public class TWCNBayes extends Classifier {
 				}
 			}
 			for (int featureId = 0; featureId < featureCnt; featureId++) {
-				double numerator = columnSum[featureId] + alpha_i;
-				for (int i = 0; i < lsize; i++) {
-					if (!badDocMark[l.get(i)]) {
-						numerator -= dtWeight[l.get(i)][featureId];
+				ctWeight[featureId] = columnSum[featureId] + alpha_i;
+			}
+			for (int i = 0; i < lsize; i++) {
+				int docId = l.get(i);
+				if (!badDocMark[docId]) {
+					deserializeOneRow(dtRow, docId, dtWeight, true);
+					for (int featureId = 0; featureId < featureCnt; featureId++) {
+						ctWeight[featureId] -= dtWeight[featureId];
 					}
 				}
-				ctWeight[labelId][featureId] = Math.log(numerator / denominator);
 			}
-		}
+			for (int featureId = 0; featureId < featureCnt; featureId++) {
+				ctWeight[featureId] = Math.log(ctWeight[featureId] / denominator);
+			}
 
-		for (int labelId = 0; labelId < labelCnt; labelId++) {
+			//for (int featureId = 0; featureId < featureCnt; featureId++) {
+			//	double numerator = columnSum[featureId] + alpha_i;
+			//	for (int i = 0; i < lsize; i++) {
+			//		if (!badDocMark[l.get(i)]) {
+			//			numerator -= dtWeight[l.get(i)][featureId];
+			//		}
+			//	}
+			//	ctWeight[labelId][featureId] = Math.log(numerator / denominator);
+			//}
+
 			double s = 0;
 			for (int featureId = 0; featureId < featureCnt; featureId++) {
-				s += ctWeight[labelId][featureId];
+				s += ctWeight[featureId];
 			}
 			for (int featureId = 0; featureId < featureCnt; featureId++) {
-				ctWeight[labelId][featureId] /= s;
+				ctWeight[featureId] /= s;
 			}
+			serializeOneRow(ctRow, labelId, ctWeight, false);
 		}
 	}
 
@@ -137,19 +246,22 @@ public class TWCNBayes extends Classifier {
 		// we regard the features in the title and the content the same
 		double mins = Double.MAX_VALUE;
 		int ans = -1;
-		for (int i = 0; i < labelCnt; i++) {
+		double[] ctWeight = new double[featureCnt]; // one row of the class-term matrix
+
+		for (int labelId = 0; labelId < labelCnt; labelId++) {
+			deserializeOneRow(ctRow, labelId, ctWeight, false);
 			double s = 0;
 			for (int j = 0; j < titleFeatures.length; j++) {
 				int id = featureContainer.getId(titleFeatures[j]);
-				if (id != -1) s += ctWeight[i][id];
+				if (id != -1) s += ctWeight[id];
 			}
 			for (int j = 0; j < contentFeatures.length; j++) {
 				int id = featureContainer.getId(contentFeatures[j]);
-				if (id != -1) s += ctWeight[i][id];
+				if (id != -1) s += ctWeight[id];
 			}
 			if (s < mins) {
 				mins = s;
-				ans = i;
+				ans = labelId;
 			}
 		}
 		return ans;
@@ -157,25 +269,17 @@ public class TWCNBayes extends Classifier {
 
 	@Override
 	public void serialize() throws Exception {
-		File outputDir = config.getTwcnbFolder();
-		outputDir.mkdirs();
-		System.out.println("Deleting all files in " + outputDir);
-		UtilityFuncs.deleteDirectory(outputDir);
-
-		File weightFile = new File(outputDir, Constant.TWCNB_CLASS_TERM_WEIGHT_FILE);
-		FileWriter fw = new FileWriter(weightFile);
+		// only write meta data because the weightings have been written out in the training phase
+		File dtRowFile = new File(twcnbOutputDir, Constant.TWCNB_META_FILE);
+		FileWriter fw = new FileWriter(dtRowFile);
 		BufferedWriter bw = new BufferedWriter(fw);
 
-		bw.write(String.valueOf(labelCnt));
+		bw.write(String.valueOf(this.documentCnt));
 		bw.newLine();
-		bw.write(String.valueOf(featureCnt));
+		bw.write(String.valueOf(this.labelCnt));
 		bw.newLine();
-		for (int i = 0; i < labelCnt; i++) {
-			for (int j = 0; j < featureCnt; j++) {
-				bw.write(String.valueOf(ctWeight[i][j]));
-				bw.newLine();
-			}
-		}
+		bw.write(String.valueOf(this.featureCnt));
+		bw.newLine();
 
 		bw.flush();
 		bw.close();
@@ -184,22 +288,15 @@ public class TWCNBayes extends Classifier {
 
 	@Override
 	public void deserializeFrom(File dir) throws Exception {
-		this.documentCnt = -1;
 		this.dataHolder = null;
 
-		File ctWeightFile = new File(dir, Constant.TWCNB_CLASS_TERM_WEIGHT_FILE);
-		FileReader fr = new FileReader(ctWeightFile);
+		File metaFile = new File(dir, Constant.TWCNB_META_FILE);
+		FileReader fr = new FileReader(metaFile);
 		BufferedReader br = new BufferedReader(fr);
 
+		this.documentCnt = Integer.parseInt(br.readLine());
 		this.labelCnt = Integer.parseInt(br.readLine());
 		this.featureCnt = Integer.parseInt(br.readLine());
-		this.ctWeight = new double[labelCnt][featureCnt];
-
-		for (int i = 0; i < labelCnt; i++) {
-			for (int j = 0; j < featureCnt; j++) {
-				ctWeight[i][j] = Double.parseDouble(br.readLine());
-			}
-		}
 
 		br.close();
 		fr.close();

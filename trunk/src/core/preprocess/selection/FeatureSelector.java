@@ -34,6 +34,7 @@ public abstract class FeatureSelector {
 		for (int i = 0; i < res.length; i++) {
 			res[i] = reductionList.get(i);
 		}
+		System.out.println("reduction list size: " + res.length);
 		return res;
 	}
 
@@ -50,11 +51,13 @@ public abstract class FeatureSelector {
 
 		switch (config.getSelectMethodId()) {
 		case Constant.FEATURE_SELECTION_MAXSELECTION:
+			System.out.println("using Max-selection weighting.");
 			for (int i = 0; i != size; i++) {
 				weighting[i] = this.getMaxSelectionWeighting(i);
 			}
 			break;
 		case Constant.FEATURE_SELECTION_AVGSELECTION:
+			System.out.println("using Average-selection weighting.");
 			for (int i = 0; i != size; i++) {
 				weighting[i] = this.getAvgSelectionWeighting(i);
 			}
@@ -86,7 +89,6 @@ public abstract class FeatureSelector {
 				thres = config.getWfThres();
 				break;
 			}
-			System.out.println("threshold = " + thres);
 			return thres;
 		}
 	}

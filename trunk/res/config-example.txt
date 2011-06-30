@@ -1,0 +1,38 @@
+inputPath:
+[The directory containing all sgm files (just for reuters at present).]
+outputPath:
+[The directory where you want all of the output files to put.]
+corpus:
+[Can only be "reuters" at present (without quotes)]
+splitting:
+[Can be one of "mod-lewis", "mod-apte" and "mod-hayes" (without quotes), "mod-lewis" is recommended.]
+stopper:
+[Can be one of "yes" and "no" (without quotes).]
+stemmer:
+[Can be one of "krovetz-stemmer", "porter-stemmer" and "no-stemmer" (without quotes).]
+toLower:
+[Can be one of "true" and "false" (without quotes).]
+timeToConst:
+[Can be one of "true" and "false" (without quotes).]
+numToConst:
+[Can be one of "true" and "false" (without quotes).]
+selector:
+[Can be one of "wf", "chi", "df", "ig" and "mi" (without quotes).]
+threshold-selection:
+[Can be one of "manual" and "k-means" (without quotes).]
+chi-thres:
+[A double value.]
+df-thres:
+[A double value.]
+ig-thres:
+[A double value.]
+mi-thres:
+[A double value.]
+wf-thres:
+[A double value.]
+selectMethod:
+[Can be one of "max" and "average" (without quotes).]
+generator:
+[Can be one of "map" and "trie" (without quotes), "map" is recommended.]
+classifier:
+[Can only be "twcnb" at present (without quotes).]
