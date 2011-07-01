@@ -1,42 +1,26 @@
 package core.classifier.twcnb;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Vector;
 
 import core.classifier.util.FinalDataHolder;
-import core.classifier.util.Classifier;
-import core.preprocess.analyzation.interfaces.FeatureContainer;
+import core.classifier.util.Trainer;
 import core.util.Constant;
 import core.util.UtilityFuncs;
 
-public class TWCNBayes extends Classifier {
+public class TWCNBayesTrainer extends Trainer {
+	private static final String badDocMarkInfoFile = "badDocMark";
 	private File twcnbOutputDir;
 
-	public TWCNBayes() throws Exception {
-		super();
-		this.twcnbOutputDir = config.getTwcnbFolder();
-		deserializeFrom(new File(config.getOutputDir(), Constant.TWCNB_FOLDER));
-	}
-
-	public TWCNBayes(FinalDataHolder holder) throws Exception {
+	public TWCNBayesTrainer(FinalDataHolder holder) throws Exception {
 		super(holder);
-		this.documentCnt = dataHolder.getN();
-		this.labelCnt = dataHolder.getLabelCnt();
-		this.featureCnt = dataHolder.getFeatureCnt();
-
 		this.twcnbOutputDir = config.getTwcnbFolder();
 		this.twcnbOutputDir.mkdirs();
 	}
-
-	private static final String dtRow = "dtRow";
-	private static final String ctRow = "ctRow";
-	private static final String badDocMarkInfoFile = "badDocMark";
 
 	private void serializeBadDocMarkInfo(boolean[] badDocMark) throws IOException {
 		File dtRowFile = new File(twcnbOutputDir, badDocMarkInfoFile);
@@ -76,62 +60,6 @@ public class TWCNBayes extends Classifier {
 	 * fr.close();
 	 * }
 	 */
-
-	private void serializeOneRow(String type, int rowId, double[] row, boolean compress) throws IOException {
-		File rowFile = new File(twcnbOutputDir, type + rowId);
-		FileWriter fw = new FileWriter(rowFile);
-		BufferedWriter bw = new BufferedWriter(fw);
-
-		if (compress) {
-			int nonZeroCnt = 0;
-			for (int i = 0; i < row.length; i++) {
-				if (row[i] != 0) nonZeroCnt++;
-			}
-			bw.write(String.valueOf(nonZeroCnt));
-			bw.newLine();
-			for (int i = 0; i < row.length; i++) {
-				if (row[i] != 0) {
-					bw.write(String.valueOf(i));
-					bw.newLine();
-					bw.write(String.valueOf(row[i]));
-					bw.newLine();
-				}
-			}
-		}
-		else {
-			for (int i = 0; i < row.length; i++) {
-				bw.write(String.valueOf(row[i]));
-				bw.newLine();
-			}
-		}
-
-		bw.flush();
-		bw.close();
-		fw.close();
-	}
-
-	private void deserializeOneRow(String type, int rowId, double[] row, boolean compressed) throws IOException {
-		File rowFile = new File(twcnbOutputDir, type + rowId);
-		FileReader fr = new FileReader(rowFile);
-		BufferedReader br = new BufferedReader(fr);
-
-		if (compressed) {
-			int nonZeroCnt = Integer.parseInt(br.readLine());
-			Arrays.fill(row, 0);
-			for (int i = 0; i < nonZeroCnt; i++) {
-				int idx = Integer.parseInt(br.readLine());
-				row[idx] = Double.parseDouble(br.readLine());
-			}
-		}
-		else {
-			for (int i = 0; i < row.length; i++) {
-				row[i] = Double.parseDouble(br.readLine());
-			}
-		}
-
-		br.close();
-		fr.close();
-	}
 
 	public void train() throws Exception {
 		if (dataHolder == null) throw new Exception("dataHolder is null, can not train!");
@@ -174,7 +102,7 @@ public class TWCNBayes extends Classifier {
 				columnSum[featureId] += tmp;
 				dtWeightSum += tmp;
 			}
-			serializeOneRow(dtRow, docId, dtWeight, true);
+			UtilityFuncs.serializeOneRow(twcnbOutputDir, Constant.TWCNB_DT_ROW_FILE_PREFIX, docId, dtWeight, true);
 		}
 		System.out.println();
 		serializeBadDocMarkInfo(badDocMark);
@@ -207,7 +135,7 @@ public class TWCNBayes extends Classifier {
 			for (int i = 0; i < lsize; i++) {
 				int docId = l.get(i);
 				if (!badDocMark[docId]) {
-					deserializeOneRow(dtRow, docId, dtWeight, true);
+					UtilityFuncs.deserializeOneRow(twcnbOutputDir, Constant.TWCNB_DT_ROW_FILE_PREFIX, docId, dtWeight, true);
 					for (int featureId = 0; featureId < featureCnt; featureId++) {
 						ctWeight[featureId] -= dtWeight[featureId];
 					}
@@ -234,37 +162,8 @@ public class TWCNBayes extends Classifier {
 			for (int featureId = 0; featureId < featureCnt; featureId++) {
 				ctWeight[featureId] /= s;
 			}
-			serializeOneRow(ctRow, labelId, ctWeight, false);
+			UtilityFuncs.serializeOneRow(twcnbOutputDir, Constant.TWCNB_CT_ROW_FILE_PREFIX, labelId, ctWeight, false);
 		}
-	}
-
-	@Override
-	public int classify(String[] titleFeatures, String[] contentFeatures) throws Exception {
-		FeatureContainer featureContainer = config.getGenerator().generateFeatureContainer();
-		featureContainer.deserializeFrom(new File(config.getStatisticalDir(), Constant.FEATURE_CONTAINER_FILE), null);
-
-		// we regard the features in the title and the content the same
-		double mins = Double.MAX_VALUE;
-		int ans = -1;
-		double[] ctWeight = new double[featureCnt]; // one row of the class-term matrix
-
-		for (int labelId = 0; labelId < labelCnt; labelId++) {
-			deserializeOneRow(ctRow, labelId, ctWeight, false);
-			double s = 0;
-			for (int j = 0; j < titleFeatures.length; j++) {
-				int id = featureContainer.getId(titleFeatures[j]);
-				if (id != -1) s += ctWeight[id];
-			}
-			for (int j = 0; j < contentFeatures.length; j++) {
-				int id = featureContainer.getId(contentFeatures[j]);
-				if (id != -1) s += ctWeight[id];
-			}
-			if (s < mins) {
-				mins = s;
-				ans = labelId;
-			}
-		}
-		return ans;
 	}
 
 	@Override
@@ -284,21 +183,5 @@ public class TWCNBayes extends Classifier {
 		bw.flush();
 		bw.close();
 		fw.close();
-	}
-
-	@Override
-	public void deserializeFrom(File dir) throws Exception {
-		this.dataHolder = null;
-
-		File metaFile = new File(dir, Constant.TWCNB_META_FILE);
-		FileReader fr = new FileReader(metaFile);
-		BufferedReader br = new BufferedReader(fr);
-
-		this.documentCnt = Integer.parseInt(br.readLine());
-		this.labelCnt = Integer.parseInt(br.readLine());
-		this.featureCnt = Integer.parseInt(br.readLine());
-
-		br.close();
-		fr.close();
 	}
 }

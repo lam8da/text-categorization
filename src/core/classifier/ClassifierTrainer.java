@@ -2,8 +2,8 @@ package core.classifier;
 
 import java.io.File;
 
-import core.classifier.twcnb.TWCNBayes;
-import core.classifier.util.Classifier;
+import core.classifier.twcnb.TWCNBayesTrainer;
+import core.classifier.util.Trainer;
 import core.classifier.util.FinalDataHolder;
 import core.util.Configurator;
 import core.util.Constant;
@@ -30,17 +30,19 @@ public class ClassifierTrainer {
 	}
 
 	public void train() throws Exception {
-		Classifier trainer = null;
+		Trainer trainer = null;
 		switch (config.getClassifierId()) {
 		case Constant.TWCNB:
 			System.out.println("using twcnb (bayes) classifier.");
-			trainer = new TWCNBayes(dataHolder);
+			trainer = new TWCNBayesTrainer(dataHolder);
 			break;
 		}
 
-		System.out.println("training...");
+		System.out.println("start training...");
 		trainer.train();
 		System.out.println("serializing the result...");
 		trainer.serialize();
+		System.out.println("training finished!");
+		System.out.println();
 	}
 }
