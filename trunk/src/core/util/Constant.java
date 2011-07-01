@@ -149,6 +149,8 @@ public final class Constant {
 	// for classifier output
 	public static final String TWCNB_FOLDER = "classifier-twcnb";
 	public static final String TWCNB_META_FILE = "twcnb-meta";
+	public static final String TWCNB_CT_ROW_FILE_PREFIX = "ctRow";
+	public static final String TWCNB_DT_ROW_FILE_PREFIX = "dtRow";
 	
 	public static final String SVM_FOLDER = "classifier-svm";
 	

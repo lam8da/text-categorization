@@ -2,9 +2,10 @@ package core.evaluation;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.util.Vector;
 
-import core.classifier.twcnb.TWCNBayes;
-import core.classifier.util.Classifier;
+import core.evaluation.twcnb.TWCNBayesClassifier;
+import core.evaluation.util.Classifier;
 import core.preprocess.analyzation.interfaces.FeatureContainer;
 import core.preprocess.util.XmlDocument;
 import core.util.Configurator;
@@ -35,7 +36,8 @@ public class Evaluator {
 		Classifier trainer = null;
 		switch (config.getClassifierId()) {
 		case Constant.TWCNB:
-			trainer = new TWCNBayes(); // load parameters
+			System.out.println("evaluating twcnb (bayes)...");
+			trainer = new TWCNBayesClassifier(); // load parameters
 			break;
 		}
 
@@ -45,30 +47,50 @@ public class Evaluator {
 			}
 		});
 		XmlDocument xml = new XmlDocument();
-
-		System.out.print("testing documents: ");
 		int correctCnt = 0;
 		int total = xmlFiles.length;
+
+		Vector<String[]> titleFeatures = new Vector<String[]>();
+		Vector<String[]> contentFeatures = new Vector<String[]>();
+		Vector<String[]> actualLabels = new Vector<String[]>();
+
 		for (int i = 0; i < xmlFiles.length; i++) {
-			if ((i & 2047) == 0) System.out.println();
-			if ((i & 255) == 0) System.out.print(i + ",... ");
-
 			xml.parseDocument(xmlFiles[i]);
-			int ans = trainer.classify(xml.getTitleFeatures(), xml.getContentFeatures());
+			titleFeatures.add(xml.getTitleFeatures());
+			contentFeatures.add(xml.getContentFeatures());
+			actualLabels.add(xml.getLabels());
+		}
+		int[] labelIds = trainer.classify(titleFeatures, contentFeatures);
 
-			String[] labels = xml.getLabels();
-			boolean correct = false;
-			for (int j = 0; j < labels.length; j++) {
-				int actualLabel = labelNameContainer.getId(labels[j]);
-				if (ans == actualLabel) {
-					correct = true;
+		for (int i = 0; i < total; i++) {
+			String[] l = actualLabels.get(i);
+			for (int j = 0; j < l.length; j++) {
+				int id = labelNameContainer.getId(l[j]);
+				if (labelIds[i] == id) {
+					correctCnt++;
 					break;
 				}
 			}
-
-			if (correct) correctCnt++;
 		}
-		System.out.println();
+
+		//System.out.print("testing documents: ");
+		//for (int i = 0; i < xmlFiles.length; i++) {
+		//	if ((i & 1023) == 0) System.out.println();
+		//	if ((i & 255) == 0) System.out.print(i + ",... ");
+
+		//	xml.parseDocument(xmlFiles[i]);
+		//	int ans = trainer.classify(xml.getTitleFeatures(), xml.getContentFeatures());
+
+		//	String[] labels = xml.getLabels();
+		//	for (int j = 0; j < labels.length; j++) {
+		//		int actualLabel = labelNameContainer.getId(labels[j]);
+		//		if (ans == actualLabel) {
+		//			correctCnt++;
+		//			break;
+		//		}
+		//	}
+		//}
+		//System.out.println();
 
 		System.out.println("total test file: " + total);
 		System.out.println("number of correct classification: " + correctCnt);
