@@ -25,7 +25,7 @@ public class ClassifierTrainer {
 
 	private void deserializeDataHolder() throws Exception {
 		// this method must be invoked after the configurator is initialized
-		System.out.println("deserializing dataHolder...");
+		System.out.println("before training: deserializing dataHolder...");
 		dataHolder = FinalDataHolder.deserialize(config.getStatisticalDir());
 	}
 
@@ -33,7 +33,7 @@ public class ClassifierTrainer {
 		Trainer trainer = null;
 		switch (config.getClassifierId()) {
 		case Constant.TWCNB:
-			System.out.println("using twcnb (bayes) classifier.");
+			System.out.println("training twcnb (bayes) classifier...");
 			trainer = new TWCNBayesTrainer(dataHolder);
 			break;
 		}

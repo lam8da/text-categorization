@@ -30,7 +30,7 @@ public abstract class DataHolderTest {
 		FileReader fr = new FileReader(file);
 		BufferedReader br = new BufferedReader(fr);
 		while (true) {
-			String text = br.readLine();
+			String text = br.readLine().trim();
 			if (text == null) break;
 			sb.append(text);
 			sb.append("\r\n");

@@ -122,18 +122,25 @@ public class Main {
 			return;
 		}
 
+		System.out.println();
 		Configurator config = Configurator.getConfigurator();
 		config.deserializeFrom(new File(args[0]));
 
 		if (doPreprocess) {
+			System.out.println("------------------------------- preprocessing -------------------------------");
+			System.out.println();
 			Preprocessor preprocessor = new Preprocessor();
 			preprocessor.preprocess(stage1, stage2);
 		}
 		if (doTraining) {
+			System.out.println("---------------------------------- training ---------------------------------");
+			System.out.println();
 			ClassifierTrainer trainer = new ClassifierTrainer();
 			trainer.train();
 		}
 		if (doEvaluation) {
+			System.out.println("--------------------------------- evaluating --------------------------------");
+			System.out.println();
 			Evaluator evaluator = new Evaluator();
 			evaluator.evaluate();
 		}

@@ -130,7 +130,7 @@ public class XmlDocument {
 			}
 			else {
 				for (int i = 1; i < labelsNode.getLength(); i += 2) {
-					this.labels[i / 2] = labelsNode.item(i).getTextContent();
+					this.labels[i / 2] = labelsNode.item(i).getTextContent().trim();
 					// System.out.println(labelsNode.item(i).getNodeName() + ": " + labels[i / 2]);
 				}
 			}

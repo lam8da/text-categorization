@@ -46,6 +46,7 @@ public class Configurator {
 	//for classifier
 	private int classifierId;
 	private File twcnbFolder;
+	private File naiveBayesFolder;
 	private File svmFolder;
 	private File knnFolder;
 
@@ -274,6 +275,9 @@ public class Configurator {
 		case Constant.TWCNB:
 			bw.write(Constant.TWCNB_STR);
 			break;
+		case Constant.NAIVE_BAYES:
+			bw.write(Constant.NAIVE_BAYES_STR);
+			break;
 		case Constant.SVM:
 			bw.write(Constant.SVM_STR);
 			break;
@@ -299,20 +303,20 @@ public class Configurator {
 
 		/*-------------------------------------------------------------------------------*/
 
-		br.readLine(); // "inputPath:"
-		String inputPath = br.readLine();
+		br.readLine().trim(); // "inputPath:"
+		String inputPath = br.readLine().trim();
 
 		/*-------------------------------------------------------------------------------*/
 
-		br.readLine(); // "outputPath:"
-		String outputPath = br.readLine();
+		br.readLine().trim(); // "outputPath:"
+		String outputPath = br.readLine().trim();
 
 		/*-------------------------------------------------------------------------------*/
 
-		br.readLine(); // "corpus:"
-		tmp1 = br.readLine();
-		br.readLine(); // "splitting:"
-		tmp2 = br.readLine();
+		br.readLine().trim(); // "corpus:"
+		tmp1 = br.readLine().trim();
+		br.readLine().trim(); // "splitting:"
+		tmp2 = br.readLine().trim();
 		this.corpusId = -1;
 		this.splitting = -1;
 
@@ -336,8 +340,8 @@ public class Configurator {
 
 		/*-------------------------------------------------------------------------------*/
 
-		br.readLine(); // "stopper:"
-		tmp1 = br.readLine();
+		br.readLine().trim(); // "stopper:"
+		tmp1 = br.readLine().trim();
 		this.stopperId = -1;
 		if (tmp1.equals(Constant.USE_STOPPER_STR)) {
 			stopperId = Constant.USE_STOPPER;
@@ -349,8 +353,8 @@ public class Configurator {
 
 		/*-------------------------------------------------------------------------------*/
 
-		br.readLine(); // "stemmer:"
-		tmp1 = br.readLine();
+		br.readLine().trim(); // "stemmer:"
+		tmp1 = br.readLine().trim();
 		this.stemmerId = -1;
 		if (tmp1.equals(Constant.PORTER_STEMMER_STR)) {
 			stemmerId = Constant.PORTER_STEMMER;
@@ -365,8 +369,8 @@ public class Configurator {
 
 		/*-------------------------------------------------------------------------------*/
 
-		br.readLine(); // "toLower:"
-		tmp1 = br.readLine();
+		br.readLine().trim(); // "toLower:"
+		tmp1 = br.readLine().trim();
 		if (tmp1.equals(Constant.TRUE_STR)) {
 			this.toLower = true;
 		}
@@ -377,8 +381,8 @@ public class Configurator {
 
 		/*-------------------------------------------------------------------------------*/
 
-		br.readLine(); // "timeToConst:"
-		tmp1 = br.readLine();
+		br.readLine().trim(); // "timeToConst:"
+		tmp1 = br.readLine().trim();
 		if (tmp1.equals(Constant.TRUE_STR)) {
 			this.timeToConst = true;
 		}
@@ -389,8 +393,8 @@ public class Configurator {
 
 		/*-------------------------------------------------------------------------------*/
 
-		br.readLine(); // "numToConst:"
-		tmp1 = br.readLine();
+		br.readLine().trim(); // "numToConst:"
+		tmp1 = br.readLine().trim();
 		if (tmp1.equals(Constant.TRUE_STR)) {
 			this.numToConst = true;
 		}
@@ -401,8 +405,8 @@ public class Configurator {
 
 		/*-------------------------------------------------------------------------------*/
 
-		br.readLine(); // "selector:"
-		tmp1 = br.readLine();
+		br.readLine().trim(); // "selector:"
+		tmp1 = br.readLine().trim();
 		this.selectorId = -1;
 		if (tmp1.equals(Constant.CHI_SELECTOR_STR)) {
 			selectorId = Constant.CHI_SELECTOR;
@@ -423,8 +427,8 @@ public class Configurator {
 
 		/*-------------------------------------------------------------------------------*/
 
-		br.readLine(); // "threshold-selection:"
-		tmp1 = br.readLine();
+		br.readLine().trim(); // "threshold-selection:"
+		tmp1 = br.readLine().trim();
 		this.thresholdMethodId = -1;
 		if (tmp1.equals(Constant.THRESHOLD_K_MEANS_STR)) {
 			thresholdMethodId = Constant.THRESHOLD_K_MEANS;
@@ -436,25 +440,25 @@ public class Configurator {
 
 		/*-------------------------------------------------------------------------------*/
 
-		br.readLine(); // "chi-thres:"
-		chiThres = Double.valueOf(br.readLine());
+		br.readLine().trim(); // "chi-thres:"
+		chiThres = Double.valueOf(br.readLine().trim());
 
-		br.readLine(); // "df-thres:"
-		dfThres = Double.valueOf(br.readLine());
+		br.readLine().trim(); // "df-thres:"
+		dfThres = Double.valueOf(br.readLine().trim());
 
-		br.readLine(); // "ig-thres:"
-		igThres = Double.valueOf(br.readLine());
+		br.readLine().trim(); // "ig-thres:"
+		igThres = Double.valueOf(br.readLine().trim());
 
-		br.readLine(); // "mi-thres:"
-		miThres = Double.valueOf(br.readLine());
+		br.readLine().trim(); // "mi-thres:"
+		miThres = Double.valueOf(br.readLine().trim());
 
-		br.readLine(); // "wf-thres:"
-		wfThres = Double.valueOf(br.readLine());
+		br.readLine().trim(); // "wf-thres:"
+		wfThres = Double.valueOf(br.readLine().trim());
 
 		/*-------------------------------------------------------------------------------*/
 
-		br.readLine(); // "selectMethod:"
-		tmp1 = br.readLine();
+		br.readLine().trim(); // "selectMethod:"
+		tmp1 = br.readLine().trim();
 		this.selectMethodId = -1;
 		if (tmp1.equals(Constant.FEATURE_SELECTION_MAXSELECTION_STR)) {
 			selectMethodId = Constant.FEATURE_SELECTION_MAXSELECTION;
@@ -466,8 +470,8 @@ public class Configurator {
 
 		/*-------------------------------------------------------------------------------*/
 
-		br.readLine(); // "generator:"
-		tmp1 = br.readLine();
+		br.readLine().trim(); // "generator:"
+		tmp1 = br.readLine().trim();
 		this.generatorId = -1;
 		if (tmp1.equals(Constant.TRIE_GENERATOR_STR)) {
 			generatorId = Constant.TRIE_GENERATOR;
@@ -481,11 +485,14 @@ public class Configurator {
 
 		/*-------------------------------------------------------------------------------*/
 
-		br.readLine(); // "classifier:"
-		tmp1 = br.readLine();
+		br.readLine().trim(); // "classifier:"
+		tmp1 = br.readLine().trim();
 		this.classifierId = -1;
 		if (tmp1.equals(Constant.TWCNB_STR)) {
 			classifierId = Constant.TWCNB;
+		}
+		else if (tmp1.equals(Constant.NAIVE_BAYES_STR)) {
+			classifierId = Constant.NAIVE_BAYES;
 		}
 		else if (tmp1.equals(Constant.SVM_STR)) {
 			classifierId = Constant.SVM;
@@ -511,6 +518,7 @@ public class Configurator {
 		this.orgStatisticalDir = new File(this.outputDir, Constant.ORG_STATISTICAL_DATA_PATH);
 
 		this.twcnbFolder = new File(this.outputDir, Constant.TWCNB_FOLDER);
+		this.naiveBayesFolder = new File(this.outputDir, Constant.NAIVE_BAYES_FOLDER);
 		this.svmFolder = new File(this.outputDir, Constant.SVM_FOLDER);
 		this.knnFolder = new File(this.outputDir, Constant.KNN_FOLDER);
 
@@ -651,6 +659,11 @@ public class Configurator {
 	public File getTwcnbFolder() throws Exception {
 		checkReady();
 		return twcnbFolder;
+	}
+
+	public File getNaiveBayesFolder() throws Exception {
+		checkReady();
+		return naiveBayesFolder;
 	}
 
 	public File getSvmFolder() throws Exception {

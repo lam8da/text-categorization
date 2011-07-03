@@ -139,10 +139,12 @@ public final class Constant {
 
 	// for classifier selection
 	public static final int TWCNB = 1;
-	public static final int SVM = 2;
-	public static final int KNN = 3;
+	public static final int NAIVE_BAYES = 2;
+	public static final int SVM = 3;
+	public static final int KNN = 4;
 
 	public static final String TWCNB_STR = "twcnb";
+	public static final String NAIVE_BAYES_STR = "naiveBayes";
 	public static final String SVM_STR = "svm";
 	public static final String KNN_STR = "knn";
 
@@ -151,6 +153,8 @@ public final class Constant {
 	public static final String TWCNB_META_FILE = "twcnb-meta";
 	public static final String TWCNB_CT_ROW_FILE_PREFIX = "ctRow";
 	public static final String TWCNB_DT_ROW_FILE_PREFIX = "dtRow";
+	
+	public static final String NAIVE_BAYES_FOLDER = "classifier-naiveBayes";
 	
 	public static final String SVM_FOLDER = "classifier-svm";
 	

@@ -99,16 +99,16 @@ public class SimpleMap implements SimpleContainer {
 		BufferedReader br = new BufferedReader(fr);
 		if (eliminatedId != null) Arrays.sort(eliminatedId);
 
-		int n = Integer.parseInt(br.readLine());
+		int n = Integer.parseInt(br.readLine().trim());
 		for (int i = 0; i < n; i++) {
-			int givenId = Integer.parseInt(br.readLine()); // id field
+			int givenId = Integer.parseInt(br.readLine().trim()); // id field
 			if (eliminatedId != null && Arrays.binarySearch(eliminatedId, givenId) >= 0) {
-				br.readLine();// read occurrence
+				br.readLine().trim();// read occurrence
 				continue;
 			}
 			String str = this.idMapper.getWord(givenId); // in order to validate
 
-			int occurrence = Integer.parseInt(br.readLine());
+			int occurrence = Integer.parseInt(br.readLine().trim());
 			add(str, occurrence);
 		}
 

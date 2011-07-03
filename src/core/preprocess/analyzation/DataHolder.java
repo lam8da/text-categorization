@@ -59,7 +59,7 @@ public class DataHolder {
 		File sizeFile = new File(triesFolder, metaFilename);
 		FileReader fr = new FileReader(sizeFile);
 		BufferedReader br = new BufferedReader(fr);
-		int size = Integer.parseInt(br.readLine());
+		int size = Integer.parseInt(br.readLine().trim());
 		br.close();
 		fr.close();
 
@@ -74,13 +74,13 @@ public class DataHolder {
 		File docLabelFile = new File(inputDir, Constant.DOC_LABELS_FILE);
 		FileReader fr = new FileReader(docLabelFile);
 		BufferedReader br = new BufferedReader(fr);
-		res.docCnt = Integer.parseInt(br.readLine());
-		int labelCnt = Integer.parseInt(br.readLine());
+		res.docCnt = Integer.parseInt(br.readLine().trim());
+		int labelCnt = Integer.parseInt(br.readLine().trim());
 		for (int i = 0; i < labelCnt; i++) {
-			int lLength = Integer.parseInt(br.readLine());
+			int lLength = Integer.parseInt(br.readLine().trim());
 			Vector<Integer> l = new Vector<Integer>(lLength);
 			for (int j = 0; j < lLength; j++) {
-				l.add(Integer.parseInt(br.readLine()));
+				l.add(Integer.parseInt(br.readLine().trim()));
 			}
 			res.docIdsPerLabel.add(l);
 		}

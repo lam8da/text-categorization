@@ -51,10 +51,10 @@ public class TWCNBayesTrainer extends Trainer {
 	 * File dtRowFile = new File(twcnbOutputDir, badDocMarkInfoFile);
 	 * FileReader fr = new FileReader(dtRowFile);
 	 * BufferedReader br = new BufferedReader(fr);
-	 * int cnt = Integer.parseInt(br.readLine());
+	 * int cnt = Integer.parseInt(br.readLine().trim());
 	 * Arrays.fill(badDocMark, false);
 	 * for (int i = 0; i < cnt; i++) {
-	 * badDocMark[Integer.parseInt(br.readLine())] = true;
+	 * badDocMark[Integer.parseInt(br.readLine().trim())] = true;
 	 * }
 	 * br.close();
 	 * fr.close();
@@ -159,6 +159,7 @@ public class TWCNBayesTrainer extends Trainer {
 			for (int featureId = 0; featureId < featureCnt; featureId++) {
 				s += ctWeight[featureId];
 			}
+			s = Math.abs(s);
 			for (int featureId = 0; featureId < featureCnt; featureId++) {
 				ctWeight[featureId] /= s;
 			}
