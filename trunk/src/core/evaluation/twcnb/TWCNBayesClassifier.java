@@ -35,7 +35,7 @@ public class TWCNBayesClassifier extends Classifier {
 	}
 
 	@Override
-	public int classify(String[] titleFeatures, String[] contentFeatures) throws Exception {
+	public Vector<Integer> classify(String[] titleFeatures, String[] contentFeatures) throws Exception {
 		// we regard the features in the title and the content the same
 		double mins = Double.MAX_VALUE;
 		int ans = -1;
@@ -48,11 +48,13 @@ public class TWCNBayesClassifier extends Classifier {
 				ans = labelId;
 			}
 		}
-		return ans;
+		Vector<Integer> res = new Vector<Integer>(1);
+		res.add(ans);
+		return res;
 	}
 
 	@Override
-	public int[] classify(Vector<String[]> titleFeatures, Vector<String[]> contentFeatures) throws Exception {
+	public Vector<int[]> classify(Vector<String[]> titleFeatures, Vector<String[]> contentFeatures) throws Exception {
 		if (titleFeatures.size() != contentFeatures.size()) throw new Exception("the size of title and content mismatch!");
 		int testDocCnt = contentFeatures.size();
 		int[] ans = new int[testDocCnt];
@@ -74,7 +76,14 @@ public class TWCNBayesClassifier extends Classifier {
 			}
 		}
 		System.out.println();
-		return ans;
+
+		Vector<int[]> res = new Vector<int[]>(testDocCnt);
+		for (int i = 0; i < testDocCnt; i++) {
+			int[] ansi = new int[1];
+			ansi[0] = ans[i];
+			res.add(ansi);
+		}
+		return res;
 	}
 
 	@Override

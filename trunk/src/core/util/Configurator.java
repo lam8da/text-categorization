@@ -50,6 +50,9 @@ public class Configurator {
 	private File svmFolder;
 	private File knnFolder;
 
+	//for evaluation
+	private File evaluationFolder;
+
 	private boolean isReady;
 
 	private Configurator() {
@@ -522,6 +525,8 @@ public class Configurator {
 		this.svmFolder = new File(this.outputDir, Constant.SVM_FOLDER);
 		this.knnFolder = new File(this.outputDir, Constant.KNN_FOLDER);
 
+		this.evaluationFolder = new File(this.outputDir, Constant.EVALUATION_FOLDER);
+
 		isReady = true;
 	}
 
@@ -674,6 +679,11 @@ public class Configurator {
 	public File getKnnFolder() throws Exception {
 		checkReady();
 		return knnFolder;
+	}
+
+	public File getEvaluationFolder() throws Exception {
+		checkReady();
+		return evaluationFolder;
 	}
 
 	/*****************************************************************************/
