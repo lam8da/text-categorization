@@ -61,18 +61,34 @@ public class TWCNBayesTrainer extends Trainer {
 	 * }
 	 */
 
+	@Override
 	public void train() throws Exception {
 		if (dataHolder == null) throw new Exception("dataHolder is null, can not train!");
 		System.out.println("Deleting all files in " + twcnbOutputDir);
 		UtilityFuncs.deleteDirectory(twcnbOutputDir);
 
-		System.out.print("calculating the document-term matrix...");
-		double[] dtWeight = new double[featureCnt]; // one row of the document-term matrix
-		double[] ctWeight = new double[featureCnt]; // one row of the class-term matrix
-
 		boolean[] badDocMark = new boolean[documentCnt];
 		double[] rowSum = new double[documentCnt];
 		double[] columnSum = new double[featureCnt];
+		
+		double dtWeightSum = calDocumentTermInfo(badDocMark, rowSum, columnSum);
+		calClassTermInfo(badDocMark, rowSum, columnSum, dtWeightSum);
+
+		//System.out.println();
+		//for (int i = 0; i < documentCnt; i++) {
+		//	System.out.println(rowSum[i]);
+		//}
+		//System.out.println();
+		//for (int i = 0; i < featureCnt; i++) {
+		//	System.out.println(columnSum[i]);
+		//}
+		//System.out.println();
+	}
+
+	private double calDocumentTermInfo(boolean[] badDocMark, double[] rowSum, double[] columnSum) throws Exception {
+		System.out.print("calculating the document-term matrix...");
+		double[] dtWeight = new double[featureCnt]; // one row of the document-term matrix
+
 		Arrays.fill(badDocMark, false);
 		Arrays.fill(rowSum, 0);
 		Arrays.fill(columnSum, 0);
@@ -106,18 +122,13 @@ public class TWCNBayesTrainer extends Trainer {
 		}
 		System.out.println();
 		serializeBadDocMarkInfo(badDocMark);
+		return dtWeightSum;
+	}
 
-		//System.out.println();
-		//for (int i = 0; i < documentCnt; i++) {
-		//	System.out.println(rowSum[i]);
-		//}
-		//System.out.println();
-		//for (int i = 0; i < featureCnt; i++) {
-		//	System.out.println(columnSum[i]);
-		//}
-		//System.out.println();
-
+	private void calClassTermInfo(boolean[] badDocMark, double[] rowSum, double[] columnSum, double dtWeightSum) throws Exception {
 		System.out.println("calculating the class-term matrix (the classifying parameters)...");
+		double[] dtWeight = new double[featureCnt]; // one row of the document-term matrix
+		double[] ctWeight = new double[featureCnt]; // one row of the class-term matrix
 		double alpha_i = 1;
 		double alpha = featureCnt;
 		for (int labelId = 0; labelId < labelCnt; labelId++) {
@@ -145,21 +156,10 @@ public class TWCNBayesTrainer extends Trainer {
 				ctWeight[featureId] = Math.log(ctWeight[featureId] / denominator);
 			}
 
-			//for (int featureId = 0; featureId < featureCnt; featureId++) {
-			//	double numerator = columnSum[featureId] + alpha_i;
-			//	for (int i = 0; i < lsize; i++) {
-			//		if (!badDocMark[l.get(i)]) {
-			//			numerator -= dtWeight[l.get(i)][featureId];
-			//		}
-			//	}
-			//	ctWeight[labelId][featureId] = Math.log(numerator / denominator);
-			//}
-
 			double s = 0;
 			for (int featureId = 0; featureId < featureCnt; featureId++) {
-				s += ctWeight[featureId];
+				s += Math.abs(ctWeight[featureId]);
 			}
-			s = Math.abs(s);
 			for (int featureId = 0; featureId < featureCnt; featureId++) {
 				ctWeight[featureId] /= s;
 			}

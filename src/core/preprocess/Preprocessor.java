@@ -106,7 +106,7 @@ public class Preprocessor {
 
 		System.out.print("passing documents: ");
 		for (int i = 0; i < xmlFiles.length; i++) {
-			if ((i & 2047) == 0) System.out.println();
+			if ((i & 1023) == 0) System.out.println();
 			if ((i & 255) == 0) System.out.print(i + ",... ");
 			xml.parseDocument(xmlFiles[i]);
 			analyzer.addDocument(xml.getLabels(), xml.getTitleFeatures(), xml.getContentFeatures());

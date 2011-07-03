@@ -137,7 +137,7 @@ public final class Constant {
 	//for configurator
 	public static final String CONFIG_FILENAME = "config.txt";
 
-	// for classifier selection
+	//for classifier selection
 	public static final int TWCNB = 1;
 	public static final int NAIVE_BAYES = 2;
 	public static final int SVM = 3;
@@ -148,7 +148,7 @@ public final class Constant {
 	public static final String SVM_STR = "svm";
 	public static final String KNN_STR = "knn";
 
-	// for classifier output
+	//for classifier output
 	public static final String TWCNB_FOLDER = "classifier-twcnb";
 	public static final String TWCNB_META_FILE = "twcnb-meta";
 	public static final String TWCNB_CT_ROW_FILE_PREFIX = "ctRow";
@@ -159,4 +159,8 @@ public final class Constant {
 	public static final String SVM_FOLDER = "classifier-svm";
 	
 	public static final String KNN_FOLDER = "classifier-knn";
+	
+	//for evaluator
+	public static final String EVALUATION_FOLDER = "evaluation";
+	public static final String EVALUATION_RESULT_FILE = "precision_recall.txt";
 }

@@ -23,9 +23,9 @@ public abstract class Classifier {
 		featureContainer.deserializeFrom(new File(config.getStatisticalDir(), Constant.FEATURE_CONTAINER_FILE), null);
 	}
 
-	public abstract int classify(String[] titleFeatures, String[] contentFeatures) throws Exception;
+	public abstract Vector<Integer> classify(String[] titleFeatures, String[] contentFeatures) throws Exception;
 
-	public abstract int[] classify(Vector<String[]> titleFeatures, Vector<String[]> contentFeatures) throws Exception;
+	public abstract Vector<int[]> classify(Vector<String[]> titleFeatures, Vector<String[]> contentFeatures) throws Exception;
 
 	public abstract void deserializeFrom(File dir) throws Exception;
 }
