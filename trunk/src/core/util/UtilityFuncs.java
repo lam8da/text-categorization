@@ -65,16 +65,16 @@ public class UtilityFuncs {
 		BufferedReader br = new BufferedReader(fr);
 
 		if (compressed) {
-			int nonZeroCnt = Integer.parseInt(br.readLine());
+			int nonZeroCnt = Integer.parseInt(br.readLine().trim());
 			Arrays.fill(row, 0);
 			for (int i = 0; i < nonZeroCnt; i++) {
-				int idx = Integer.parseInt(br.readLine());
-				row[idx] = Double.parseDouble(br.readLine());
+				int idx = Integer.parseInt(br.readLine().trim());
+				row[idx] = Double.parseDouble(br.readLine().trim());
 			}
 		}
 		else {
 			for (int i = 0; i < row.length; i++) {
-				row[i] = Double.parseDouble(br.readLine());
+				row[i] = Double.parseDouble(br.readLine().trim());
 			}
 		}
 

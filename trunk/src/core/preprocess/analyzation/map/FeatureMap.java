@@ -168,16 +168,16 @@ public class FeatureMap implements FeatureContainer {
 
 		if (eliminatedId != null) Arrays.sort(eliminatedId);
 
-		int n = Integer.parseInt(br.readLine());
+		int n = Integer.parseInt(br.readLine().trim());
 		for (int i = 0; i < n; i++) {
-			String str = br.readLine(); //'string' field
-			int id = Integer.parseInt(br.readLine()); //'id' field
+			String str = br.readLine().trim(); //'string' field
+			int id = Integer.parseInt(br.readLine().trim()); //'id' field
 
 			if (eliminatedId != null && Arrays.binarySearch(eliminatedId, id) >= 0) {
-				br.readLine();//read occurrence
+				br.readLine().trim();//read occurrence
 				continue;
 			}
-			int occurrence = Integer.parseInt(br.readLine());
+			int occurrence = Integer.parseInt(br.readLine().trim());
 			add(str, occurrence, id);
 		}
 

@@ -181,11 +181,11 @@ public class Preprocessor {
 		System.out.println("deserializing and reducing data...");
 		FileReader fr = new FileReader(config.getReductionListFile());
 		BufferedReader br = new BufferedReader(fr);
-		int cnt = Integer.parseInt(br.readLine());
+		int cnt = Integer.parseInt(br.readLine().trim());
 		int[] eliminatedId = new int[cnt];
 		for (int i = 0; i < cnt; i++) {
-			eliminatedId[i] = Integer.parseInt(br.readLine());
-			br.readLine();//dummy
+			eliminatedId[i] = Integer.parseInt(br.readLine().trim());
+			br.readLine().trim();//dummy
 		}
 		br.close();
 		fr.close();

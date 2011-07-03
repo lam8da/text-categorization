@@ -84,18 +84,18 @@ public class SimpleTrie extends AbstractTrie implements SimpleContainer {
 
 		if (eliminatedId != null) Arrays.sort(eliminatedId);
 
-		int n = Integer.parseInt(br.readLine());
+		int n = Integer.parseInt(br.readLine().trim());
 		for (int i = 0; i < n; i++) {
-			String str = br.readLine(); // 'string' field
+			String str = br.readLine().trim(); // 'string' field
 
 			int givenId = Integer.parseInt(str); // 'string' field
 			if (eliminatedId != null && Arrays.binarySearch(eliminatedId, givenId) >= 0) {
-				br.readLine();// read occurrence
+				br.readLine().trim();// read occurrence
 				continue;
 			}
 			str = this.idMapper.getWord(givenId); // exception may occur if the trie has no string associate with strId
 
-			int occurrence = Integer.parseInt(br.readLine());
+			int occurrence = Integer.parseInt(br.readLine().trim());
 			add(str, occurrence);
 		}
 

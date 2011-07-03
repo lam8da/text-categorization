@@ -85,9 +85,9 @@ public class TWCNBayesClassifier extends Classifier {
 		FileReader fr = new FileReader(metaFile);
 		BufferedReader br = new BufferedReader(fr);
 
-		this.documentCnt = Integer.parseInt(br.readLine());
-		this.labelCnt = Integer.parseInt(br.readLine());
-		this.featureCnt = Integer.parseInt(br.readLine());
+		this.documentCnt = Integer.parseInt(br.readLine().trim());
+		this.labelCnt = Integer.parseInt(br.readLine().trim());
+		this.featureCnt = Integer.parseInt(br.readLine().trim());
 
 		br.close();
 		fr.close();

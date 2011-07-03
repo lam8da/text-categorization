@@ -61,17 +61,31 @@ public class Evaluator {
 			actualLabels.add(xml.getLabels());
 		}
 		int[] labelIds = trainer.classify(titleFeatures, contentFeatures);
+		System.out.println();
 
 		for (int i = 0; i < total; i++) {
 			String[] l = actualLabels.get(i);
+			boolean correct = false;
 			for (int j = 0; j < l.length; j++) {
 				int id = labelNameContainer.getId(l[j]);
 				if (labelIds[i] == id) {
+					correct = true;
 					correctCnt++;
 					break;
 				}
 			}
+//			if (!correct) {
+//				System.out.print("mismatch: ");
+//				for (int j = 0; j < l.length; j++) {
+//					if (j > 0) System.out.print(",");
+//					System.out.print(l[j]);
+//				}
+//				System.out.print(" --> ");
+//				System.out.print(labelNameContainer.getWord(labelIds[i]));
+//				System.out.println(" (" + xmlFiles[i].getName() + ")");
+//			}
 		}
+		System.out.println();
 
 		//System.out.print("testing documents: ");
 		//for (int i = 0; i < xmlFiles.length; i++) {
