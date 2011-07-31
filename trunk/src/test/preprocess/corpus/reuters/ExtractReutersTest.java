@@ -9,7 +9,7 @@ import core.util.Constant;
 public class ExtractReutersTest {
 	public static void main(String[] args) throws Exception {
 		if (args.length != 2) {
-			ReutersExtractor.printUsage();
+			System.out.println("invalid parameters!");
 			return;
 		}
 
@@ -22,7 +22,7 @@ public class ExtractReutersTest {
 			extractor.extract(null, new core.preprocess.extraction.KrovetzStemmer(), false, true, true);
 		}
 		else {
-			ReutersExtractor.printUsage();
+			System.out.println("fatal error: reuter directory does not exist!");
 		}
 	}
 }
