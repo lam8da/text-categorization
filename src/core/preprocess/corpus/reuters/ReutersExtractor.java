@@ -186,8 +186,4 @@ public class ReutersExtractor extends Extractor {
 			throw new RuntimeException(e);
 		}
 	}
-
-	public static void printUsage() {
-		System.err.println("Usage: java -cp <...> org.apache.lucene.benchmark.utils.ExtractReuters <Path to Reuters SGM files> <Output Path>");
-	}
 }
